@@ -1,0 +1,162 @@
+#include DATA_WRAPPER_CORE.cpd
+
+#hide
+'<!-- Synthetic property-library template. Replace the example data and source records. -->
+
+#def ExampleLibraryName$ = Example Temperature-Dependent Property Library
+#def ExampleLibraryRevision$ = 0.3.2-DRAFT
+#def ExampleLibraryDate$ = 2026-08-04
+#def ExampleLibrarySource$ = Replace with the governing standard, handbook, manufacturer data, or test report.
+
+MATERIAL_A = 101
+Material_A = MATERIAL_A
+material_a = MATERIAL_A
+MAT_A = MATERIAL_A
+SAMPLE_A = MATERIAL_A
+
+MATERIAL_B = 102
+Material_B = MATERIAL_B
+material_b = MATERIAL_B
+MAT_B = MATERIAL_B
+SAMPLE_B = MATERIAL_B
+
+ExampleItemIDs = [101; 102]
+
+P_DENSITY = 1
+p_density = P_DENSITY
+DENSITY = P_DENSITY
+RHO = P_DENSITY
+
+P_CP = 2
+p_cp = P_CP
+CP = P_CP
+HEAT_CAPACITY = P_CP
+
+P_VISCOSITY = 3
+p_viscosity = P_VISCOSITY
+VISCOSITY = P_VISCOSITY
+MU = P_VISCOSITY
+
+ExamplePropertyIDs = [1; 2; 3]
+
+SRC_EXAMPLE_A = 1
+SRC_EXAMPLE_B = 2
+
+KEY_A_DENSITY = 101001
+KEY_A_CP = 101002
+KEY_A_VISCOSITY = 101003
+KEY_B_DENSITY = 102001
+KEY_B_CP = 102002
+KEY_B_VISCOSITY = 102003
+
+ExampleCurveData = [101001; 0; 1005|101001; 50; 985|101001; 100; 960|101002; 0; 3.60|101002; 50; 3.82|101002; 100; 4.05|101003; 0; 0.012|101003; 50; 0.0045|101003; 100; 0.0021|102001; 0; 1120|102001; 40; 1090|102001; 80; 1055|102002; 0; 2.90|102002; 40; 3.05|102002; 80; 3.25]
+
+ExampleMetadata = [101001; 0; 100; 1; 1|101002; 0; 100; 1; 1|101003; 0; 100; 2; 2|102001; 0; 80; 1; 1|102002; 0; 80; 1; 1]
+
+ExampleHasItem(item) = DBHasID(ExampleItemIDs; item)
+ExampleHasProperty(property) = DBHasID(ExamplePropertyIDs; property)
+ExampleHasCurve(item; property) = DBCurveExists(ExampleCurveData; DBKey(item; property))
+ExampleHasMetadata(item; property) = and(DBTableStatus(ExampleMetadata; DBKey(item; property); 2) ≡ DB_OK; DBTableStatus(ExampleMetadata; DBKey(item; property); 3) ≡ DB_OK; DBTableStatus(ExampleMetadata; DBKey(item; property); 4) ≡ DB_OK; DBTableStatus(ExampleMetadata; DBKey(item; property); 5) ≡ DB_OK)
+
+ExampleTMin(item; property) = DBTableRaw(ExampleMetadata; DBKey(item; property); 2)
+ExampleTMax(item; property) = DBTableRaw(ExampleMetadata; DBKey(item; property); 3)
+ExampleSourceID(item; property) = DBTableRaw(ExampleMetadata; DBKey(item; property); 4)
+ExampleDataRevision(item; property) = DBTableRaw(ExampleMetadata; DBKey(item; property); 5)
+
+ExampleApplyUnits(property; value) = switch(property ≡ P_DENSITY; setunits(value; kg/m^3); property ≡ P_CP; setunits(value; kJ/(kg*K)); property ≡ P_VISCOSITY; setunits(value; Pa*s); 0/0)
+
+ExamplePROPStatus(item; property; temperature_C; method; bounds_policy) = _
+$block{
+    item_ok = ExampleHasItem(item); 
+    property_ok = ExampleHasProperty(property); 
+    curve_ok = if(and(item_ok; property_ok); ExampleHasCurve(item; property); 0); 
+    metadata_ok = if(curve_ok; ExampleHasMetadata(item; property); 0); 
+    T_min = if(metadata_ok; ExampleTMin(item; property); 0); 
+    T_max = if(metadata_ok; ExampleTMax(item; property); 0); 
+    status = switch(not(item_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; not(curve_ok); DB_ERR_MISSING; not(metadata_ok); DB_ERR_MISSING; DBCurveStatus(ExampleCurveData; DBKey(item; property); temperature_C; T_min; T_max; method; bounds_policy)); 
+    status; 
+}
+
+ExamplePROPEx(item; property; temperature_C; method; bounds_policy) = _
+$block{
+    status = ExamplePROPStatus(item; property; temperature_C; method; bounds_policy); 
+    T_min = if(DBIsFatal(status); 0; ExampleTMin(item; property)); 
+    T_max = if(DBIsFatal(status); 0; ExampleTMax(item; property)); 
+    raw = if(DBIsFatal(status); 0/0; DBCurveRaw(ExampleCurveData; DBKey(item; property); temperature_C; T_min; T_max; method; bounds_policy)); 
+    value = if(DBIsFatal(status); 0/0; ExampleApplyUnits(property; raw)); 
+    value; 
+}
+
+ExamplePROP(item; property; temperature_C) = ExamplePROPEx(item; property; temperature_C; DB_LINEAR; DB_STRICT)
+ExamplePROPNearest(item; property; temperature_C) = ExamplePROPEx(item; property; temperature_C; DB_NEAREST; DB_STRICT)
+ExamplePROPClamped(item; property; temperature_C) = ExamplePROPEx(item; property; temperature_C; DB_LINEAR; DB_CLAMP)
+ExamplePROPExtrapolated(item; property; temperature_C) = ExamplePROPEx(item; property; temperature_C; DB_LINEAR; DB_EXTRAPOLATE)
+
+#def ExamplePROPWithUnits$(result$; item$; property$; temperature$)
+	    #hide
+	    ζDB_temperature_units = temperature$|°C
+	    ζDB_temperature_C = clrunits(ζDB_temperature_units)
+	    result$ = ExamplePROP(item$; property$; ζDB_temperature_C)
+	    #show
+#end def
+
+#def ShowExampleLibraryInfo$
+	    '<table class="bordered data" style="width:95%">
+	    '<tbody>
+	    '<tr><td><strong>Library</strong></td><td>ExampleLibraryName$</td></tr>
+	    '<tr><td><strong>Library Revision</strong></td><td>ExampleLibraryRevision$</td></tr>
+	    '<tr><td><strong>Library Date</strong></td><td>ExampleLibraryDate$</td></tr>
+	    '<tr><td><strong>Source</strong></td><td>ExampleLibrarySource$</td></tr>
+	    '<tr><td><strong>Wrapper Core</strong></td><td>DBWrapperName$</td></tr>
+	    '<tr><td><strong>Wrapper Version</strong></td><td>DBWrapperVersion$</td></tr>
+	    '</tbody>
+	    '</table>
+#end def
+
+ExampleSourceKnown(source_id) = or(source_id ≡ SRC_EXAMPLE_A; source_id ≡ SRC_EXAMPLE_B)
+
+#def ExampleSource$(source_id$)
+	    #if source_id$ ≡ SRC_EXAMPLE_A
+		        'Example Source A, revision A1
+	    #end if
+	    #if source_id$ ≡ SRC_EXAMPLE_B
+		        'Example Source B, revision B2
+	    #end if
+	    #if not(ExampleSourceKnown(source_id$))
+		        '<span class="err">Unknown source ID</span>
+	    #end if
+#end def
+
+#def ShowExamplePROP$(item$; property$; temperature$; method$; bounds_policy$)
+	    #hide
+	    ζDB_temperature_units = temperature$|°C
+	    ζDB_temperature_C = clrunits(ζDB_temperature_units)
+	    ζDB_status = ExamplePROPStatus(item$; property$; ζDB_temperature_C; method$; bounds_policy$)
+	    ζDB_value = ExamplePROPEx(item$; property$; ζDB_temperature_C; method$; bounds_policy$)
+	    ζDB_range_min = if(DBIsFatal(ζDB_status); 0; ExampleTMin(item$; property$)*°C)
+	    ζDB_range_max = if(DBIsFatal(ζDB_status); 0; ExampleTMax(item$; property$)*°C)
+	    ζDB_source = if(DBIsFatal(ζDB_status); 0; ExampleSourceID(item$; property$))
+	    ζDB_revision = if(DBIsFatal(ζDB_status); 0; ExampleDataRevision(item$; property$))
+	    #show
+	    #novar
+	    '<table class="bordered data" style="width:95%">
+	    '<tbody>
+	    '<tr><td><strong>Item ID</strong></td><td>'item$'</td></tr>
+	    '<tr><td><strong>Property ID</strong></td><td>'property$'</td></tr>
+	    '<tr><td><strong>Temperature</strong></td><td>'temperature$'</td></tr>
+	    '<tr><td><strong>Status</strong></td><td>
+	    DBStatus$(ζDB_status)
+	    '</td></tr>
+	    #if not(DBIsFatal(ζDB_status))
+		        '<tr><td><strong>Value</strong></td><td>'ζDB_value'</td></tr>
+		        '<tr><td><strong>Valid range</strong></td><td>'ζDB_range_min' to 'ζDB_range_max'</td></tr> 
+		        '<tr><td><strong>Source</strong></td><td>
+		        ExampleSource$(ζDB_source)
+		        '</td></tr>
+		        '<tr><td><strong>Data revision ID</strong></td><td>'ζDB_revision'</td></tr>
+		#varsub
+	    #end if
+	    '</tbody>
+	    '</table>
+#end def
+#show

@@ -1,0 +1,24 @@
+#include STYLESHEET_FIXED.cpd
+#include DEFINITIONS.cpd
+#include PLOTTING.cpd
+
+"Plotting Wrapper Demonstration
+
+Theoretical(x) = 20 + 1.5*x
+Measured(x) = Theoretical(x) + 4*sin(1.2*x)
+Power(x) = 6 + 0.25*x^2
+
+sampleData$(x_line; y_line; Theoretical; 0; 10; 101)
+sampleData$(x_points; y_points; Measured; 0; 10; 21)
+sampleData$(x_power; y_power; Power; 0; 10; 51)
+
+figure$(performancePlot)
+figureSize$(performancePlot; 900; 480)
+plot$(performancePlot; x_line; y_line; #d9534f; Design Trend)
+scatter$(performancePlot; x_points; y_points; #292b2c; Measurements)
+plotY2$(performancePlot; x_power; y_power; #337ab7; Power)
+y2Axis$(performancePlot; Power (kW))
+hline$(performancePlot; 32; #d9534f; Design Limit)
+yBand$(performancePlot; 32; 38; rgba(217,83,79,0.12); Warning Zone)
+hoverUnified$(performancePlot)
+render$(performancePlot; Performance Comparison; Time (min); Response (mm))

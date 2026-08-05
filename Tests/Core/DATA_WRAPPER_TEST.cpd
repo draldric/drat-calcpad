@@ -1,0 +1,21 @@
+#include PROPERTY_LIBRARY_TEMPLATE.cpd
+
+"Data Wrapper Parser and Calculation Test
+
+ρ_25 = ExamplePROP(MATERIAL_A; P_DENSITY; 25)
+c_p75 = ExamplePROP(MATERIAL_A; P_CP; 75)
+μ_50 = ExamplePROP(MATERIAL_A; P_VISCOSITY; 50)
+
+status_ok = ExamplePROPStatus(MATERIAL_A; P_DENSITY; 25; DB_LINEAR; DB_STRICT)
+status_low = ExamplePROPStatus(MATERIAL_A; P_DENSITY; -10; DB_LINEAR; DB_STRICT)
+status_high = ExamplePROPStatus(MATERIAL_A; P_DENSITY; 120; DB_LINEAR; DB_CLAMP)
+status_missing = ExamplePROPStatus(MATERIAL_B; P_VISCOSITY; 40; DB_LINEAR; DB_STRICT)
+
+alias_item = and(MATERIAL_A ≡ Material_A; MATERIAL_A ≡ material_a; MATERIAL_A ≡ MAT_A; MATERIAL_A ≡ SAMPLE_A)
+alias_property = and(P_DENSITY ≡ DENSITY; P_DENSITY ≡ RHO; P_CP ≡ CP; P_VISCOSITY ≡ MU)
+
+value_tests = and(abs(clrunits(ρ_25) - 995) < 0.000001; abs(clrunits(c_p75) - 3.935) < 0.000001; abs(clrunits(μ_50) - 0.0045) < 0.000001)
+status_tests = and(status_ok ≡ DB_OK; status_low ≡ DB_ERR_BELOW_RANGE; status_high ≡ DB_WARN_CLAMP_HIGH; status_missing ≡ DB_ERR_MISSING)
+metadata_tests = and(ExampleTMin(MATERIAL_A; P_DENSITY) ≡ 0; ExampleTMax(MATERIAL_A; P_DENSITY) ≡ 100; ExampleSourceID(MATERIAL_A; P_DENSITY) ≡ SRC_EXAMPLE_A; ExampleDataRevision(MATERIAL_A; P_DENSITY) ≡ 1)
+
+all_tests = and(alias_item; alias_property; value_tests; status_tests; metadata_tests)

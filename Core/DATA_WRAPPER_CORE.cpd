@@ -1,0 +1,173 @@
+#hide
+'<!-- Generic numeric property-wrapper core. Version 0.3.2. -->
+
+#def DBWrapperName$ = Apple
+#def DBWrapperVersion$ = 0.3.2
+
+DB_OK = 0
+DB_ERR_NAME = 10
+DB_ERR_PROPERTY = 11
+DB_ERR_MISSING = 12
+DB_ERR_BELOW_RANGE = 13
+DB_ERR_ABOVE_RANGE = 14
+DB_ERR_BAD_COLUMN = 15
+DB_ERR_BAD_METHOD = 16
+DB_ERR_INSUFFICIENT_DATA = 17
+DB_ERR_BAD_POLICY = 18
+DB_ERR_BAD_RANGE = 19
+DB_WARN_CLAMP_LOW = 20
+DB_WARN_CLAMP_HIGH = 21
+DB_WARN_EXTRAP_LOW = 22
+DB_WARN_EXTRAP_HIGH = 23
+
+DB_NEAREST = 0
+DB_LINEAR = 1
+
+DB_STRICT = 0
+DB_CLAMP = 1
+DB_EXTRAPOLATE = 2
+
+DB_MISSING = -9.87654321*10^307
+DB_PROPERTY_FACTOR = 1000
+
+DBKey(item; property) = item*DB_PROPERTY_FACTOR + property
+DBHasID(ids; id) = count(ids; id; 1) > 0
+DBIsMissing(value) = clrunits(value) ≡ DB_MISSING
+DBIsFatal(status) = and(status ≥ DB_ERR_NAME; status < DB_WARN_CLAMP_LOW)
+DBIsWarning(status) = status ≥ DB_WARN_CLAMP_LOW
+DBMethodOK(method) = or(method ≡ DB_NEAREST; method ≡ DB_LINEAR)
+DBPolicyOK(bounds_policy) = or(bounds_policy ≡ DB_STRICT; bounds_policy ≡ DB_CLAMP; bounds_policy ≡ DB_EXTRAPOLATE)
+
+DBTableStatus(table; item; property_column) = _
+$block{
+    safe_column = min(max(round(property_column); 1); n_cols(table)); 
+    column_exists = and(property_column ≥ 2; property_column ≤ n_cols(table)); 
+    values = vlookup(table; item; 1; safe_column); 
+    item_exists = len(values) > 0; 
+    raw = if(item_exists; take(1; values); DB_MISSING); 
+    status = switch(not(column_exists); DB_ERR_BAD_COLUMN; not(item_exists); DB_ERR_NAME; DBIsMissing(raw); DB_ERR_MISSING; DB_OK); 
+    status; 
+}
+
+DBTableRaw(table; item; property_column) = _
+$block{
+    status = DBTableStatus(table; item; property_column); 
+    safe_column = min(max(round(property_column); 1); n_cols(table)); 
+    values = vlookup(table; item; 1; safe_column); 
+    raw = if(status ≡ DB_OK; take(1; values); 0/0); 
+    raw; 
+}
+
+DBCurveExists(curve_table; curve_key) = len(vlookup(curve_table; curve_key; 1; 2)) > 0
+
+DBRangeStatus(x; x_min; x_max; bounds_policy) = switch(not(DBPolicyOK(bounds_policy)); DB_ERR_BAD_POLICY; x_min > x_max; DB_ERR_BAD_RANGE; and(x < x_min; bounds_policy ≡ DB_STRICT); DB_ERR_BELOW_RANGE; and(x > x_max; bounds_policy ≡ DB_STRICT); DB_ERR_ABOVE_RANGE; and(x < x_min; bounds_policy ≡ DB_CLAMP); DB_WARN_CLAMP_LOW; and(x > x_max; bounds_policy ≡ DB_CLAMP); DB_WARN_CLAMP_HIGH; and(x < x_min; bounds_policy ≡ DB_EXTRAPOLATE); DB_WARN_EXTRAP_LOW; and(x > x_max; bounds_policy ≡ DB_EXTRAPOLATE); DB_WARN_EXTRAP_HIGH; DB_OK)
+
+DBLinear(X; Y; x) = _
+$block{
+    n = len(X); 
+    x_first = take(1; X); 
+    x_last = take(n; X); 
+    x_search = min(max(x; x_first); x_last); 
+    lower_count = len(find_le(X; x_search; 1)); 
+    i_1 = min(max(lower_count; 1); n - 1); 
+    i_2 = i_1 + 1; 
+    x_1 = take(i_1; X); 
+    x_2 = take(i_2; X); 
+    y_1 = take(i_1; Y); 
+    y_2 = take(i_2; Y); 
+    y = if(x_2 ≡ x_1; 0/0; y_1 + (x - x_1)*(y_2 - y_1)/(x_2 - x_1)); 
+    y; 
+}
+
+DBNearest(X; Y; x) = _
+$block{
+    n = len(X); 
+    x_first = take(1; X); 
+    x_last = take(n; X); 
+    x_search = min(max(x; x_first); x_last); 
+    lower_count = len(find_le(X; x_search; 1)); 
+    i_1 = min(max(lower_count; 1); n - 1); 
+    i_2 = i_1 + 1; 
+    x_1 = take(i_1; X); 
+    x_2 = take(i_2; X); 
+    i_near = if(abs(x_search - x_1) ≤ abs(x_2 - x_search); i_1; i_2); 
+    y = take(i_near; Y); 
+    y; 
+}
+
+DBCurveStatus(curve_table; curve_key; x; valid_min; valid_max; method; bounds_policy) = _
+$block{
+    X = vlookup(curve_table; curve_key; 1; 2); 
+    Y = vlookup(curve_table; curve_key; 1; 3); 
+    n_X = len(X); 
+    n_Y = len(Y); 
+    exists = n_X > 0; 
+    enough_data = and(n_X ≥ 2; n_Y ≡ n_X); 
+    missing_data = count(Y; DB_MISSING; 1) > 0; 
+    status = switch(not(exists); DB_ERR_MISSING; not(enough_data); DB_ERR_INSUFFICIENT_DATA; missing_data; DB_ERR_MISSING; not(DBMethodOK(method)); DB_ERR_BAD_METHOD; DBRangeStatus(x; valid_min; valid_max; bounds_policy)); 
+    status; 
+}
+
+DBCurveRaw(curve_table; curve_key; x; valid_min; valid_max; method; bounds_policy) = _
+$block{
+    status = DBCurveStatus(curve_table; curve_key; x; valid_min; valid_max; method; bounds_policy); 
+    X = vlookup(curve_table; curve_key; 1; 2); 
+    Y = vlookup(curve_table; curve_key; 1; 3); 
+    x_eval = if(bounds_policy ≡ DB_CLAMP; min(max(x; valid_min); valid_max); x); 
+    raw = switch(DBIsFatal(status); 0/0; method ≡ DB_NEAREST; DBNearest(X; Y; x_eval); method ≡ DB_LINEAR; DBLinear(X; Y; x_eval); 0/0); 
+    raw; 
+}
+
+DBStatusKnown(status) = or(status ≡ DB_OK; status ≡ DB_ERR_NAME; status ≡ DB_ERR_PROPERTY; status ≡ DB_ERR_MISSING; status ≡ DB_ERR_BELOW_RANGE; status ≡ DB_ERR_ABOVE_RANGE; status ≡ DB_ERR_BAD_COLUMN; status ≡ DB_ERR_BAD_METHOD; status ≡ DB_ERR_INSUFFICIENT_DATA; status ≡ DB_ERR_BAD_POLICY; status ≡ DB_ERR_BAD_RANGE; status ≡ DB_WARN_CLAMP_LOW; status ≡ DB_WARN_CLAMP_HIGH; status ≡ DB_WARN_EXTRAP_LOW; status ≡ DB_WARN_EXTRAP_HIGH)
+
+#def DBStatus$(status$)
+	    #if status$ ≡ DB_OK
+		        '<span class="ok">OK</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_NAME
+		        '<span class="err">Unknown item name or ID</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_PROPERTY
+		        '<span class="err">Unknown property name or ID</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_MISSING
+		        '<span class="err">Property value is missing</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BELOW_RANGE
+		        '<span class="err">Query is below the valid range</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_ABOVE_RANGE
+		        '<span class="err">Query is above the valid range</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_COLUMN
+		        '<span class="err">Invalid property column</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_METHOD
+		        '<span class="err">Unsupported interpolation method</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_INSUFFICIENT_DATA
+		        '<span class="err">Curve requires at least two data points</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_POLICY
+		        '<span class="err">Unsupported range policy</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_RANGE
+		        '<span class="err">Invalid property range</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_CLAMP_LOW
+		        '<span class="note">Below range; clamped to minimum</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_CLAMP_HIGH
+		        '<span class="note">Above range; clamped to maximum</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_EXTRAP_LOW
+		        '<span class="note">Below range; extrapolated</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_EXTRAP_HIGH
+		        '<span class="note">Above range; extrapolated</span>
+	    #end if
+	    #if not(DBStatusKnown(status$))
+		        '<span class="err">Unknown data-wrapper status</span>
+	    #end if
+#end def
+#show

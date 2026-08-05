@@ -1,0 +1,33 @@
+'<style>*{font-family:courier new; font-size:10pt}</style>
+'<style>body{counter-reset: h3counter;}</style> 
+'<style>h1,h2,h3,h4,h5,h6{text-transform:upercase;font-family:courier new;}</style>
+'<style>h1{font-size:16pt}</style> 
+'<style>h2{font-size:12pt}</style> 
+'<style>h3{font-size:16pt}</style> 
+'<style>h4{font-size:14pt}</style> 
+'<style>h5{font-size:12pt}</style> 
+'<style>h6{font-size:10pt}</style> 
+'<style>h3{text-transform:upercase;font-family:courier new;}</style> 
+'<style>h3{counter-reset: h4counter;counter-increment: h3counter;}</style> 
+'<style>h3::before{content: counter(h3counter) ". "; }</style> 
+'<style>h3{border-bottom:1.5px solid #999;padding-bottom:5px;margin-bottom:15px;}</style> 
+'<style>h4{text-transform:upercase;font-family:courier new;}</style> 
+'<style>h4{counter - reset: h5counter;counter-increment: h4counter;}</style> 
+'<style>h4::before{content: counter(h3counter) "."counter(h4counter)". "; }</style> 
+'<style>h5{text-transform:upercase;font-family:courier new;}</style> 
+'<style>h5{counter - increment: h5counter;}</style> 
+'<style>h5::before {content: counter(h3counter) "."counter(h4counter)"."counter(h5counter)". "; }</style> 
+'<style>h6{text-transform:upercase;font-family:courier new;}</style> 
+'<style>h6{counter - increment: h6counter;}</style> 
+'<style>h6::before {content: counter(h3counter) "."counter(h4counter)"."counter(h5counter)"."counter(h6counter)". "; }</style> 
+'<style>p{text-transform:none ;margin-left: 2em;font-family:courier new;text-align:justify} </style> 
+'<style>span{font-family:courier new}</style> 
+'<style>.ref{font-family:courier new;background-color:#daf5ff;color:#000000}</style> 
+'<style>.note{font-family:courier new;background-color:#ffffaa}</style> 
+'<style>table{margin-left: 2em;}</style> 
+'<style>ol{margin-left: 2em;}</style> 
+'<style>ul{margin-left: 2em;}</style> 
+'<style>.plot{margin-left: 2em;}</style> 
+'<style>.content-box {columns: 3;column-gap: 20px;}</style>
+'<style>.row {display:flex;}</style>
+'<style>.column{flex:50%;}</style>

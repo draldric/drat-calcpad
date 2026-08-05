@@ -1,0 +1,359 @@
+'<!-- Tech Sonic Plotting Wrapper 3.2.0. Online Plotly build. -->
+
+#show
+'<style>
+'.ts-plot{
+'  width:100%;
+'  height:450px;
+'  margin:20px auto;
+'  border:1px solid #ddd;
+'  box-sizing:border-box;
+'  position:relative;
+'}
+'.ts-plot-status{
+'  display:flex;
+'  align-items:center;
+'  justify-content:center;
+'  height:100%;
+'  padding:16px;
+'  box-sizing:border-box;
+'  text-align:center;
+'}
+'@media print{
+'  .ts-plot{break-inside:avoid;page-break-inside:avoid;}
+'  .modebar-container{display:none!important;}
+'}
+'</style>
+'<script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
+'<script>window.TSPlots=window.TSPlots||{};</script>
+
+#hide
+
+#def figure$(id$)
+	    #val
+	    '<script>
+	    'window.TSPlots=window.TSPlots||{};
+	    'window.TSPlots["id$"]={
+	    '  data:[],
+	    '  layout:{
+	    '    template:"plotly_white",
+	    '    autosize:true,
+	    '    font:{family:"Courier New, monospace",size:12},
+	    '    margin:{l:70,r:35,b:85,t:65},
+	    '    hovermode:"closest",
+	    '    showlegend:true,
+	    '    legend:{orientation:"h",x:0,y:-0.20},
+	    '    xaxis:{automargin:true,zeroline:false},
+	    '    yaxis:{automargin:true,zeroline:false},
+	    '    shapes:[],
+	    '    annotations:[]
+	    '  },
+	    '  config:{responsive:true,displaylogo:false,scrollZoom:false},
+	    '  maxWidth:900,
+	    '  height:450
+	    '};
+	    '</script>
+	    #equ
+#end def
+
+#def figureSize$(id$; max_width$; height$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].maxWidth='clrunits(max_width$)';
+	    'window.TSPlots["id$"].height='clrunits(height$)';
+	    '</script>
+	    #equ
+#end def
+
+#def xRange$(id$; x_min$; x_max$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.xaxis.range=['clrunits(x_min$)','clrunits(x_max$)'];</script>
+	    #equ
+#end def
+
+#def yRange$(id$; y_min$; y_max$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.yaxis.range=['clrunits(y_min$)','clrunits(y_max$)'];</script>
+	    #equ
+#end def
+
+#def y2Range$(id$; y_min$; y_max$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.layout.yaxis2.range=['clrunits(y_min$)','clrunits(y_max$)'];
+	    '</script>
+	    #equ
+#end def
+
+#def y2Axis$(id$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.layout.yaxis2.title={text:"label$"};
+	    'p.layout.margin.r=Math.max(p.layout.margin.r,75);
+	    '</script>
+	    #equ
+#end def
+
+#def legendTop$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.legend={orientation:"h",x:0,y:1.12};</script>
+	    #equ
+#end def
+
+#def legendRight$(id$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.legend={orientation:"v",x:1.02,y:1};
+	    'p.layout.margin.r=Math.max(p.layout.margin.r,150);
+	    '</script>
+	    #equ
+#end def
+
+#def hideLegend$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.showlegend=false;</script>
+	    #equ
+#end def
+
+#def hoverUnified$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.hovermode="x unified";</script>
+	    #equ
+#end def
+
+#def barMode$(id$; mode$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.barmode="mode$";</script>
+	    #equ
+#end def
+
+#def logX$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.xaxis.type="log";</script>
+	    #equ
+#end def
+
+#def logY$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.yaxis.type="log";</script>
+	    #equ
+#end def
+
+#def plot$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',
+	    '  y:'clrunits(y_vals$)',
+	    '  mode:"lines",type:"scatter",
+	    '  line:{color:"color$",width:2},
+	    '  name:"name$",connectgaps:false
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def plotY2$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"lines",type:"scatter",yaxis:"y2",
+	    '  line:{color:"color$",width:2},name:"name$",connectgaps:false
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def plotDashed$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"lines",type:"scatter",
+	    '  line:{color:"color$",width:2,dash:"dash"},name:"name$",connectgaps:false
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def plotMarkers$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"lines+markers",type:"scatter",
+	    '  line:{color:"color$",width:2},marker:{color:"color$",size:6},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def scatter$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"markers",type:"scatter",
+	    '  marker:{size:7,color:"color$"},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def scatterY2$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"markers",type:"scatter",yaxis:"y2",
+	    '  marker:{size:7,color:"color$"},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def bar$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  type:"bar",marker:{color:"color$"},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def area$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  fill:"tozeroy",type:"scatter",mode:"lines",
+	    '  line:{width:1,color:"color$"},fillcolor:"color$",name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def hline$(id$; y_value$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],y='clrunits(y_value$)';
+	    'p.layout.shapes.push({type:"line",xref:"paper",x0:0,x1:1,yref:"y",y0:y,y1:y,line:{color:"color$",width:1.5,dash:"dash"}});
+	    'p.layout.annotations.push({xref:"paper",x:1,yref:"y",y:y,text:"label$",showarrow:false,xanchor:"right",yanchor:"bottom",font:{color:"color$"}});
+	    '</script>
+	    #equ
+#end def
+
+#def vline$(id$; x_value$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],x='clrunits(x_value$)';
+	    'p.layout.shapes.push({type:"line",xref:"x",x0:x,x1:x,yref:"paper",y0:0,y1:1,line:{color:"color$",width:1.5,dash:"dash"}});
+	    'p.layout.annotations.push({xref:"x",x:x,yref:"paper",y:1,text:"label$",showarrow:false,xanchor:"left",yanchor:"top",font:{color:"color$"}});
+	    '</script>
+	    #equ
+#end def
+
+#def yBand$(id$; y_min$; y_max$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],y0='clrunits(y_min$)',y1='clrunits(y_max$)';
+	    'p.layout.shapes.push({type:"rect",xref:"paper",x0:0,x1:1,yref:"y",y0:y0,y1:y1,line:{width:0},fillcolor:"color$",layer:"below"});
+	    'p.layout.annotations.push({xref:"paper",x:0.01,yref:"y",y:y1,text:"label$",showarrow:false,xanchor:"left",yanchor:"top"});
+	    '</script>
+	    #equ
+#end def
+
+#def xBand$(id$; x_min$; x_max$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],x0='clrunits(x_min$)',x1='clrunits(x_max$)';
+	    'p.layout.shapes.push({type:"rect",xref:"x",x0:x0,x1:x1,yref:"paper",y0:0,y1:1,line:{width:0},fillcolor:"color$",layer:"below"});
+	    'p.layout.annotations.push({xref:"x",x:x0,yref:"paper",y:1,text:"label$",showarrow:false,xanchor:"left",yanchor:"top"});
+	    '</script>
+	    #equ
+#end def
+
+#def annotate$(id$; x_value$; y_value$; label$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].layout.annotations.push({x:'clrunits(x_value$)',y:'clrunits(y_value$)',text:"label$",showarrow:true,arrowhead:2,ax:25,ay:-30});
+	    '</script>
+	    #equ
+#end def
+
+#def render$(id$; title$; xlabel$; ylabel$)
+	    #val
+	    '<div id="id$" class="ts-plot"></div>
+	    '<script>
+	    '(function(){
+	    '  var p=window.TSPlots&&window.TSPlots["id$"];
+	    '  var el=document.getElementById("id$");
+	    '  if(!el){return;}
+	    '  if(!p){el.innerHTML="<div class=\"ts-plot-status err\">Figure was not initialized.</div>";return;}
+	    '  p.layout.title={text:"title$",x:0.5,xanchor:"center"};
+	    '  p.layout.xaxis.title={text:"xlabel$"};
+	    '  p.layout.yaxis.title={text:"ylabel$"};
+	    '  p.layout.height=p.height;
+	    '  el.style.maxWidth=p.maxWidth+"px";
+	    '  el.style.height=p.height+"px";
+	    '  if(typeof Plotly==="undefined"){
+	    '    el.innerHTML="<div class=\"ts-plot-status err\">Plotly.js did not load. Try the offline wrapper.</div>";
+	    '    return;
+	    '  }
+	    '  if(!p.data.length){el.innerHTML="<div class=\"ts-plot-status err\">No traces were added.</div>";return;}
+	    '  try{
+	    '    var result=Plotly.newPlot(el,p.data,p.layout,p.config);
+	    '    if(result&&typeof result.catch==="function"){
+	    '      result.catch(function(error){el.innerHTML="<div class=\"ts-plot-status err\">Plot failed: "+error.message+"</div>";});
+	    '    }
+	    '  }catch(error){
+	    '    el.innerHTML="<div class=\"ts-plot-status err\">Plot failed: "+error.message+"</div>";
+	    '  }
+	    '})();
+	    '</script>
+	    #equ
+#end def
+
+#def sampleData$(x_vals$; y_vals$; function$; x_start$; x_end$; points$)
+	    #hide
+	    ζn = max(2; round(points$))
+	    ζx_data = vector(ζn)
+	    ζy_data = vector(ζn)
+	    #for ζi = 1 : ζn
+		        ζx = x_start$ + (ζi - 1)*(x_end$ - x_start$)/(ζn - 1)
+		        ζx_data.ζi = ζx
+		        ζy_data.ζi = function$(ζx)
+	    #loop
+	    x_vals$ = ζx_data
+	    y_vals$ = ζy_data
+	    #show
+#end def
+
+#def sampleParametric$(x_vals$; y_vals$; x_function$; y_function$; t_start$; t_end$; points$)
+	    #hide
+	    ζn = max(2; round(points$))
+	    ζx_data = vector(ζn)
+	    ζy_data = vector(ζn)
+	    #for ζi = 1 : ζn
+		        ζt = t_start$ + (ζi - 1)*(t_end$ - t_start$)/(ζn - 1)
+		        ζx_data.ζi = x_function$(ζt)
+		        ζy_data.ζi = y_function$(ζt)
+	    #loop
+	    x_vals$ = ζx_data
+	    y_vals$ = ζy_data
+	    #show
+#end def
+
+#show

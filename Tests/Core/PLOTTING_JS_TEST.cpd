@@ -1,0 +1,12 @@
+#include STYLESHEET_FIXED.cpd
+#include PLOTTING.cpd
+
+"JavaScript and Plotly Diagnostic
+
+#val
+'<div id="ts-js-diagnostic" style="border:1px solid #999;padding:12px;margin:20px;">JavaScript did not run.</div>
+'<script>
+'var d=document.getElementById("ts-js-diagnostic");
+'if(d){d.textContent=(typeof Plotly!=="undefined")?"JavaScript ran and Plotly loaded.":"JavaScript ran, but Plotly did not load.";}
+'</script>
+#equ
