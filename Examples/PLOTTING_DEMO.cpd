@@ -1,6 +1,6 @@
-#include STYLESHEET_FIXED.cpd
-#include DEFINITIONS.cpd
-#include PLOTTING.cpd
+#include ../core/STYLESHEET.cpd
+#include ../core/DEFINITIONS.cpd
+#include ../core/PLOTTING.cpd
 
 "Plotting Wrapper Demonstration
 

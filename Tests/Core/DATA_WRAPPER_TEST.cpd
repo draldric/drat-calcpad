@@ -1,4 +1,4 @@
-#include PROPERTY_LIBRARY_TEMPLATE.cpd
+#include ../templates/PROPERTY_LIBRARY_TEMPLATE.cpd
 
 "Data Wrapper Parser and Calculation Test
 

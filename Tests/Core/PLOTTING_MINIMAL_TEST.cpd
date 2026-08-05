@@ -1,4 +1,4 @@
-#include PLOTTING.cpd
+#include ../core/PLOTTING.cpd
 
 "Minimal Plot Test
 
