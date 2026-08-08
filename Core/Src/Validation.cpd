@@ -1,3 +1,81 @@
 #hide
-'<!-- Validation module placeholder. -->
+'<!-- Input validation helpers. Version 1.0.0. -->
+
+VAL_OK = 0
+VAL_WARN = 10
+VAL_ERR_UNDEFINED = 20
+VAL_ERR_BELOW_RANGE = 21
+VAL_ERR_ABOVE_RANGE = 22
+VAL_ERR_BAD_RANGE = 23
+VAL_ERR_NONPOSITIVE = 24
+VAL_ERR_NEGATIVE = 25
+VAL_ERR_NOT_INTEGER = 26
+VAL_ERR_LENGTH = 27
+VAL_ERR_UNKNOWN = 29
+
+VAL_FINITE_LIMIT = 1*10^300
+VAL_INTEGER_TOLERANCE = 1*10^-9
+
+ValidationStatusKnown(status) = or(status ≡ VAL_OK; status ≡ VAL_WARN; status ≡ VAL_ERR_UNDEFINED; status ≡ VAL_ERR_BELOW_RANGE; status ≡ VAL_ERR_ABOVE_RANGE; status ≡ VAL_ERR_BAD_RANGE; status ≡ VAL_ERR_NONPOSITIVE; status ≡ VAL_ERR_NEGATIVE; status ≡ VAL_ERR_NOT_INTEGER; status ≡ VAL_ERR_LENGTH; status ≡ VAL_ERR_UNKNOWN)
+ValidationIsError(status) = status ≥ VAL_ERR_UNDEFINED
+ValidationIsFinite(value) = and(value ≡ value; abs(clrunits(value)) < VAL_FINITE_LIMIT)
+ValidationIsInteger(value) = and(ValidationIsFinite(value); abs(clrunits(value) - round(clrunits(value))) ≤ VAL_INTEGER_TOLERANCE)
+
+ValidationRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; value < minimum; VAL_ERR_BELOW_RANGE; value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
+ValidationPositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK)
+ValidationNonnegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value < 0; VAL_ERR_NEGATIVE; VAL_OK)
+ValidationIntegerStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsInteger(value)); VAL_ERR_NOT_INTEGER; VAL_OK)
+ValidationLengthStatus(values; minimum_length; maximum_length) = switch(minimum_length < 0; VAL_ERR_BAD_RANGE; maximum_length < minimum_length; VAL_ERR_BAD_RANGE; len(values) < minimum_length; VAL_ERR_LENGTH; len(values) > maximum_length; VAL_ERR_LENGTH; VAL_OK)
+
+ValidationWorst(statuses) = max(statuses)
+ValidationCount(statuses; status) = count(statuses; status; 1)
+ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
+
+#def ValidationStatus$(status$)
+    #if status$ ≡ VAL_OK
+        '<span class="ok">VALID</span>
+    #end if
+    #if status$ ≡ VAL_WARN
+        '<span class="note">VALIDATION WARNING</span>
+    #end if
+    #if status$ ≡ VAL_ERR_UNDEFINED
+        '<span class="err">Value is undefined or non-finite</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BELOW_RANGE
+        '<span class="err">Value is below the permitted range</span>
+    #end if
+    #if status$ ≡ VAL_ERR_ABOVE_RANGE
+        '<span class="err">Value is above the permitted range</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BAD_RANGE
+        '<span class="err">Validation range is invalid</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NONPOSITIVE
+        '<span class="err">Value must be positive</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NEGATIVE
+        '<span class="err">Value must be nonnegative</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NOT_INTEGER
+        '<span class="err">Value must be an integer</span>
+    #end if
+    #if status$ ≡ VAL_ERR_LENGTH
+        '<span class="err">Vector or matrix length is invalid</span>
+    #end if
+    #if or(status$ ≡ VAL_ERR_UNKNOWN; not(ValidationStatusKnown(status$)))
+        '<span class="err">Unknown validation status</span>
+    #end if
+#end def
+
+#def ShowValidation$(label$; value$; status$)
+    '<table class="bordered data" style="width:95%">
+    '<tbody>
+    '<tr><td><strong>Input</strong></td><td>label$</td></tr>
+    '<tr><td><strong>Value</strong></td><td>'value$'</td></tr>
+    '<tr><td><strong>Status</strong></td><td>
+    ValidationStatus$(status$)
+    '</td></tr>
+    '</tbody>
+    '</table>
+#end def
 #show

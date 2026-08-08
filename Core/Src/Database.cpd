@@ -1,3 +1,41 @@
 #hide
-'<!-- Database module placeholder. -->
+'<!-- General table and metadata lookup helpers. Version 1.0.0. -->
+
+DBColumnOK(table; column) = and(column ≡ round(column); column ≥ 1; column ≤ n_cols(table))
+
+DBLookupExists(table; key; key_column) = _
+$block{
+    safe_key_column = min(max(round(key_column); 1); n_cols(table));
+    matches = vlookup(table; key; safe_key_column; safe_key_column);
+    exists = and(DBColumnOK(table; key_column); len(matches) > 0);
+    exists;
+}
+
+DBLookupStatus(table; key; key_column; value_column) = _
+$block{
+    safe_key_column = min(max(round(key_column); 1); n_cols(table));
+    safe_value_column = min(max(round(value_column); 1); n_cols(table));
+    columns_ok = and(DBColumnOK(table; key_column); DBColumnOK(table; value_column));
+    values = vlookup(table; key; safe_key_column; safe_value_column);
+    row_exists = len(values) > 0;
+    raw = if(row_exists; take(1; values); DB_MISSING);
+    status = switch(not(columns_ok); DB_ERR_BAD_COLUMN; not(row_exists); DB_ERR_NAME; DBIsMissing(raw); DB_ERR_MISSING; DB_OK);
+    status;
+}
+
+DBLookupRaw(table; key; key_column; value_column) = _
+$block{
+    status = DBLookupStatus(table; key; key_column; value_column);
+    safe_key_column = min(max(round(key_column); 1); n_cols(table));
+    safe_value_column = min(max(round(value_column); 1); n_cols(table));
+    values = vlookup(table; key; safe_key_column; safe_value_column);
+    raw = if(status ≡ DB_OK; take(1; values); 0/0);
+    raw;
+}
+
+DBLookupOr(table; key; key_column; value_column; fallback) = if(DBLookupStatus(table; key; key_column; value_column) ≡ DB_OK; DBLookupRaw(table; key; key_column; value_column); fallback)
+DBMetadataSource(metadata; item) = DBLookupRaw(metadata; item; 1; 2)
+DBMetadataRevision(metadata; item) = DBLookupRaw(metadata; item; 1; 3)
+DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
+DBRegistryCount(ids) = len(ids)
 #show

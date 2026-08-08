@@ -319,13 +319,187 @@ DBStatusKnown(status) = or(status ≡ DB_OK; status ≡ DB_ERR_NAME; status ≡ 
 #end def
 #show
 #hide
-'<!-- Checks module placeholder. -->
+'<!-- Engineering check helpers. Version 1.0.0. -->
+
+CHK_PASS = 0
+CHK_WARN = 10
+CHK_FAIL = 20
+CHK_ERROR = 30
+
+CHK_DEFAULT_WARNING = 0.9
+CHK_FINITE_LIMIT = 1*10^300
+
+CheckStatusKnown(status) = or(status ≡ CHK_PASS; status ≡ CHK_WARN; status ≡ CHK_FAIL; status ≡ CHK_ERROR)
+CheckIsPass(status) = status ≡ CHK_PASS
+CheckIsWarning(status) = status ≡ CHK_WARN
+CheckIsFailure(status) = status ≥ CHK_FAIL
+CheckWarningThresholdOK(warning_threshold) = and(warning_threshold ≥ 0; warning_threshold ≤ 1)
+CheckUtilizationOK(utilization) = and(utilization ≡ utilization; utilization ≥ 0; abs(clrunits(utilization)) < CHK_FINITE_LIMIT)
+
+CheckStatus(utilization; warning_threshold) = switch(not(CheckWarningThresholdOK(warning_threshold)); CHK_ERROR; not(CheckUtilizationOK(utilization)); CHK_ERROR; utilization > 1; CHK_FAIL; utilization ≥ warning_threshold; CHK_WARN; CHK_PASS)
+
+CheckUpperUtilization(demand; capacity) = if(capacity > 0; abs(demand)/capacity; 0/0)
+CheckUpperStatus(demand; capacity; warning_threshold) = if(capacity > 0; CheckStatus(CheckUpperUtilization(demand; capacity); warning_threshold); CHK_ERROR)
+
+CheckLowerUtilization(provided; required) = if(provided > 0; abs(required)/provided; 0/0)
+CheckLowerStatus(provided; required; warning_threshold) = if(provided > 0; CheckStatus(CheckLowerUtilization(provided; required); warning_threshold); CHK_ERROR)
+
+CheckWorst(statuses) = max(statuses)
+CheckCount(statuses; status) = count(statuses; status; 1)
+CheckNoFailures(statuses) = CheckWorst(statuses) < CHK_FAIL
+CheckAllPass(statuses) = CheckWorst(statuses) ≡ CHK_PASS
+
+#def CheckStatus$(status$)
+    #if status$ ≡ CHK_PASS
+        '<span class="ok">PASS</span>
+    #end if
+    #if status$ ≡ CHK_WARN
+        '<span class="note">WARNING</span>
+    #end if
+    #if status$ ≡ CHK_FAIL
+        '<span class="err">FAIL</span>
+    #end if
+    #if status$ ≡ CHK_ERROR
+        '<span class="err">CHECK ERROR</span>
+    #end if
+    #if not(CheckStatusKnown(status$))
+        '<span class="err">UNKNOWN CHECK STATUS</span>
+    #end if
+#end def
+
+#def ShowCheck$(label$; utilization$; status$)
+    '<table class="bordered data" style="width:95%">
+    '<tbody>
+    '<tr><td><strong>Check</strong></td><td>label$</td></tr>
+    '<tr><td><strong>Utilization</strong></td><td>'utilization$'</td></tr>
+    '<tr><td><strong>Status</strong></td><td>
+    CheckStatus$(status$)
+    '</td></tr>
+    '</tbody>
+    '</table>
+#end def
 #show
 #hide
-'<!-- Database module placeholder. -->
+'<!-- General table and metadata lookup helpers. Version 1.0.0. -->
+
+DBColumnOK(table; column) = and(column ≡ round(column); column ≥ 1; column ≤ n_cols(table))
+
+DBLookupExists(table; key; key_column) = _
+$block{
+    safe_key_column = min(max(round(key_column); 1); n_cols(table));
+    matches = vlookup(table; key; safe_key_column; safe_key_column);
+    exists = and(DBColumnOK(table; key_column); len(matches) > 0);
+    exists;
+}
+
+DBLookupStatus(table; key; key_column; value_column) = _
+$block{
+    safe_key_column = min(max(round(key_column); 1); n_cols(table));
+    safe_value_column = min(max(round(value_column); 1); n_cols(table));
+    columns_ok = and(DBColumnOK(table; key_column); DBColumnOK(table; value_column));
+    values = vlookup(table; key; safe_key_column; safe_value_column);
+    row_exists = len(values) > 0;
+    raw = if(row_exists; take(1; values); DB_MISSING);
+    status = switch(not(columns_ok); DB_ERR_BAD_COLUMN; not(row_exists); DB_ERR_NAME; DBIsMissing(raw); DB_ERR_MISSING; DB_OK);
+    status;
+}
+
+DBLookupRaw(table; key; key_column; value_column) = _
+$block{
+    status = DBLookupStatus(table; key; key_column; value_column);
+    safe_key_column = min(max(round(key_column); 1); n_cols(table));
+    safe_value_column = min(max(round(value_column); 1); n_cols(table));
+    values = vlookup(table; key; safe_key_column; safe_value_column);
+    raw = if(status ≡ DB_OK; take(1; values); 0/0);
+    raw;
+}
+
+DBLookupOr(table; key; key_column; value_column; fallback) = if(DBLookupStatus(table; key; key_column; value_column) ≡ DB_OK; DBLookupRaw(table; key; key_column; value_column); fallback)
+DBMetadataSource(metadata; item) = DBLookupRaw(metadata; item; 1; 2)
+DBMetadataRevision(metadata; item) = DBLookupRaw(metadata; item; 1; 3)
+DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
+DBRegistryCount(ids) = len(ids)
 #show
 #hide
-'<!-- Validation module placeholder. -->
+'<!-- Input validation helpers. Version 1.0.0. -->
+
+VAL_OK = 0
+VAL_WARN = 10
+VAL_ERR_UNDEFINED = 20
+VAL_ERR_BELOW_RANGE = 21
+VAL_ERR_ABOVE_RANGE = 22
+VAL_ERR_BAD_RANGE = 23
+VAL_ERR_NONPOSITIVE = 24
+VAL_ERR_NEGATIVE = 25
+VAL_ERR_NOT_INTEGER = 26
+VAL_ERR_LENGTH = 27
+VAL_ERR_UNKNOWN = 29
+
+VAL_FINITE_LIMIT = 1*10^300
+VAL_INTEGER_TOLERANCE = 1*10^-9
+
+ValidationStatusKnown(status) = or(status ≡ VAL_OK; status ≡ VAL_WARN; status ≡ VAL_ERR_UNDEFINED; status ≡ VAL_ERR_BELOW_RANGE; status ≡ VAL_ERR_ABOVE_RANGE; status ≡ VAL_ERR_BAD_RANGE; status ≡ VAL_ERR_NONPOSITIVE; status ≡ VAL_ERR_NEGATIVE; status ≡ VAL_ERR_NOT_INTEGER; status ≡ VAL_ERR_LENGTH; status ≡ VAL_ERR_UNKNOWN)
+ValidationIsError(status) = status ≥ VAL_ERR_UNDEFINED
+ValidationIsFinite(value) = and(value ≡ value; abs(clrunits(value)) < VAL_FINITE_LIMIT)
+ValidationIsInteger(value) = and(ValidationIsFinite(value); abs(clrunits(value) - round(clrunits(value))) ≤ VAL_INTEGER_TOLERANCE)
+
+ValidationRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; value < minimum; VAL_ERR_BELOW_RANGE; value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
+ValidationPositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK)
+ValidationNonnegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value < 0; VAL_ERR_NEGATIVE; VAL_OK)
+ValidationIntegerStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsInteger(value)); VAL_ERR_NOT_INTEGER; VAL_OK)
+ValidationLengthStatus(values; minimum_length; maximum_length) = switch(minimum_length < 0; VAL_ERR_BAD_RANGE; maximum_length < minimum_length; VAL_ERR_BAD_RANGE; len(values) < minimum_length; VAL_ERR_LENGTH; len(values) > maximum_length; VAL_ERR_LENGTH; VAL_OK)
+
+ValidationWorst(statuses) = max(statuses)
+ValidationCount(statuses; status) = count(statuses; status; 1)
+ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
+
+#def ValidationStatus$(status$)
+    #if status$ ≡ VAL_OK
+        '<span class="ok">VALID</span>
+    #end if
+    #if status$ ≡ VAL_WARN
+        '<span class="note">VALIDATION WARNING</span>
+    #end if
+    #if status$ ≡ VAL_ERR_UNDEFINED
+        '<span class="err">Value is undefined or non-finite</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BELOW_RANGE
+        '<span class="err">Value is below the permitted range</span>
+    #end if
+    #if status$ ≡ VAL_ERR_ABOVE_RANGE
+        '<span class="err">Value is above the permitted range</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BAD_RANGE
+        '<span class="err">Validation range is invalid</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NONPOSITIVE
+        '<span class="err">Value must be positive</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NEGATIVE
+        '<span class="err">Value must be nonnegative</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NOT_INTEGER
+        '<span class="err">Value must be an integer</span>
+    #end if
+    #if status$ ≡ VAL_ERR_LENGTH
+        '<span class="err">Vector or matrix length is invalid</span>
+    #end if
+    #if or(status$ ≡ VAL_ERR_UNKNOWN; not(ValidationStatusKnown(status$)))
+        '<span class="err">Unknown validation status</span>
+    #end if
+#end def
+
+#def ShowValidation$(label$; value$; status$)
+    '<table class="bordered data" style="width:95%">
+    '<tbody>
+    '<tr><td><strong>Input</strong></td><td>label$</td></tr>
+    '<tr><td><strong>Value</strong></td><td>'value$'</td></tr>
+    '<tr><td><strong>Status</strong></td><td>
+    ValidationStatus$(status$)
+    '</td></tr>
+    '</tbody>
+    '</table>
+#end def
 #show
 #hide
 '<!-- DRAT Plotting Wrapper 3.2.0. Online Plotly build. -->
