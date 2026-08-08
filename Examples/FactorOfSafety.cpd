@@ -1,0 +1,125 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = EXAMPLE ORGANIZATION
+#def Client$ = EXAMPLE CLIENT
+#def Project$ = EXAMPLE PROJECT
+#def Title$ = MINIMUM RECOMMENDED FACTOR OF SAFETY
+#def Purpose$ = DETERMINE A RECOMMENDED MINIMUM FACTOR OF SAFETY AND COMPARE IT WITH THE DESIGN VALUE.
+#def Scope$ = DEMONSTRATE A STATIC, AUDITABLE FACTOR-SELECTION AND DESIGN-CHECK WORKFLOW.
+#def Calculation$ = EXAMPLE-FOS-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-08
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial example; EXAMPLE AUTHOR; 2026-08-08)
+EndRevisions$
+
+BeginReferences$
+AddReference$(Project design basis and applicable engineering standard.)
+AddReference$(Material data and loading assumptions documented by the responsible engineer.)
+EndReferences$
+
+BeginInitialConditions$
+AddInitialCondition$(The selected factors are dimensionless and must match one of the documented options.)
+AddInitialCondition$(The responsible engineer must confirm that the factor categories and permitted values apply to the design.)
+AddInitialCondition$(This example demonstrates a workflow and is not a substitute for a governing code requirement.)
+EndInitialConditions$
+
+"Factor Options
+'#### Material knowledge:
+'1.0 for directly established properties.
+'1.1 for reliable published values.
+'1.4 for variable or poorly established material properties.
+#hide
+material_options = [1.0; 1.1; 1.4]
+#show
+n_material = 1.1
+
+'#### Loading and stress analysis:
+'1.1 for well-defined loading and analysis.
+'1.3 for expected uncertainty.
+'1.7 for poorly defined loading or analysis.
+#hide
+stress_options = [1.1; 1.3; 1.7]
+#show
+n_stress = 1.3
+
+'#### Geometry and manufacturing:
+'1.0 for controlled dimensions.
+'1.2 where dimensions are not closely controlled.
+#hide
+geometry_options = [1.0; 1.2]
+#show
+n_geometry = 1.2
+
+'#### Failure analysis:
+'1.1 for established simple loading models.
+'1.2 for complex loading.
+'1.5 where the failure model is not well established.
+#hide
+failure_options = [1.1; 1.2; 1.5]
+#show
+n_failure = 1.2
+
+'#### Reliability:
+'1.1 below 90 percent.
+'1.2 from 90 through 98 percent.
+'1.7 above 99 percent.
+#hide
+reliability_options = [1.1; 1.2; 1.7]
+#show
+n_reliability = 1.2
+
+'The design factor of safety is a saved worksheet input rather than transient browser state.
+FoS_design = 2.5
+#hide
+warning_threshold = CHK_DEFAULT_WARNING
+#show
+
+"Input Validation
+#hide
+material_status = ValidationAllowedStatus(n_material; material_options)
+stress_status = ValidationAllowedStatus(n_stress; stress_options)
+geometry_status = ValidationAllowedStatus(n_geometry; geometry_options)
+failure_status = ValidationAllowedStatus(n_failure; failure_options)
+reliability_status = ValidationAllowedStatus(n_reliability; reliability_options)
+design_status = ValidationPositiveStatus(FoS_design)
+warning_status = ValidationRangeStatus(warning_threshold; 0; 1)
+
+factor_statuses = [material_status; stress_status; geometry_status; failure_status; reliability_status; design_status; warning_status]
+input_validation = ValidationWorst(factor_statuses)
+#show
+ShowValidation$(Material factor; n_material; material_status)
+ShowValidation$(Stress factor; n_stress; stress_status)
+ShowValidation$(Geometry factor; n_geometry; geometry_status)
+ShowValidation$(Failure-analysis factor; n_failure; failure_status)
+ShowValidation$(Reliability factor; n_reliability; reliability_status)
+ShowValidation$(Design factor of safety; FoS_design; design_status)
+
+"Calculation
+FoS_required = n_material*n_stress*n_geometry*n_failure*n_reliability
+#hide
+FoS_utilization = CheckLowerUtilization(FoS_design; FoS_required)
+FoS_status = CheckLowerStatus(FoS_design; FoS_required; warning_threshold)
+#show
+ShowCheck$(Required factor of safety divided by design factor of safety; FoS_utilization; FoS_status)
+
+BeginConclusions$
+#novar
+AddConclusion$(Recommended minimum factor of safety; FoS_required)
+AddConclusion$(Design factor of safety; FoS_design)
+AddValidationConclusion$(Input validation status; input_validation)
+AddCheckConclusion$(Design check status; FoS_status)
+EndConclusions$
+#equ

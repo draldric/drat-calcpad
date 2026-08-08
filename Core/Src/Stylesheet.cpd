@@ -5,7 +5,7 @@
 '<style>h2{font-size:12pt;}</style>
 '<style>h3{font-size:16pt;counter-reset:h4counter;counter-increment:h3counter;border-bottom:1.5px solid #999;padding-bottom:5px;margin-bottom:15px;}</style>
 '<style>h4{font-size:14pt;counter-reset:h5counter;counter-increment:h4counter;}</style>
-'<style>h5{font-size:12pt;counter-increment:h5counter;}</style>
+'<style>h5{font-size:12pt;counter-reset:h6counter;counter-increment:h5counter;}</style>
 '<style>h6{font-size:10pt;counter-increment:h6counter;}</style>
 '<style>h3::before{content:counter(h3counter) ". ";}</style>
 '<style>h4::before{content:counter(h3counter) "." counter(h4counter) ". ";}</style>
@@ -19,3 +19,11 @@
 '<style>.content-box{columns:3;column-gap:20px;}</style>
 '<style>.row{display:flex;}</style>
 '<style>.column{flex:50%;}</style>
+'<style>.document-header{display:flex;gap:2em;align-items:stretch;border-bottom:2px solid #444;padding-bottom:1em;margin-bottom:1em;}</style>
+'<style>.document-identity{flex:1;display:flex;flex-direction:column;justify-content:center;font-size:12pt;}</style>
+'<style>.document-identity strong{font-size:16pt;text-transform:uppercase;}</style>
+'<style>.document-control{flex:2;margin-left:0;}</style>
+'<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
+'<style>.document-summary h2{margin-bottom:0.25em;}</style>
+'<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions{break-inside:avoid;page-break-inside:avoid;}}</style>
