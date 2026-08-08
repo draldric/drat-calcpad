@@ -32,3 +32,11 @@ Each validator returns a `VAL_*` status code, and `ValidationStatus$` or `ShowVa
 It shares the `DB_*` status codes and missing-value sentinel defined by `DataWrapper.cpd`.
 
 Focused regression worksheets are in `Tests/Core/`.
+
+## Starting a calculation
+
+Copy `Templates/EngineeringCalculationTemplate.cpd` to start a calculation.
+Replace its document-control placeholders, references, assumptions, saved inputs, validation calls, calculations, and conclusions.
+The template deliberately uses explicit CalcPad assignments instead of browser controls so selected design inputs remain part of the auditable source file.
+
+`Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.

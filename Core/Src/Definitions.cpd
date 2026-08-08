@@ -1,7 +1,9 @@
 #hide
+'<!-- Worksheet formatting definitions. Version 1.1.0. -->
+
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
-#def tab$ = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
+#def tab$ = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 
 '<!--------------------------------|MESSAGES|---------------------------------!>
 #def err$(msg$) = '<span class="err">msg$</span>
@@ -10,102 +12,123 @@
 #def ref$(msg$) = '<span class="ref">msg$</span>
 
 '<!----------------------------|MATHCAD UTILITIES|----------------------------!>
-#def cmt$(c$) = '<!--'c$'--!>'
+#def cmt$(c$) = '<!--'c$'-->'
 #def shide$ = '<!--'
-#def ehide$ = '--!>'
+#def ehide$ = '-->'
 
 '<!------------------------------------||-------------------------------------!>
 #def if$(cond$; true$; false$)
-	#if cond$
-		'<p>'true$'</p>
-	#else
-		'<p>'false$'</p>
-	#end if
+    #if cond$
+        '<p>'true$'</p>
+    #else
+        '<p>'false$'</p>
+    #end if
 #end def
 
 '<!--------------------------|WORKSHEET FORMATTING|---------------------------!>
 #def CreateHeader$
-	'<div class="row"> 
-	'<div class="column"> 
-	'<img style="height:auto; width:100%" src="logoPath$" alt="">
-	'# Engineering Calculation Worksheet
-	'</div> 
-	'<div class="column">
-	'<table class="bordered data" width="100%">
-	'<tbody>
-	'<tr><td><strong>Calculation</strong></td><td>Calculation$</td><td>Rev Rev$</td></tr>
-	'<tr><td><strong>Author</strong></td><td>Author$</td><td>Date$</td></tr>
-	'<tr><td><strong>Checked</strong></td><td>CheckedBy$</td><td>CheckedOn$</td></tr> 
-	'<tr><td><strong>Approved</strong></td><td>ApprovedBy$</td><td>ApprovedOn$</td></tr>
-	'</tbody>
-	'</table>
-	'</div> 
-	'</div > 
+    '<div class="document-header">
+    '<div class="document-identity">
+    '<strong>Organization$</strong>
+    '<span>Engineering Calculation Worksheet</span>
+    '</div>
+    '<table class="bordered data document-control">
+    '<tbody>
+    '<tr><td><strong>Calculation</strong></td><td>Calculation$</td><td><strong>Revision</strong></td><td>Rev$</td></tr>
+    '<tr><td><strong>Prepared by</strong></td><td>Author$</td><td><strong>Date</strong></td><td>Date$</td></tr>
+    '<tr><td><strong>Checked by</strong></td><td>CheckedBy$</td><td><strong>Date</strong></td><td>CheckedOn$</td></tr>
+    '<tr><td><strong>Approved by</strong></td><td>ApprovedBy$</td><td><strong>Date</strong></td><td>ApprovedOn$</td></tr>
+    '</tbody>
+    '</table>
+    '</div>
 #end def
 #def CreateTitle$
-	'<hr/>
-	'## Title
-	'Title$
+    '<section class="document-summary">
+    '<h2>Title</h2>
+    '<p>Title$</p>
+    '</section>
 #end def
 #def CreatePurpose$
-	'<hr/>
-	'## Purpose
-	'Purpose$
+    '<section class="document-summary">
+    '<h2>Purpose</h2>
+    '<p>Purpose$</p>
+    '</section>
 #end def
 #def BeginReferences$
-	'<hr/> 
-	'## References
-	'<ol>
+    '<hr/>
+    '## References
+    '<ol>
 #end def
 #def AddReference$(R$)
-	'<li>R$</li>
+    '<li>R$</li>
 #end def
 #def EndReferences$
-	'</ol>
+    '</ol>
 #end def
 #def BeginRevisions$
-	'<hr/> 
-	'## Revision History
-	'<table class="bordered" style="width:95%">
-	'<thead>
-	'<tr><th>Revision</th><th>Description</th><th>Author</th><th>Date</th></tr>
-	'</thead>
-	'<tbody>
+    '## Revision History
+    '<table class="bordered data" style="width:95%">
+    '<thead>
+    '<tr><th>Revision</th><th>Description</th><th>Author</th><th>Date</th></tr>
+    '</thead>
+    '<tbody>
 #end def
 #def AddRevision$(R$; D$; A$; Da$)
-	'<tr><td>R$</td><td>D$</td><td>A$</td><td>Da$</td></tr>
+    '<tr><td>R$</td><td>D$</td><td>A$</td><td>Da$</td></tr>
 #end def
 #def EndRevisions$
-	'</tbody>
-	'</table>
+    '</tbody>
+    '</table>
 #end def
 #def BeginInitialConditions$
-	pagebreak$
-	'## Initial Conditions and Assumptions
-	'<ul>
+    pagebreak$
+    '## Design Basis and Assumptions
+    '<ul>
 #end def
 #def AddInitialCondition$(IC$)
-	'<li>IC$</li>
+    '<li>IC$</li>
 #end def
 #def EndInitialConditions$
-	'</ul>
+    '</ul>
 #end def
 #def BeginVariables$
-	'<hr/>
-	'## List of Variables
-	#noc
-	'<table class="bordered" style="width:95%">
-	'<thead>
-	'<tr><th>Symbol</th><th>Description</th><th>Units</th></tr>
-	'</thead>
-	'<tbody>
+    '<hr/>
+    '## List of Variables
+    #noc
+    '<table class="bordered" style="width:95%">
+    '<thead>
+    '<tr><th>Symbol</th><th>Description</th><th>Units</th></tr>
+    '</thead>
+    '<tbody>
 #end def
 #def AddVariable$(var$; desc$; units$)
-	'<tr><td>var$</td><td>desc$</td><td>units$</td></tr>
+    '<tr><td>var$</td><td>desc$</td><td>units$</td></tr>
 #end def
 #def EndVariables$
-	'</tbody>
-	'</table>
-	#equ
+    '</tbody>
+    '</table>
+    #equ
+#end def
+
+#def BeginConclusions$
+    pagebreak$
+    '## Conclusions
+    '<div class="conclusions">
+#end def
+#def AddConclusion$(label$; value$)
+    '<p><strong>label$:</strong> 'value$'</p>
+#end def
+#def AddValidationConclusion$(label$; status$)
+    '<p><strong>label$:</strong>
+    ValidationStatus$(status$)
+    '</p>
+#end def
+#def AddCheckConclusion$(label$; status$)
+    '<p><strong>label$:</strong>
+    CheckStatus$(status$)
+    '</p>
+#end def
+#def EndConclusions$
+    '</div>
 #end def
 #show

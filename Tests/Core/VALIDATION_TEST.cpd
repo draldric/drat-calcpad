@@ -21,6 +21,9 @@ length_ok = ValidationLengthStatus([1; 2; 3]; 2; 4)
 length_short = ValidationLengthStatus([1]; 2; 4)
 length_long = ValidationLengthStatus([1; 2; 3; 4; 5]; 2; 4)
 
+allowed_ok = ValidationAllowedStatus(1.2; [1.0; 1.1; 1.2])
+allowed_bad = ValidationAllowedStatus(1.3; [1.0; 1.1; 1.2])
+
 validation_statuses = [range_ok; range_below; range_above; range_bad; range_missing]
 
 range_tests = and(range_ok ≡ VAL_OK; range_below ≡ VAL_ERR_BELOW_RANGE; range_above ≡ VAL_ERR_ABOVE_RANGE; range_bad ≡ VAL_ERR_BAD_RANGE; range_missing ≡ VAL_ERR_UNDEFINED)
@@ -29,7 +32,8 @@ integer_tests = and(integer_ok ≡ VAL_OK; integer_near ≡ VAL_OK; integer_bad 
 length_tests = and(length_ok ≡ VAL_OK; length_short ≡ VAL_ERR_LENGTH; length_long ≡ VAL_ERR_LENGTH)
 aggregation_tests = and(ValidationWorst(validation_statuses) ≡ VAL_ERR_BAD_RANGE; ValidationCount(validation_statuses; VAL_OK) ≡ 1; not(ValidationAllOK(validation_statuses)); ValidationAllOK([VAL_OK; VAL_OK]))
 status_tests = and(ValidationStatusKnown(VAL_ERR_LENGTH); not(ValidationStatusKnown(99)))
-summary_tests = and(aggregation_tests; status_tests)
+allowed_tests = and(allowed_ok ≡ VAL_OK; allowed_bad ≡ VAL_ERR_NOT_ALLOWED; ValidationStatusKnown(VAL_ERR_NOT_ALLOWED))
+summary_tests = and(aggregation_tests; status_tests; allowed_tests)
 
 all_tests = and(range_tests; sign_tests; integer_tests; length_tests; summary_tests)
 

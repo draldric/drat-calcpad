@@ -1,0 +1,62 @@
+#md on
+#include ../Core/DratCore.cpd
+
+'<!-- Replace the document-control values before issuing the worksheet. -->
+#def Organization$ = ORGANIZATION NAME
+#def Title$ = ENGINEERING CALCULATION TITLE
+#def Purpose$ = STATE THE PURPOSE AND REQUIRED DECISION.
+#def Calculation$ = CALC-0000
+#def Rev$ = 0
+#def Author$ = PREPARER NAME
+#def Date$ = YYYY-MM-DD
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+
+BeginRevisions$
+AddRevision$(0; Initial calculation; PREPARER NAME; YYYY-MM-DD)
+EndRevisions$
+
+BeginReferences$
+AddReference$(List the governing code, standard, drawing, or source.)
+EndReferences$
+
+BeginInitialConditions$
+AddInitialCondition$(State the design basis and important assumptions.)
+AddInitialCondition$(Document input sources and applicability limits.)
+EndInitialConditions$
+
+"Inputs
+
+'Replace these demonstration inputs with calculation-specific values.
+demand = 80
+capacity = 100
+warning_threshold = CHK_DEFAULT_WARNING
+
+demand_validation = ValidationNonnegativeStatus(demand)
+capacity_validation = ValidationPositiveStatus(capacity)
+warning_validation = ValidationRangeStatus(warning_threshold; 0; 1)
+input_statuses = [demand_validation; capacity_validation; warning_validation]
+input_validation = ValidationWorst(input_statuses)
+
+ShowValidation$(Demand; demand; demand_validation)
+ShowValidation$(Capacity; capacity; capacity_validation)
+ShowValidation$(Warning threshold; warning_threshold; warning_validation)
+
+"Calculations
+
+utilization = CheckUpperUtilization(demand; capacity)
+check_status = CheckUpperStatus(demand; capacity; warning_threshold)
+
+ShowCheck$(Demand divided by capacity; utilization; check_status)
+
+BeginConclusions$
+AddValidationConclusion$(Overall input validation; input_validation)
+AddConclusion$(Governing utilization; utilization)
+AddCheckConclusion$(Overall check status; check_status)
+EndConclusions$
