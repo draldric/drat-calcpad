@@ -1,7 +1,7 @@
-#include ../core/STYLESHEET.cpd
-#include ../core/DEFINITIONS.cpd
-#include ../core/PLOTTING.cpd
-#include ../templates/PROPERTY_LIBRARY_TEMPLATE.cpd
+#include ../Core/Stylesheet.cpd
+#include ../Core/Definitions.cpd
+#include ../Core/Plotting.cpd
+#include ../Templates/PropertyLibraryTemplate.cpd
 
 "Plotting Wrapper Demonstration
 

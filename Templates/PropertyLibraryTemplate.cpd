@@ -1,4 +1,4 @@
-#include ../core/DATA_WRAPPER_CORE.cpd
+#include ../Core/DataWrapper.cpd
 
 #hide
 '<!-- Synthetic property-library template. Replace the example data and source records. -->
