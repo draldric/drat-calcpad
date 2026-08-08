@@ -3,12 +3,15 @@
 
 '<!-- Replace the document-control values before issuing the worksheet. -->
 #def Organization$ = ORGANIZATION NAME
+#def Client$ = CLIENT NAME
+#def Project$ = PROJECT NAME
 #def Title$ = ENGINEERING CALCULATION TITLE
 #def Purpose$ = STATE THE PURPOSE AND REQUIRED DECISION.
-#def Calculation$ = CALC-0000
+#def Scope$ = DEFINE WHAT THE CALCULATION INCLUDES AND EXCLUDES.
+#def Calculation$ = CALCULATION NUMBER
 #def Rev$ = 0
-#def Author$ = PREPARER NAME
-#def Date$ = YYYY-MM-DD
+#def PreparedBy$ = PREPARER NAME
+#def PreparedOn$ = YYYY-MM-DD
 #def CheckedBy$ = NOT CHECKED
 #def CheckedOn$ = --
 #def ApprovedBy$ = NOT APPROVED
@@ -17,6 +20,7 @@
 CreateHeader$
 CreateTitle$
 CreatePurpose$
+CreateScope$
 
 BeginRevisions$
 AddRevision$(0; Initial calculation; PREPARER NAME; YYYY-MM-DD)
@@ -26,37 +30,72 @@ BeginReferences$
 AddReference$(List the governing code, standard, drawing, or source.)
 EndReferences$
 
-BeginInitialConditions$
-AddInitialCondition$(State the design basis and important assumptions.)
-AddInitialCondition$(Document input sources and applicability limits.)
-EndInitialConditions$
+"Design Basis and Assumptions
+
+BeginListSection$(Design Criteria)
+AddListItem$(State the governing requirements and acceptance criteria.)
+EndListSection$
+
+BeginListSection$(Input Sources)
+AddListItem$(Identify drawings, specifications, measurements, databases, or other input sources.)
+EndListSection$
+
+BeginListSection$(Assumptions)
+AddListItem$(State each engineering assumption and its justification.)
+EndListSection$
+
+BeginListSection$(Applicability and Limitations)
+AddListItem$(Document important bounds, exclusions, and conditions of use.)
+EndListSection$
 
 "Inputs
+
+'#### Saved Inputs
 
 'Replace these demonstration inputs with calculation-specific values.
 demand = 80
 capacity = 100
 warning_threshold = CHK_DEFAULT_WARNING
 
+'#### Input Validation
+
+#hide
 demand_validation = ValidationNonnegativeStatus(demand)
 capacity_validation = ValidationPositiveStatus(capacity)
 warning_validation = ValidationRangeStatus(warning_threshold; 0; 1)
 input_statuses = [demand_validation; capacity_validation; warning_validation]
 input_validation = ValidationWorst(input_statuses)
+#show
 
 ShowValidation$(Demand; demand; demand_validation)
 ShowValidation$(Capacity; capacity; capacity_validation)
 ShowValidation$(Warning threshold; warning_threshold; warning_validation)
 
+"Methodology
+
+'Describe the governing method, equations, models, and acceptance criteria.
+'For this demonstration, utilization is the magnitude of demand divided by positive capacity.
+
 "Calculations
 
+#hide
 utilization = CheckUpperUtilization(demand; capacity)
 check_status = CheckUpperStatus(demand; capacity; warning_threshold)
+#show
+
+"Results
+
+#novar
+AddConclusion$(Governing utilization; utilization)
+#equ
+
+"Engineering Checks
 
 ShowCheck$(Demand divided by capacity; utilization; check_status)
 
 BeginConclusions$
+#novar
 AddValidationConclusion$(Overall input validation; input_validation)
-AddConclusion$(Governing utilization; utilization)
 AddCheckConclusion$(Overall check status; check_status)
 EndConclusions$
+#equ

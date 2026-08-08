@@ -1,5 +1,5 @@
 #hide
-'<!-- Worksheet formatting definitions. Version 1.1.0. -->
+'<!-- Worksheet formatting definitions. Version 1.2.0. -->
 
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -35,7 +35,9 @@
     '<table class="bordered data document-control">
     '<tbody>
     '<tr><td><strong>Calculation</strong></td><td>Calculation$</td><td><strong>Revision</strong></td><td>Rev$</td></tr>
-    '<tr><td><strong>Prepared by</strong></td><td>Author$</td><td><strong>Date</strong></td><td>Date$</td></tr>
+    '<tr><td><strong>Client</strong></td><td colspan="3">Client$</td></tr>
+    '<tr><td><strong>Project</strong></td><td colspan="3">Project$</td></tr>
+    '<tr><td><strong>Prepared by</strong></td><td>PreparedBy$</td><td><strong>Date</strong></td><td>PreparedOn$</td></tr>
     '<tr><td><strong>Checked by</strong></td><td>CheckedBy$</td><td><strong>Date</strong></td><td>CheckedOn$</td></tr>
     '<tr><td><strong>Approved by</strong></td><td>ApprovedBy$</td><td><strong>Date</strong></td><td>ApprovedOn$</td></tr>
     '</tbody>
@@ -52,6 +54,12 @@
     '<section class="document-summary">
     '<h2>Purpose</h2>
     '<p>Purpose$</p>
+    '</section>
+#end def
+#def CreateScope$
+    '<section class="document-summary">
+    '<h2>Scope</h2>
+    '<p>Scope$</p>
     '</section>
 #end def
 #def BeginReferences$
@@ -81,8 +89,7 @@
     '</table>
 #end def
 #def BeginInitialConditions$
-    pagebreak$
-    '## Design Basis and Assumptions
+    '### Design Basis and Assumptions
     '<ul>
 #end def
 #def AddInitialCondition$(IC$)
@@ -91,9 +98,19 @@
 #def EndInitialConditions$
     '</ul>
 #end def
+#def BeginListSection$(heading$)
+    '#### heading$
+    '<ul>
+#end def
+#def AddListItem$(item$)
+    '<li>item$</li>
+#end def
+#def EndListSection$
+    '</ul>
+#end def
 #def BeginVariables$
     '<hr/>
-    '## List of Variables
+    '### List of Variables
     #noc
     '<table class="bordered" style="width:95%">
     '<thead>
@@ -111,8 +128,7 @@
 #end def
 
 #def BeginConclusions$
-    pagebreak$
-    '## Conclusions
+    '### Conclusions
     '<div class="conclusions">
 #end def
 #def AddConclusion$(label$; value$)

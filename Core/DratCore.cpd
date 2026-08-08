@@ -1,9 +1,9 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10100
-DRAT_DEFINITIONS_API = 10100
-DRAT_STYLESHEET_API = 10100
+DRAT_CORE_API = 10200
+DRAT_DEFINITIONS_API = 10200
+DRAT_STYLESHEET_API = 10200
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
 DRAT_CHECKS_API = 10000
@@ -11,7 +11,7 @@ DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 10100
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.1.0
+#def DRATCoreVersion$ = 1.2.0
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -20,7 +20,7 @@ DRAT_VALIDATION_API = 10100
 '<style>h2{font-size:12pt;}</style>
 '<style>h3{font-size:16pt;counter-reset:h4counter;counter-increment:h3counter;border-bottom:1.5px solid #999;padding-bottom:5px;margin-bottom:15px;}</style>
 '<style>h4{font-size:14pt;counter-reset:h5counter;counter-increment:h4counter;}</style>
-'<style>h5{font-size:12pt;counter-increment:h5counter;}</style>
+'<style>h5{font-size:12pt;counter-reset:h6counter;counter-increment:h5counter;}</style>
 '<style>h6{font-size:10pt;counter-increment:h6counter;}</style>
 '<style>h3::before{content:counter(h3counter) ". ";}</style>
 '<style>h4::before{content:counter(h3counter) "." counter(h4counter) ". ";}</style>
@@ -41,9 +41,9 @@ DRAT_VALIDATION_API = 10100
 '<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
 '<style>.document-summary h2{margin-bottom:0.25em;}</style>
 '<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
-'<style>@media print{.document-header,.document-summary,.conclusions{break-inside:avoid;page-break-inside:avoid;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions{break-inside:avoid;page-break-inside:avoid;}}</style>
 #hide
-'<!-- Worksheet formatting definitions. Version 1.1.0. -->
+'<!-- Worksheet formatting definitions. Version 1.2.0. -->
 
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -79,7 +79,9 @@ DRAT_VALIDATION_API = 10100
     '<table class="bordered data document-control">
     '<tbody>
     '<tr><td><strong>Calculation</strong></td><td>Calculation$</td><td><strong>Revision</strong></td><td>Rev$</td></tr>
-    '<tr><td><strong>Prepared by</strong></td><td>Author$</td><td><strong>Date</strong></td><td>Date$</td></tr>
+    '<tr><td><strong>Client</strong></td><td colspan="3">Client$</td></tr>
+    '<tr><td><strong>Project</strong></td><td colspan="3">Project$</td></tr>
+    '<tr><td><strong>Prepared by</strong></td><td>PreparedBy$</td><td><strong>Date</strong></td><td>PreparedOn$</td></tr>
     '<tr><td><strong>Checked by</strong></td><td>CheckedBy$</td><td><strong>Date</strong></td><td>CheckedOn$</td></tr>
     '<tr><td><strong>Approved by</strong></td><td>ApprovedBy$</td><td><strong>Date</strong></td><td>ApprovedOn$</td></tr>
     '</tbody>
@@ -96,6 +98,12 @@ DRAT_VALIDATION_API = 10100
     '<section class="document-summary">
     '<h2>Purpose</h2>
     '<p>Purpose$</p>
+    '</section>
+#end def
+#def CreateScope$
+    '<section class="document-summary">
+    '<h2>Scope</h2>
+    '<p>Scope$</p>
     '</section>
 #end def
 #def BeginReferences$
@@ -125,8 +133,7 @@ DRAT_VALIDATION_API = 10100
     '</table>
 #end def
 #def BeginInitialConditions$
-    pagebreak$
-    '## Design Basis and Assumptions
+    '### Design Basis and Assumptions
     '<ul>
 #end def
 #def AddInitialCondition$(IC$)
@@ -135,9 +142,19 @@ DRAT_VALIDATION_API = 10100
 #def EndInitialConditions$
     '</ul>
 #end def
+#def BeginListSection$(heading$)
+    '#### heading$
+    '<ul>
+#end def
+#def AddListItem$(item$)
+    '<li>item$</li>
+#end def
+#def EndListSection$
+    '</ul>
+#end def
 #def BeginVariables$
     '<hr/>
-    '## List of Variables
+    '### List of Variables
     #noc
     '<table class="bordered" style="width:95%">
     '<thead>
@@ -155,8 +172,7 @@ DRAT_VALIDATION_API = 10100
 #end def
 
 #def BeginConclusions$
-    pagebreak$
-    '## Conclusions
+    '### Conclusions
     '<div class="conclusions">
 #end def
 #def AddConclusion$(label$; value$)

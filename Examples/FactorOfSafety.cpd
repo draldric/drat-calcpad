@@ -2,12 +2,15 @@
 #include ../Core/DratCore.cpd
 
 #def Organization$ = EXAMPLE ORGANIZATION
+#def Client$ = EXAMPLE CLIENT
+#def Project$ = EXAMPLE PROJECT
 #def Title$ = MINIMUM RECOMMENDED FACTOR OF SAFETY
 #def Purpose$ = DETERMINE A RECOMMENDED MINIMUM FACTOR OF SAFETY AND COMPARE IT WITH THE DESIGN VALUE.
+#def Scope$ = DEMONSTRATE A STATIC, AUDITABLE FACTOR-SELECTION AND DESIGN-CHECK WORKFLOW.
 #def Calculation$ = EXAMPLE-FOS-001
 #def Rev$ = 0
-#def Author$ = EXAMPLE AUTHOR
-#def Date$ = 2026-08-08
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-08
 #def CheckedBy$ = NOT CHECKED
 #def CheckedOn$ = --
 #def ApprovedBy$ = NOT APPROVED
@@ -16,6 +19,7 @@
 CreateHeader$
 CreateTitle$
 CreatePurpose$
+CreateScope$
 
 BeginRevisions$
 AddRevision$(0; Initial example; EXAMPLE AUTHOR; 2026-08-08)
@@ -33,16 +37,16 @@ AddInitialCondition$(This example demonstrates a workflow and is not a substitut
 EndInitialConditions$
 
 "Factor Options
-'## Material knowledge: 
+'#### Material knowledge:
 '1.0 for directly established properties.
-'1.1 for reliable published values .
+'1.1 for reliable published values.
 '1.4 for variable or poorly established material properties.
 #hide
 material_options = [1.0; 1.1; 1.4]
 #show
 n_material = 1.1
 
-'## Loading and stress analysis: 
+'#### Loading and stress analysis:
 '1.1 for well-defined loading and analysis.
 '1.3 for expected uncertainty.
 '1.7 for poorly defined loading or analysis.
@@ -51,24 +55,24 @@ stress_options = [1.1; 1.3; 1.7]
 #show
 n_stress = 1.3
 
-'## Geometry and manufacturing: 
-'1.0 for controlled dimensions. 
+'#### Geometry and manufacturing:
+'1.0 for controlled dimensions.
 '1.2 where dimensions are not closely controlled.
 #hide
 geometry_options = [1.0; 1.2]
 #show
 n_geometry = 1.2
 
-'## Failure analysis: 
-'1.1 for established simple loading models. 
-'1.2 for complex loading. 
+'#### Failure analysis:
+'1.1 for established simple loading models.
+'1.2 for complex loading.
 '1.5 where the failure model is not well established.
 #hide
 failure_options = [1.1; 1.2; 1.5]
 #show
 n_failure = 1.2
 
-'## Reliability: 
+'#### Reliability:
 '1.1 below 90 percent.
 '1.2 from 90 through 98 percent.
 '1.7 above 99 percent.
@@ -118,3 +122,4 @@ AddConclusion$(Design factor of safety; FoS_design)
 AddValidationConclusion$(Input validation status; input_validation)
 AddCheckConclusion$(Design check status; FoS_status)
 EndConclusions$
+#equ

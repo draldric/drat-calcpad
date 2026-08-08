@@ -38,5 +38,8 @@ Focused regression worksheets are in `Tests/Core/`.
 Copy `Templates/EngineeringCalculationTemplate.cpd` to start a calculation.
 Replace its document-control placeholders, references, assumptions, saved inputs, validation calls, calculations, and conclusions.
 The template deliberately uses explicit CalcPad assignments instead of browser controls so selected design inputs remain part of the auditable source file.
+Its standard structure covers purpose and scope, references, design criteria, input sources, assumptions, limitations, saved inputs, validation, methodology, calculations, results, engineering checks, and conclusions.
+Numbered H3 sections begin on new pages when printed or exported to PDF; H4 and H5 headings remain numbered subsections on the current page.
+Required organization, client, project, calculation, and preparation metadata uses direct, readable placeholders, while unchecked and unapproved states remain visible in the document header.
 
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
