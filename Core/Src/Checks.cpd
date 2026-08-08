@@ -18,11 +18,11 @@ CheckUtilizationOK(utilization) = and(utilization ≡ utilization; utilization �
 
 CheckStatus(utilization; warning_threshold) = switch(not(CheckWarningThresholdOK(warning_threshold)); CHK_ERROR; not(CheckUtilizationOK(utilization)); CHK_ERROR; utilization > 1; CHK_FAIL; utilization ≥ warning_threshold; CHK_WARN; CHK_PASS)
 
-CheckUpperUtilization(demand; capacity) = if(capacity > 0; abs(demand)/capacity; 0/0)
-CheckUpperStatus(demand; capacity; warning_threshold) = if(capacity > 0; CheckStatus(CheckUpperUtilization(demand; capacity); warning_threshold); CHK_ERROR)
+CheckUpperUtilization(demand; capacity) = if(clrunits(capacity) > 0; abs(demand)/capacity; 0/0)
+CheckUpperStatus(demand; capacity; warning_threshold) = if(clrunits(capacity) > 0; CheckStatus(CheckUpperUtilization(demand; capacity); warning_threshold); CHK_ERROR)
 
-CheckLowerUtilization(provided; required) = if(provided > 0; abs(required)/provided; 0/0)
-CheckLowerStatus(provided; required; warning_threshold) = if(provided > 0; CheckStatus(CheckLowerUtilization(provided; required); warning_threshold); CHK_ERROR)
+CheckLowerUtilization(provided; required) = if(clrunits(provided) > 0; abs(required)/provided; 0/0)
+CheckLowerStatus(provided; required; warning_threshold) = if(clrunits(provided) > 0; CheckStatus(CheckLowerUtilization(provided; required); warning_threshold); CHK_ERROR)
 
 CheckWorst(statuses) = max(statuses)
 CheckCount(statuses; status) = count(statuses; status; 1)

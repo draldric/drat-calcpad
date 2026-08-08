@@ -23,8 +23,8 @@ ValidationIsFinite(value) = and(value ≡ value; abs(clrunits(value)) < VAL_FINI
 ValidationIsInteger(value) = and(ValidationIsFinite(value); abs(clrunits(value) - round(clrunits(value))) ≤ VAL_INTEGER_TOLERANCE)
 
 ValidationRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; value < minimum; VAL_ERR_BELOW_RANGE; value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
-ValidationPositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK)
-ValidationNonnegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value < 0; VAL_ERR_NEGATIVE; VAL_OK)
+ValidationPositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; clrunits(value) ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK)
+ValidationNonnegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; clrunits(value) < 0; VAL_ERR_NEGATIVE; VAL_OK)
 ValidationIntegerStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsInteger(value)); VAL_ERR_NOT_INTEGER; VAL_OK)
 ValidationLengthStatus(values; minimum_length; maximum_length) = switch(minimum_length < 0; VAL_ERR_BAD_RANGE; maximum_length < minimum_length; VAL_ERR_BAD_RANGE; len(values) < minimum_length; VAL_ERR_LENGTH; len(values) > maximum_length; VAL_ERR_LENGTH; VAL_OK)
 ValidationAllowedStatus(value; allowed_values) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; count(allowed_values; value; 1) ≡ 0; VAL_ERR_NOT_ALLOWED; VAL_OK)
