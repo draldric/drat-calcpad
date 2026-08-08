@@ -1,0 +1,37 @@
+"Database Core Test
+
+#include ../../Core/DratCore.cpd
+
+TestDatabase = [101; 10; 1|102; 20; 2|103; DB_MISSING; 3]
+TestMetadata = [101; 7; 1|102; 8; 2]
+TestRegistry = [101; 102; 103]
+
+column_ok = DBColumnOK(TestDatabase; 2)
+column_zero = DBColumnOK(TestDatabase; 0)
+column_large = DBColumnOK(TestDatabase; 4)
+column_fraction = DBColumnOK(TestDatabase; 1.5)
+
+lookup_exists = DBLookupExists(TestDatabase; 101; 1)
+lookup_absent = DBLookupExists(TestDatabase; 999; 1)
+lookup_bad_key_column = DBLookupExists(TestDatabase; 101; 0)
+
+lookup_ok = DBLookupStatus(TestDatabase; 101; 1; 2)
+lookup_missing = DBLookupStatus(TestDatabase; 103; 1; 2)
+lookup_absent_status = DBLookupStatus(TestDatabase; 999; 1; 2)
+lookup_bad_column = DBLookupStatus(TestDatabase; 101; 1; 4)
+lookup_value = DBLookupRaw(TestDatabase; 102; 1; 2)
+lookup_fallback = DBLookupOr(TestDatabase; 999; 1; 2; -1)
+
+metadata_source = DBMetadataSource(TestMetadata; 102)
+metadata_revision = DBMetadataRevision(TestMetadata; 102)
+registry_status = DBRegistryStatus(TestRegistry; 102)
+registry_missing = DBRegistryStatus(TestRegistry; 999)
+registry_count = DBRegistryCount(TestRegistry)
+
+column_tests = and(column_ok; not(column_zero); not(column_large); not(column_fraction))
+existence_tests = and(lookup_exists; not(lookup_absent); not(lookup_bad_key_column))
+status_tests = and(lookup_ok ≡ DB_OK; lookup_missing ≡ DB_ERR_MISSING; lookup_absent_status ≡ DB_ERR_NAME; lookup_bad_column ≡ DB_ERR_BAD_COLUMN)
+value_tests = and(lookup_value ≡ 20; lookup_fallback ≡ -1; metadata_source ≡ 8; metadata_revision ≡ 2)
+registry_tests = and(registry_status ≡ DB_OK; registry_missing ≡ DB_ERR_NAME; registry_count ≡ 3)
+
+all_tests = and(column_tests; existence_tests; status_tests; value_tests; registry_tests)
