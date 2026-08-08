@@ -1,5 +1,5 @@
 #hide
-'<!-- Input validation helpers. Version 1.0.0. -->
+'<!-- Input validation helpers. Version 1.2.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -31,6 +31,10 @@ ValidationAllowedStatus(value; allowed_values) = switch(not(ValidationIsFinite(v
 
 ValidationWorst(statuses) = max(statuses)
 ValidationCount(statuses; status) = count(statuses; status; 1)
+ValidationWarningCount(statuses) = ValidationCount(statuses; VAL_WARN)
+ValidationErrorCount(statuses) = len(statuses) - ValidationCount(statuses; VAL_OK) - ValidationWarningCount(statuses)
+ValidationHasErrors(statuses) = ValidationErrorCount(statuses) > 0
+ValidationOverallStatus(statuses) = switch(ValidationHasErrors(statuses); VAL_ERR_UNKNOWN; ValidationWarningCount(statuses) > 0; VAL_WARN; VAL_OK)
 ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 
 #def ValidationStatus$(status$)
@@ -81,6 +85,42 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     ValidationStatus$(status$)
     '</td></tr>
     '</tbody>
+    '</table>
+#end def
+
+#def ValidationSummaryStatus$(statuses$)
+    #if ValidationHasErrors(statuses$)
+        '<span class="err">INVALID</span>
+    #end if
+    #if and(not(ValidationHasErrors(statuses$)); ValidationWarningCount(statuses$) > 0)
+        '<span class="note">VALIDATION WARNING</span>
+    #end if
+    #if and(not(ValidationHasErrors(statuses$)); ValidationWarningCount(statuses$) ≡ 0)
+        '<span class="ok">VALID</span>
+    #end if
+#end def
+
+#def BeginValidationSummary$
+    '<table class="bordered data reporting-summary validation-summary">
+    '<thead>
+    '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
+    '</thead>
+    '<tbody>
+#end def
+
+#def AddValidationRow$(label$; value$; permitted$; status$)
+    '<tr><td>label$</td><td>'value$'</td><td>permitted$</td><td class="status-cell">
+    ValidationStatus$(status$)
+    '</td></tr>
+#end def
+
+#def EndValidationSummary$(statuses$)
+    '</tbody>
+    '<tfoot>
+    '<tr><th colspan="2">Overall validation</th><td><strong>Errors:</strong> 'ValidationErrorCount(statuses$)'</td><td class="status-cell">
+    ValidationSummaryStatus$(statuses$)
+    '</td></tr>
+    '</tfoot>
     '</table>
 #end def
 #show

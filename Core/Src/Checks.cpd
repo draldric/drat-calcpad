@@ -1,5 +1,5 @@
 #hide
-'<!-- Engineering check helpers. Version 1.0.0. -->
+'<!-- Engineering check helpers. Version 1.1.0. -->
 
 CHK_PASS = 0
 CHK_WARN = 10
@@ -55,6 +55,26 @@ CheckAllPass(statuses) = CheckWorst(statuses) ≡ CHK_PASS
     '<tr><td><strong>Status</strong></td><td>
     CheckStatus$(status$)
     '</td></tr>
+    '</tbody>
+    '</table>
+#end def
+
+#def BeginCheckSummary$
+    '<table class="bordered data reporting-summary check-summary">
+    '<thead>
+    '<tr><th>Demand / Required</th><th>Capacity / Provided</th><th>Utilization</th><th>Warning</th><th>Acceptance Criterion</th><th>Status</th></tr>
+    '</thead>
+    '<tbody>
+#end def
+
+#def AddCheckRow$(label$; demand$; capacity$; utilization$; warning_threshold$; criterion$; status$)
+    '<tr class="check-title"><th colspan="6">label$</th></tr>
+    '<tr><td class="check-demand">'demand$'</td><td>'capacity$'</td><td>'utilization$'</td><td>'warning_threshold$'</td><td>criterion$</td><td class="status-cell">
+    CheckStatus$(status$)
+    '</td></tr>
+#end def
+
+#def EndCheckSummary$
     '</tbody>
     '</table>
 #end def

@@ -1,17 +1,17 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10200
+DRAT_CORE_API = 10300
 DRAT_DEFINITIONS_API = 10200
-DRAT_STYLESHEET_API = 10200
+DRAT_STYLESHEET_API = 10300
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
-DRAT_CHECKS_API = 10000
+DRAT_CHECKS_API = 10100
 DRAT_DATABASE_API = 10000
-DRAT_VALIDATION_API = 10100
+DRAT_VALIDATION_API = 10200
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.2.0
+#def DRATCoreVersion$ = 1.3.0
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -41,7 +41,13 @@ DRAT_VALIDATION_API = 10100
 '<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
 '<style>.document-summary h2{margin-bottom:0.25em;}</style>
 '<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions{break-inside:avoid;page-break-inside:avoid;}}</style>
+'<style>.reporting-summary{width:95%;table-layout:auto;}</style>
+'<style>.reporting-summary th,.reporting-summary td{vertical-align:top;}</style>
+'<style>.reporting-summary .status-cell{white-space:nowrap;text-align:center;}</style>
+'<style>.check-summary .check-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
+'<style>table.data.check-summary td.check-demand{text-align:right;}</style>
+'<style>table.data.revision-history td:first-child{text-align:right;}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
 '<!-- Worksheet formatting definitions. Version 1.2.0. -->
 
@@ -119,7 +125,7 @@ DRAT_VALIDATION_API = 10100
 #end def
 #def BeginRevisions$
     '## Revision History
-    '<table class="bordered data" style="width:95%">
+    '<table class="bordered data revision-history" style="width:95%">
     '<thead>
     '<tr><th>Revision</th><th>Description</th><th>Author</th><th>Date</th></tr>
     '</thead>
@@ -366,7 +372,7 @@ DBStatusKnown(status) = or(status ≡ DB_OK; status ≡ DB_ERR_NAME; status ≡ 
 #end def
 #show
 #hide
-'<!-- Engineering check helpers. Version 1.0.0. -->
+'<!-- Engineering check helpers. Version 1.1.0. -->
 
 CHK_PASS = 0
 CHK_WARN = 10
@@ -425,6 +431,26 @@ CheckAllPass(statuses) = CheckWorst(statuses) ≡ CHK_PASS
     '</tbody>
     '</table>
 #end def
+
+#def BeginCheckSummary$
+    '<table class="bordered data reporting-summary check-summary">
+    '<thead>
+    '<tr><th>Demand / Required</th><th>Capacity / Provided</th><th>Utilization</th><th>Warning</th><th>Acceptance Criterion</th><th>Status</th></tr>
+    '</thead>
+    '<tbody>
+#end def
+
+#def AddCheckRow$(label$; demand$; capacity$; utilization$; warning_threshold$; criterion$; status$)
+    '<tr class="check-title"><th colspan="6">label$</th></tr>
+    '<tr><td class="check-demand">'demand$'</td><td>'capacity$'</td><td>'utilization$'</td><td>'warning_threshold$'</td><td>criterion$</td><td class="status-cell">
+    CheckStatus$(status$)
+    '</td></tr>
+#end def
+
+#def EndCheckSummary$
+    '</tbody>
+    '</table>
+#end def
 #show
 #hide
 '<!-- General table and metadata lookup helpers. Version 1.0.0. -->
@@ -468,7 +494,7 @@ DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
 DBRegistryCount(ids) = len(ids)
 #show
 #hide
-'<!-- Input validation helpers. Version 1.0.0. -->
+'<!-- Input validation helpers. Version 1.2.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -500,6 +526,10 @@ ValidationAllowedStatus(value; allowed_values) = switch(not(ValidationIsFinite(v
 
 ValidationWorst(statuses) = max(statuses)
 ValidationCount(statuses; status) = count(statuses; status; 1)
+ValidationWarningCount(statuses) = ValidationCount(statuses; VAL_WARN)
+ValidationErrorCount(statuses) = len(statuses) - ValidationCount(statuses; VAL_OK) - ValidationWarningCount(statuses)
+ValidationHasErrors(statuses) = ValidationErrorCount(statuses) > 0
+ValidationOverallStatus(statuses) = switch(ValidationHasErrors(statuses); VAL_ERR_UNKNOWN; ValidationWarningCount(statuses) > 0; VAL_WARN; VAL_OK)
 ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 
 #def ValidationStatus$(status$)
@@ -550,6 +580,42 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     ValidationStatus$(status$)
     '</td></tr>
     '</tbody>
+    '</table>
+#end def
+
+#def ValidationSummaryStatus$(statuses$)
+    #if ValidationHasErrors(statuses$)
+        '<span class="err">INVALID</span>
+    #end if
+    #if and(not(ValidationHasErrors(statuses$)); ValidationWarningCount(statuses$) > 0)
+        '<span class="note">VALIDATION WARNING</span>
+    #end if
+    #if and(not(ValidationHasErrors(statuses$)); ValidationWarningCount(statuses$) ≡ 0)
+        '<span class="ok">VALID</span>
+    #end if
+#end def
+
+#def BeginValidationSummary$
+    '<table class="bordered data reporting-summary validation-summary">
+    '<thead>
+    '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
+    '</thead>
+    '<tbody>
+#end def
+
+#def AddValidationRow$(label$; value$; permitted$; status$)
+    '<tr><td>label$</td><td>'value$'</td><td>permitted$</td><td class="status-cell">
+    ValidationStatus$(status$)
+    '</td></tr>
+#end def
+
+#def EndValidationSummary$(statuses$)
+    '</tbody>
+    '<tfoot>
+    '<tr><th colspan="2">Overall validation</th><td><strong>Errors:</strong> 'ValidationErrorCount(statuses$)'</td><td class="status-cell">
+    ValidationSummaryStatus$(statuses$)
+    '</td></tr>
+    '</tfoot>
     '</table>
 #end def
 #show

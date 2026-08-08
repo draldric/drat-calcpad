@@ -30,3 +30,9 @@ predicate_tests = and(predicate_tests_1; predicate_tests_2)
 all_tests = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests)
 
 ShowCheck$(Upper-limit example; upper_utilization; status_pass)
+
+#novar
+BeginCheckSummary$
+AddCheckRow$(Upper-limit example; 80; 100; upper_utilization; 0.9; Demand ≤ capacity; status_pass)
+EndCheckSummary$
+#equ
