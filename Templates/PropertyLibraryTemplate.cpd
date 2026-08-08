@@ -1,5 +1,5 @@
-#include ../Core/DataWrapper.cpd
-
+#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 20000)
+#if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #hide
 '<!-- Synthetic property-library template. Replace the example data and source records. -->
 
@@ -160,3 +160,9 @@ ExampleSourceKnown(source_id) = or(source_id ≡ SRC_EXAMPLE_A; source_id ≡ SR
 	    '</table>
 #end def
 #show
+#else
+'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> PropertyLibraryTemplate requires DataWrapper API 0.3.2 or newer. Load a compatible DratCore.cpd before this library.</div>
+#end if
+#else
+'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> PropertyLibraryTemplate requires DRAT core API 1.x. Load DratCore.cpd before this library.</div>
+#end if

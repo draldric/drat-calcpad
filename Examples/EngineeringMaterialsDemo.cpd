@@ -1,0 +1,22 @@
+#include ../Core/DratCore.cpd
+#include ../Libraries/Materials/EngineeringMaterials.cpd
+
+"Common Engineering Materials Library Demonstration
+
+'Representative screening values only. Verify project-specific design data.
+
+rho_A36 = MatRho(STEEL_ASTM_A36)
+E_A36 = MatE(A36)
+yield_A36 = MatYield(STEEL_ASTM_A36)
+
+rho_6061 = MatRho(AL6061_T6)
+E_6061 = MatE(ALUMINUM_6061_T6)
+thermal_k_6061 = MatThermalK(ALUMINUM_6061_T6)
+
+E_PEEK = MatE(PEEK)
+service_PEEK = MatMaxServiceT(POLYMER_PEEK)
+
+ShowMatPROP$(STAINLESS_316L; MAT_P_THERMAL_CONDUCTIVITY)
+ShowMatPROP$(COMPOSITE_CFRP_UD; MAT_P_YOUNGS_MODULUS)
+ShowMatPROP$(CONCRETE_NORMAL_40MPA; MAT_P_COMPRESSIVE_STRENGTH)
+ShowMatPROP$(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH)

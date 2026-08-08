@@ -1,6 +1,4 @@
-#include ../Core/Stylesheet.cpd
-#include ../Core/Definitions.cpd
-#include ../Core/Plotting.cpd
+#include ../Core/DratCore.cpd
 #include ../Templates/PropertyLibraryTemplate.cpd
 
 "Plotting Wrapper Demonstration

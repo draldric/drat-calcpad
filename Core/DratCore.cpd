@@ -1,0 +1,687 @@
+#hide
+'<!-- DRAT core compatibility manifest. -->
+
+DRAT_CORE_API = 10000
+DRAT_DEFINITIONS_API = 10000
+DRAT_STYLESHEET_API = 10000
+DRAT_PLOTTING_API = 30200
+DRAT_DATA_WRAPPER_API = 302
+DRAT_CHECKS_API = 10000
+DRAT_DATABASE_API = 10000
+DRAT_VALIDATION_API = 10000
+
+#def DRATCoreName$ = DRAT CalcpadCE Core
+#def DRATCoreVersion$ = 1.0.0
+#show
+'<style>*{font-family:courier new;font-size:10pt;}</style>
+'<style>body{counter-reset:h3counter;}</style>
+'<style>h1,h2,h3,h4,h5,h6{text-transform:uppercase;font-family:courier new;}</style>
+'<style>h1{font-size:16pt;}</style>
+'<style>h2{font-size:12pt;}</style>
+'<style>h3{font-size:16pt;counter-reset:h4counter;counter-increment:h3counter;border-bottom:1.5px solid #999;padding-bottom:5px;margin-bottom:15px;}</style>
+'<style>h4{font-size:14pt;counter-reset:h5counter;counter-increment:h4counter;}</style>
+'<style>h5{font-size:12pt;counter-increment:h5counter;}</style>
+'<style>h6{font-size:10pt;counter-increment:h6counter;}</style>
+'<style>h3::before{content:counter(h3counter) ". ";}</style>
+'<style>h4::before{content:counter(h3counter) "." counter(h4counter) ". ";}</style>
+'<style>h5::before{content:counter(h3counter) "." counter(h4counter) "." counter(h5counter) ". ";}</style>
+'<style>h6::before{content:counter(h3counter) "." counter(h4counter) "." counter(h5counter) "." counter(h6counter) ". ";}</style>
+'<style>p{text-transform:none;margin-left:2em;font-family:courier new;text-align:justify;}</style>
+'<style>span{font-family:courier new;}</style>
+'<style>.ref{font-family:courier new;background-color:#daf5ff;color:#000000;}</style>
+'<style>.note{font-family:courier new;background-color:#ffffaa;}</style>
+'<style>table,ol,ul,.plot{margin-left:2em;}</style>
+'<style>.content-box{columns:3;column-gap:20px;}</style>
+'<style>.row{display:flex;}</style>
+'<style>.column{flex:50%;}</style>
+#hide
+'<!-----------------------------|PDF FORMATTING|------------------------------!>
+#def pagebreak$ = '<p style="page-break-before: always;"></p>
+#def tab$ = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
+
+'<!--------------------------------|MESSAGES|---------------------------------!>
+#def err$(msg$) = '<span class="err">msg$</span>
+#def ok$(msg$) = '<span class="ok">msg$</span>
+#def desc$(msg$) = '<span class="note">msg$</span>
+#def ref$(msg$) = '<span class="ref">msg$</span>
+
+'<!----------------------------|MATHCAD UTILITIES|----------------------------!>
+#def cmt$(c$) = '<!--'c$'--!>'
+#def shide$ = '<!--'
+#def ehide$ = '--!>'
+
+'<!------------------------------------||-------------------------------------!>
+#def if$(cond$; true$; false$)
+	#if cond$
+		'<p>'true$'</p>
+	#else
+		'<p>'false$'</p>
+	#end if
+#end def
+
+'<!--------------------------|WORKSHEET FORMATTING|---------------------------!>
+#def CreateHeader$
+	'<div class="row"> 
+	'<div class="column"> 
+	'<img style="height:auto; width:100%" src="logoPath$" alt="">
+	'# Engineering Calculation Worksheet
+	'</div> 
+	'<div class="column">
+	'<table class="bordered data" width="100%">
+	'<tbody>
+	'<tr><td><strong>Calculation</strong></td><td>Calculation$</td><td>Rev Rev$</td></tr>
+	'<tr><td><strong>Author</strong></td><td>Author$</td><td>Date$</td></tr>
+	'<tr><td><strong>Checked</strong></td><td>CheckedBy$</td><td>CheckedOn$</td></tr> 
+	'<tr><td><strong>Approved</strong></td><td>ApprovedBy$</td><td>ApprovedOn$</td></tr>
+	'</tbody>
+	'</table>
+	'</div> 
+	'</div > 
+#end def
+#def CreateTitle$
+	'<hr/>
+	'## Title
+	'Title$
+#end def
+#def CreatePurpose$
+	'<hr/>
+	'## Purpose
+	'Purpose$
+#end def
+#def BeginReferences$
+	'<hr/> 
+	'## References
+	'<ol>
+#end def
+#def AddReference$(R$)
+	'<li>R$</li>
+#end def
+#def EndReferences$
+	'</ol>
+#end def
+#def BeginRevisions$
+	'<hr/> 
+	'## Revision History
+	'<table class="bordered" style="width:95%">
+	'<thead>
+	'<tr><th>Revision</th><th>Description</th><th>Author</th><th>Date</th></tr>
+	'</thead>
+	'<tbody>
+#end def
+#def AddRevision$(R$; D$; A$; Da$)
+	'<tr><td>R$</td><td>D$</td><td>A$</td><td>Da$</td></tr>
+#end def
+#def EndRevisions$
+	'</tbody>
+	'</table>
+#end def
+#def BeginInitialConditions$
+	pagebreak$
+	'## Initial Conditions and Assumptions
+	'<ul>
+#end def
+#def AddInitialCondition$(IC$)
+	'<li>IC$</li>
+#end def
+#def EndInitialConditions$
+	'</ul>
+#end def
+#def BeginVariables$
+	'<hr/>
+	'## List of Variables
+	#noc
+	'<table class="bordered" style="width:95%">
+	'<thead>
+	'<tr><th>Symbol</th><th>Description</th><th>Units</th></tr>
+	'</thead>
+	'<tbody>
+#end def
+#def AddVariable$(var$; desc$; units$)
+	'<tr><td>var$</td><td>desc$</td><td>units$</td></tr>
+#end def
+#def EndVariables$
+	'</tbody>
+	'</table>
+	#equ
+#end def
+#show
+#hide
+'<!-- Generic numeric property-wrapper core. Version 0.3.2. -->
+
+#def DBWrapperName$ = Apple
+#def DBWrapperVersion$ = 0.3.2
+
+DB_OK = 0
+DB_ERR_NAME = 10
+DB_ERR_PROPERTY = 11
+DB_ERR_MISSING = 12
+DB_ERR_BELOW_RANGE = 13
+DB_ERR_ABOVE_RANGE = 14
+DB_ERR_BAD_COLUMN = 15
+DB_ERR_BAD_METHOD = 16
+DB_ERR_INSUFFICIENT_DATA = 17
+DB_ERR_BAD_POLICY = 18
+DB_ERR_BAD_RANGE = 19
+DB_WARN_CLAMP_LOW = 20
+DB_WARN_CLAMP_HIGH = 21
+DB_WARN_EXTRAP_LOW = 22
+DB_WARN_EXTRAP_HIGH = 23
+
+DB_NEAREST = 0
+DB_LINEAR = 1
+
+DB_STRICT = 0
+DB_CLAMP = 1
+DB_EXTRAPOLATE = 2
+
+DB_MISSING = -9.87654321*10^307
+DB_PROPERTY_FACTOR = 1000
+
+DBKey(item; property) = item*DB_PROPERTY_FACTOR + property
+DBHasID(ids; id) = count(ids; id; 1) > 0
+DBIsMissing(value) = clrunits(value) ≡ DB_MISSING
+DBIsFatal(status) = and(status ≥ DB_ERR_NAME; status < DB_WARN_CLAMP_LOW)
+DBIsWarning(status) = status ≥ DB_WARN_CLAMP_LOW
+DBMethodOK(method) = or(method ≡ DB_NEAREST; method ≡ DB_LINEAR)
+DBPolicyOK(bounds_policy) = or(bounds_policy ≡ DB_STRICT; bounds_policy ≡ DB_CLAMP; bounds_policy ≡ DB_EXTRAPOLATE)
+
+DBTableStatus(table; item; property_column) = _
+$block{
+    safe_column = min(max(round(property_column); 1); n_cols(table)); 
+    column_exists = and(property_column ≥ 2; property_column ≤ n_cols(table)); 
+    values = vlookup(table; item; 1; safe_column); 
+    item_exists = len(values) > 0; 
+    raw = if(item_exists; take(1; values); DB_MISSING); 
+    status = switch(not(column_exists); DB_ERR_BAD_COLUMN; not(item_exists); DB_ERR_NAME; DBIsMissing(raw); DB_ERR_MISSING; DB_OK); 
+    status; 
+}
+
+DBTableRaw(table; item; property_column) = _
+$block{
+    status = DBTableStatus(table; item; property_column); 
+    safe_column = min(max(round(property_column); 1); n_cols(table)); 
+    values = vlookup(table; item; 1; safe_column); 
+    raw = if(status ≡ DB_OK; take(1; values); 0/0); 
+    raw; 
+}
+
+DBCurveExists(curve_table; curve_key) = len(vlookup(curve_table; curve_key; 1; 2)) > 0
+
+DBRangeStatus(x; x_min; x_max; bounds_policy) = switch(not(DBPolicyOK(bounds_policy)); DB_ERR_BAD_POLICY; x_min > x_max; DB_ERR_BAD_RANGE; and(x < x_min; bounds_policy ≡ DB_STRICT); DB_ERR_BELOW_RANGE; and(x > x_max; bounds_policy ≡ DB_STRICT); DB_ERR_ABOVE_RANGE; and(x < x_min; bounds_policy ≡ DB_CLAMP); DB_WARN_CLAMP_LOW; and(x > x_max; bounds_policy ≡ DB_CLAMP); DB_WARN_CLAMP_HIGH; and(x < x_min; bounds_policy ≡ DB_EXTRAPOLATE); DB_WARN_EXTRAP_LOW; and(x > x_max; bounds_policy ≡ DB_EXTRAPOLATE); DB_WARN_EXTRAP_HIGH; DB_OK)
+
+DBLinear(X; Y; x) = _
+$block{
+    n = len(X); 
+    x_first = take(1; X); 
+    x_last = take(n; X); 
+    x_search = min(max(x; x_first); x_last); 
+    lower_count = len(find_le(X; x_search; 1)); 
+    i_1 = min(max(lower_count; 1); n - 1); 
+    i_2 = i_1 + 1; 
+    x_1 = take(i_1; X); 
+    x_2 = take(i_2; X); 
+    y_1 = take(i_1; Y); 
+    y_2 = take(i_2; Y); 
+    y = if(x_2 ≡ x_1; 0/0; y_1 + (x - x_1)*(y_2 - y_1)/(x_2 - x_1)); 
+    y; 
+}
+
+DBNearest(X; Y; x) = _
+$block{
+    n = len(X); 
+    x_first = take(1; X); 
+    x_last = take(n; X); 
+    x_search = min(max(x; x_first); x_last); 
+    lower_count = len(find_le(X; x_search; 1)); 
+    i_1 = min(max(lower_count; 1); n - 1); 
+    i_2 = i_1 + 1; 
+    x_1 = take(i_1; X); 
+    x_2 = take(i_2; X); 
+    i_near = if(abs(x_search - x_1) ≤ abs(x_2 - x_search); i_1; i_2); 
+    y = take(i_near; Y); 
+    y; 
+}
+
+DBCurveStatus(curve_table; curve_key; x; valid_min; valid_max; method; bounds_policy) = _
+$block{
+    X = vlookup(curve_table; curve_key; 1; 2); 
+    Y = vlookup(curve_table; curve_key; 1; 3); 
+    n_X = len(X); 
+    n_Y = len(Y); 
+    exists = n_X > 0; 
+    enough_data = and(n_X ≥ 2; n_Y ≡ n_X); 
+    missing_data = count(Y; DB_MISSING; 1) > 0; 
+    status = switch(not(exists); DB_ERR_MISSING; not(enough_data); DB_ERR_INSUFFICIENT_DATA; missing_data; DB_ERR_MISSING; not(DBMethodOK(method)); DB_ERR_BAD_METHOD; DBRangeStatus(x; valid_min; valid_max; bounds_policy)); 
+    status; 
+}
+
+DBCurveRaw(curve_table; curve_key; x; valid_min; valid_max; method; bounds_policy) = _
+$block{
+    status = DBCurveStatus(curve_table; curve_key; x; valid_min; valid_max; method; bounds_policy); 
+    X = vlookup(curve_table; curve_key; 1; 2); 
+    Y = vlookup(curve_table; curve_key; 1; 3); 
+    x_eval = if(bounds_policy ≡ DB_CLAMP; min(max(x; valid_min); valid_max); x); 
+    raw = switch(DBIsFatal(status); 0/0; method ≡ DB_NEAREST; DBNearest(X; Y; x_eval); method ≡ DB_LINEAR; DBLinear(X; Y; x_eval); 0/0); 
+    raw; 
+}
+
+DBStatusKnown(status) = or(status ≡ DB_OK; status ≡ DB_ERR_NAME; status ≡ DB_ERR_PROPERTY; status ≡ DB_ERR_MISSING; status ≡ DB_ERR_BELOW_RANGE; status ≡ DB_ERR_ABOVE_RANGE; status ≡ DB_ERR_BAD_COLUMN; status ≡ DB_ERR_BAD_METHOD; status ≡ DB_ERR_INSUFFICIENT_DATA; status ≡ DB_ERR_BAD_POLICY; status ≡ DB_ERR_BAD_RANGE; status ≡ DB_WARN_CLAMP_LOW; status ≡ DB_WARN_CLAMP_HIGH; status ≡ DB_WARN_EXTRAP_LOW; status ≡ DB_WARN_EXTRAP_HIGH)
+
+#def DBStatus$(status$)
+	    #if status$ ≡ DB_OK
+		        '<span class="ok">OK</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_NAME
+		        '<span class="err">Unknown item name or ID</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_PROPERTY
+		        '<span class="err">Unknown property name or ID</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_MISSING
+		        '<span class="err">Property value is missing</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BELOW_RANGE
+		        '<span class="err">Query is below the valid range</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_ABOVE_RANGE
+		        '<span class="err">Query is above the valid range</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_COLUMN
+		        '<span class="err">Invalid property column</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_METHOD
+		        '<span class="err">Unsupported interpolation method</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_INSUFFICIENT_DATA
+		        '<span class="err">Curve requires at least two data points</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_POLICY
+		        '<span class="err">Unsupported range policy</span>
+	    #end if
+	    #if status$ ≡ DB_ERR_BAD_RANGE
+		        '<span class="err">Invalid property range</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_CLAMP_LOW
+		        '<span class="note">Below range; clamped to minimum</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_CLAMP_HIGH
+		        '<span class="note">Above range; clamped to maximum</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_EXTRAP_LOW
+		        '<span class="note">Below range; extrapolated</span>
+	    #end if
+	    #if status$ ≡ DB_WARN_EXTRAP_HIGH
+		        '<span class="note">Above range; extrapolated</span>
+	    #end if
+	    #if not(DBStatusKnown(status$))
+		        '<span class="err">Unknown data-wrapper status</span>
+	    #end if
+#end def
+#show
+#hide
+'<!-- Checks module placeholder. -->
+#show
+#hide
+'<!-- Database module placeholder. -->
+#show
+#hide
+'<!-- Validation module placeholder. -->
+#show
+#hide
+'<!-- DRAT Plotting Wrapper 3.2.0. Online Plotly build. -->
+#show
+'<style>
+'.ts-plot{
+'  width:100%;
+'  height:450px;
+'  margin:20px auto;
+'  border:1px solid #ddd;
+'  box-sizing:border-box;
+'  position:relative;
+'}
+'.ts-plot-status{
+'  display:flex;
+'  align-items:center;
+'  justify-content:center;
+'  height:100%;
+'  padding:16px;
+'  box-sizing:border-box;
+'  text-align:center;
+'}
+'@media print{
+'  .ts-plot{break-inside:avoid;page-break-inside:avoid;}
+'  .modebar-container{display:none!important;}
+'}
+'</style>
+'<script src="https://cdn.plot.ly/plotly-2.26.0.min.js" charset="utf-8"></script>
+'<script>window.TSPlots=window.TSPlots||{};</script>
+#hide
+
+#def figure$(id$)
+	    #val
+	    '<script>
+	    'window.TSPlots=window.TSPlots||{};
+	    'window.TSPlots["id$"]={
+	    '  data:[],
+	    '  layout:{
+	    '    template:"plotly_white",
+	    '    autosize:true,
+	    '    font:{family:"Courier New, monospace",size:12},
+	    '    margin:{l:70,r:35,b:85,t:65},
+	    '    hovermode:"closest",
+	    '    showlegend:true,
+	    '    legend:{orientation:"h",x:0,y:-0.20},
+	    '    xaxis:{automargin:true,zeroline:false},
+	    '    yaxis:{automargin:true,zeroline:false},
+	    '    shapes:[],
+	    '    annotations:[]
+	    '  },
+	    '  config:{responsive:true,displaylogo:false,scrollZoom:false},
+	    '  maxWidth:900,
+	    '  height:450
+	    '};
+	    '</script>
+	    #equ
+#end def
+
+#def figureSize$(id$; max_width$; height$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].maxWidth='clrunits(max_width$)';
+	    'window.TSPlots["id$"].height='clrunits(height$)';
+	    '</script>
+	    #equ
+#end def
+
+#def xRange$(id$; x_min$; x_max$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.xaxis.range=['clrunits(x_min$)','clrunits(x_max$)'];</script>
+	    #equ
+#end def
+
+#def yRange$(id$; y_min$; y_max$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.yaxis.range=['clrunits(y_min$)','clrunits(y_max$)'];</script>
+	    #equ
+#end def
+
+#def y2Range$(id$; y_min$; y_max$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.layout.yaxis2.range=['clrunits(y_min$)','clrunits(y_max$)'];
+	    '</script>
+	    #equ
+#end def
+
+#def y2Axis$(id$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.layout.yaxis2.title={text:"label$"};
+	    'p.layout.margin.r=Math.max(p.layout.margin.r,75);
+	    '</script>
+	    #equ
+#end def
+
+#def legendTop$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.legend={orientation:"h",x:0,y:1.12};</script>
+	    #equ
+#end def
+
+#def legendRight$(id$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.legend={orientation:"v",x:1.02,y:1};
+	    'p.layout.margin.r=Math.max(p.layout.margin.r,150);
+	    '</script>
+	    #equ
+#end def
+
+#def hideLegend$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.showlegend=false;</script>
+	    #equ
+#end def
+
+#def hoverUnified$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.hovermode="x unified";</script>
+	    #equ
+#end def
+
+#def barMode$(id$; mode$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.barmode="mode$";</script>
+	    #equ
+#end def
+
+#def logX$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.xaxis.type="log";</script>
+	    #equ
+#end def
+
+#def logY$(id$)
+	    #val
+	    '<script>window.TSPlots["id$"].layout.yaxis.type="log";</script>
+	    #equ
+#end def
+
+#def plot$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',
+	    '  y:'clrunits(y_vals$)',
+	    '  mode:"lines",type:"scatter",
+	    '  line:{color:"color$",width:2},
+	    '  name:"name$",connectgaps:false
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def plotY2$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"lines",type:"scatter",yaxis:"y2",
+	    '  line:{color:"color$",width:2},name:"name$",connectgaps:false
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def plotDashed$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"lines",type:"scatter",
+	    '  line:{color:"color$",width:2,dash:"dash"},name:"name$",connectgaps:false
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def plotMarkers$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"lines+markers",type:"scatter",
+	    '  line:{color:"color$",width:2},marker:{color:"color$",size:6},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def scatter$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"markers",type:"scatter",
+	    '  marker:{size:7,color:"color$"},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def scatterY2$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"];
+	    'p.layout.yaxis2=p.layout.yaxis2||{overlaying:"y",side:"right",automargin:true,zeroline:false};
+	    'p.data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  mode:"markers",type:"scatter",yaxis:"y2",
+	    '  marker:{size:7,color:"color$"},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def bar$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  type:"bar",marker:{color:"color$"},name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def area$(id$; x_vals$; y_vals$; color$; name$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].data.push({
+	    '  x:'clrunits(x_vals$)',y:'clrunits(y_vals$)',
+	    '  fill:"tozeroy",type:"scatter",mode:"lines",
+	    '  line:{width:1,color:"color$"},fillcolor:"color$",name:"name$"
+	    '});
+	    '</script>
+	    #equ
+#end def
+
+#def hline$(id$; y_value$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],y='clrunits(y_value$)';
+	    'p.layout.shapes.push({type:"line",xref:"paper",x0:0,x1:1,yref:"y",y0:y,y1:y,line:{color:"color$",width:1.5,dash:"dash"}});
+	    'p.layout.annotations.push({xref:"paper",x:1,yref:"y",y:y,text:"label$",showarrow:false,xanchor:"right",yanchor:"bottom",font:{color:"color$"}});
+	    '</script>
+	    #equ
+#end def
+
+#def vline$(id$; x_value$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],x='clrunits(x_value$)';
+	    'p.layout.shapes.push({type:"line",xref:"x",x0:x,x1:x,yref:"paper",y0:0,y1:1,line:{color:"color$",width:1.5,dash:"dash"}});
+	    'p.layout.annotations.push({xref:"x",x:x,yref:"paper",y:1,text:"label$",showarrow:false,xanchor:"left",yanchor:"top",font:{color:"color$"}});
+	    '</script>
+	    #equ
+#end def
+
+#def yBand$(id$; y_min$; y_max$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],y0='clrunits(y_min$)',y1='clrunits(y_max$)';
+	    'p.layout.shapes.push({type:"rect",xref:"paper",x0:0,x1:1,yref:"y",y0:y0,y1:y1,line:{width:0},fillcolor:"color$",layer:"below"});
+	    'p.layout.annotations.push({xref:"paper",x:0.01,yref:"y",y:y1,text:"label$",showarrow:false,xanchor:"left",yanchor:"top"});
+	    '</script>
+	    #equ
+#end def
+
+#def xBand$(id$; x_min$; x_max$; color$; label$)
+	    #val
+	    '<script>
+	    'var p=window.TSPlots["id$"],x0='clrunits(x_min$)',x1='clrunits(x_max$)';
+	    'p.layout.shapes.push({type:"rect",xref:"x",x0:x0,x1:x1,yref:"paper",y0:0,y1:1,line:{width:0},fillcolor:"color$",layer:"below"});
+	    'p.layout.annotations.push({xref:"x",x:x0,yref:"paper",y:1,text:"label$",showarrow:false,xanchor:"left",yanchor:"top"});
+	    '</script>
+	    #equ
+#end def
+
+#def annotate$(id$; x_value$; y_value$; label$)
+	    #val
+	    '<script>
+	    'window.TSPlots["id$"].layout.annotations.push({x:'clrunits(x_value$)',y:'clrunits(y_value$)',text:"label$",showarrow:true,arrowhead:2,ax:25,ay:-30});
+	    '</script>
+	    #equ
+#end def
+
+#def render$(id$; title$; xlabel$; ylabel$)
+	    #val
+	    '<div id="id$" class="ts-plot"></div>
+	    '<script>
+	    '(function(){
+	    '  var p=window.TSPlots&&window.TSPlots["id$"];
+	    '  var el=document.getElementById("id$");
+	    '  if(!el){return;}
+	    '  if(!p){el.innerHTML="<div class=\"ts-plot-status err\">Figure was not initialized.</div>";return;}
+	    '  p.layout.title={text:"title$",x:0.5,xanchor:"center"};
+	    '  p.layout.xaxis.title={text:"xlabel$"};
+	    '  p.layout.yaxis.title={text:"ylabel$"};
+	    '  p.layout.height=p.height;
+	    '  el.style.maxWidth=p.maxWidth+"px";
+	    '  el.style.height=p.height+"px";
+	    '  if(typeof Plotly==="undefined"){
+	    '    el.innerHTML="<div class=\"ts-plot-status err\">Plotly.js did not load. Try the offline wrapper.</div>";
+	    '    return;
+	    '  }
+	    '  if(!p.data.length){el.innerHTML="<div class=\"ts-plot-status err\">No traces were added.</div>";return;}
+	    '  try{
+	    '    var result=Plotly.newPlot(el,p.data,p.layout,p.config);
+	    '    if(result&&typeof result.catch==="function"){
+	    '      result.catch(function(error){el.innerHTML="<div class=\"ts-plot-status err\">Plot failed: "+error.message+"</div>";});
+	    '    }
+	    '  }catch(error){
+	    '    el.innerHTML="<div class=\"ts-plot-status err\">Plot failed: "+error.message+"</div>";
+	    '  }
+	    '})();
+	    '</script>
+	    #equ
+#end def
+
+#def sampleData$(x_vals$; y_vals$; function$; x_start$; x_end$; points$)
+	    #hide
+	    ζn = max(2; round(points$))
+	    ζx_data = vector(ζn)
+	    ζy_data = vector(ζn)
+	    #for ζi = 1 : ζn
+		        ζx = x_start$ + (ζi - 1)*(x_end$ - x_start$)/(ζn - 1)
+		        ζx_data.ζi = ζx
+		        ζy_data.ζi = function$(ζx)
+	    #loop
+	    x_vals$ = ζx_data
+	    y_vals$ = ζy_data
+	    #show
+#end def
+
+#def sampleParametric$(x_vals$; y_vals$; x_function$; y_function$; t_start$; t_end$; points$)
+	    #hide
+	    ζn = max(2; round(points$))
+	    ζx_data = vector(ζn)
+	    ζy_data = vector(ζn)
+	    #for ζi = 1 : ζn
+		        ζt = t_start$ + (ζi - 1)*(t_end$ - t_start$)/(ζn - 1)
+		        ζx_data.ζi = x_function$(ζt)
+		        ζy_data.ζi = y_function$(ζt)
+	    #loop
+	    x_vals$ = ζx_data
+	    y_vals$ = ζy_data
+	    #show
+#end def
+
+#show

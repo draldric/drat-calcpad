@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository is a reusable CalcPad CE engineering-calculation framework. `Core/` contains shared definitions, styling, plotting helpers, validation, checks, and database wrappers. Add reusable functionality there rather than copying it into worksheets. `Templates/` provides starting points for domain-specific property libraries. `Examples/` demonstrates supported integrations, while `Tests/Core/` contains focused calculation and browser-rendering checks. All maintained source files use the `.cpd` extension; generated `.html` and `.pdf` files are intentionally ignored.
+This repository is a reusable CalcPad CE engineering-calculation framework. `Core/Src/` contains the maintained shared definitions, styling, plotting helpers, validation, checks, and database wrappers. `Core/DratCore.cpd` is the generated bundle that worksheets include. Add reusable functionality to `Core/Src/` and regenerate the bundle rather than copying it into worksheets. `Templates/` provides starting points for domain-specific property libraries. `Examples/` demonstrates supported integrations, while `Tests/Core/` contains focused calculation and browser-rendering checks. All maintained source files use the `.cpd` extension; generated `.html` and `.pdf` files are intentionally ignored.
 
 ## Build, Test, and Development Commands
 
@@ -10,6 +10,8 @@ The project has no package manager or automated command-line build. Open workshe
 
 - `rg --files -g "*.cpd"` lists all CalcPad sources.
 - `rg "#include" Core Examples Templates Tests` audits include paths after moving files.
+- `pwsh Tools/BuildCore.ps1` regenerates `Core/DratCore.cpd` from `Core/Src/`.
+- `pwsh Tools/BuildCore.ps1 -Check` confirms the committed core bundle is current.
 - Open `Examples/PLOTTING_DEMO.cpd` to exercise the plotting API end to end.
 - Open `Tests/Core/DATA_WRAPPER_TEST.cpd` and confirm `all_tests` evaluates true.
 - Open the two `PLOTTING_*_TEST.cpd` worksheets and verify the chart and JavaScript diagnostic render without errors.
@@ -18,7 +20,7 @@ Plotting loads Plotly from a CDN, so those checks require network access.
 
 ## Coding Style & Naming Conventions
 
-Match the surrounding CalcPad syntax and keep includes relative, with directory and filename casing that exactly matches the repository (for example, `#include ../Core/Plotting.cpd`). Use semicolons between function arguments and within `$block` expressions. Preserve four-space indentation inside macro bodies and nested JavaScript; use descriptive snake_case for local values, PascalCase-prefixed public helpers (such as `DBRangeStatus`), and uppercase constants. Core module filenames use PascalCase; use PascalCase for demos, templates, and tests where practical. Keep comments short and explain engineering intent or non-obvious bounds behavior.
+Match the surrounding CalcPad syntax and keep includes relative, with directory and filename casing that exactly matches the repository (for example, `#include ../Core/DratCore.cpd`). Use semicolons between function arguments and within `$block` expressions. Preserve four-space indentation inside macro bodies and nested JavaScript; use descriptive snake_case for local values, PascalCase-prefixed public helpers (such as `DBRangeStatus`), and uppercase constants. Core source module filenames use PascalCase; use PascalCase for the generated bundle, demos, templates, and tests where practical. Keep comments short and explain engineering intent or non-obvious bounds behavior.
 
 ## Testing Guidelines
 
@@ -68,13 +70,15 @@ Complete the following without changing calculation behaviour:
 
 Use PascalCase for core modules:
 
-- `Core/Definitions.cpd`
-- `Core/Stylesheet.cpd`
-- `Core/Plotting.cpd`
-- `Core/DataWrapper.cpd`
-- `Core/Checks.cpd`
-- `Core/Database.cpd`
-- `Core/Validation.cpd`
+- `Core/DratCore.cpd`
+- `Core/Src/CoreManifest.cpd`
+- `Core/Src/Definitions.cpd`
+- `Core/Src/Stylesheet.cpd`
+- `Core/Src/Plotting.cpd`
+- `Core/Src/DataWrapper.cpd`
+- `Core/Src/Checks.cpd`
+- `Core/Src/Database.cpd`
+- `Core/Src/Validation.cpd`
 
 Use PascalCase for examples, templates, and tests where practical.
 
@@ -111,24 +115,18 @@ Correct known CSS errors, including:
 Examples are one directory below the repository root:
 
 ```text
-#include ../Core/Stylesheet.cpd
-#include ../Core/Definitions.cpd
-#include ../Core/Plotting.cpd
+#include ../Core/DratCore.cpd
+#include ../Libraries/Materials/EngineeringMaterials.cpd
 ```
 
 Tests under `Tests/Core` are two directories below the root:
 
 ```text
-#include ../../Core/Plotting.cpd
-#include ../../Core/DataWrapper.cpd
+#include ../../Core/DratCore.cpd
 #include ../../Templates/PropertyLibraryTemplate.cpd
 ```
 
-Templates should reference core files from one directory below the root:
-
-```text
-#include ../Core/DataWrapper.cpd
-```
+Libraries and templates must not include core files or other dependencies. Top-level worksheets load `DratCore.cpd` first, then directly include the optional libraries they require. Each library must guard its complete body with compatible core and component API checks and render an inline-styled load error when requirements are not satisfied.
 
 Inspect every `.cpd` file rather than relying only on these examples.
 

@@ -1,3 +1,4 @@
+#include ../../Core/DratCore.cpd
 #include ../../Templates/PropertyLibraryTemplate.cpd
 
 "Data Wrapper Parser and Calculation Test
