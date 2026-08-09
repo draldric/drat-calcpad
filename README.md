@@ -30,10 +30,12 @@ Use `BeginCheckSummary$`, `AddCheckRow$`, and `EndCheckSummary$` for expanded co
 Use `EndCheckSummaryWithResult$` with matching status and utilization vectors to add pass, warning, fail, and error counts, the overall status, and the governing check.
 `CheckGoverningIndex` selects the first maximum utilization when values tie, and `CheckGatedStatus` forces a check error when its validated inputs are not usable.
 
-`Validation.cpd` validates numeric ranges, positive and nonnegative inputs, integers, vector or matrix lengths, registered values, available values, and values from registered option sets.
+`Validation.cpd` validates defined values, the complete positive/negative/zero sign family, inclusive and open ranges, excluded ranges, one-sided and absolute bounds, integers, vector length and contents, vector ordering and uniqueness, matching vector lengths, matrix row and column counts, square matrices, registered values, available values, and values from registered option sets.
 The result constructors return `[status; value; rule_code; data_1; data_2]`, allowing `AddValidationResult$` to render the value, permitted criterion, and status from one result.
 Stack results with `join_rows`, obtain their statuses with `ValidationResultsStatuses`, and close the table with `EndValidationResults$`.
 The original scalar `Validation*Status` functions and `AddValidationRow$` remain available for compatibility.
+`ValidationLengthResult` checks the number of entries in a vector rather than the magnitude of its entries; use `ValidationRangeResult` for a scalar magnitude and `ValidationVectorRangeResult` to check every vector entry.
+Use separate `ValidationMatrixRowsResult` and `ValidationMatrixColumnsResult` records for bounded dimensions, or `ValidationMatrixDimensionsResults` to produce both records for an exact matrix shape.
 
 The global `ValidationAllowedRegistry` stores reusable permitted-value sets as `[set_id; value]` rows.
 Add a vector of values with `ValidationRegistryAdd`, then create results with `ValidationAllowedSetResult`; calculation and reporting retrieve the same registered values.
