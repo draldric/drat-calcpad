@@ -31,5 +31,7 @@
 '<style>.reporting-summary .status-cell{white-space:nowrap;text-align:center;}</style>
 '<style>.check-summary .check-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
+'<style>.check-summary .check-counts td{text-align:center;}</style>
+'<style>.check-summary .check-governing td:first-of-type{text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
 '<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>

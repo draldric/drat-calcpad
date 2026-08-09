@@ -1,17 +1,17 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10300
+DRAT_CORE_API = 10400
 DRAT_DEFINITIONS_API = 10200
-DRAT_STYLESHEET_API = 10300
+DRAT_STYLESHEET_API = 10400
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
-DRAT_CHECKS_API = 10100
+DRAT_CHECKS_API = 10200
 DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 10200
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.3.0
+#def DRATCoreVersion$ = 1.4.0
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -46,6 +46,8 @@ DRAT_VALIDATION_API = 10200
 '<style>.reporting-summary .status-cell{white-space:nowrap;text-align:center;}</style>
 '<style>.check-summary .check-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
+'<style>.check-summary .check-counts td{text-align:center;}</style>
+'<style>.check-summary .check-governing td:first-of-type{text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
 '<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
@@ -372,7 +374,7 @@ DBStatusKnown(status) = or(status ≡ DB_OK; status ≡ DB_ERR_NAME; status ≡ 
 #end def
 #show
 #hide
-'<!-- Engineering check helpers. Version 1.1.0. -->
+'<!-- Engineering check helpers. Version 1.2.0. -->
 
 CHK_PASS = 0
 CHK_WARN = 10
@@ -397,10 +399,43 @@ CheckUpperStatus(demand; capacity; warning_threshold) = if(clrunits(capacity) > 
 CheckLowerUtilization(provided; required) = if(clrunits(provided) > 0; abs(required)/provided; 0/0)
 CheckLowerStatus(provided; required; warning_threshold) = if(clrunits(provided) > 0; CheckStatus(CheckLowerUtilization(provided; required); warning_threshold); CHK_ERROR)
 
-CheckWorst(statuses) = max(statuses)
 CheckCount(statuses; status) = count(statuses; status; 1)
-CheckNoFailures(statuses) = CheckWorst(statuses) < CHK_FAIL
-CheckAllPass(statuses) = CheckWorst(statuses) ≡ CHK_PASS
+CheckPassCount(statuses) = CheckCount(statuses; CHK_PASS)
+CheckWarningCount(statuses) = CheckCount(statuses; CHK_WARN)
+CheckFailureCount(statuses) = CheckCount(statuses; CHK_FAIL)
+CheckKnownCount(statuses) = CheckPassCount(statuses) + CheckWarningCount(statuses) + CheckFailureCount(statuses) + CheckCount(statuses; CHK_ERROR)
+CheckUnknownCount(statuses) = len(statuses) - CheckKnownCount(statuses)
+CheckErrorCount(statuses) = CheckCount(statuses; CHK_ERROR) + CheckUnknownCount(statuses)
+
+CheckStatusesOK(statuses) = and(len(statuses) > 0; CheckUnknownCount(statuses) ≡ 0)
+CheckUtilizationsOK(utilizations) = and(len(utilizations) > 0; len(find_ge(clrunits(utilizations); 0; 1)) ≡ len(utilizations); len(find_lt(abs(clrunits(utilizations)); CHK_FINITE_LIMIT; 1)) ≡ len(utilizations))
+CheckSummaryDataOK(statuses; utilizations) = and(CheckStatusesOK(statuses); CheckUtilizationsOK(utilizations); len(statuses) ≡ len(utilizations))
+
+CheckOverallStatus(statuses) = switch(not(CheckStatusesOK(statuses)); CHK_ERROR; CheckErrorCount(statuses) > 0; CHK_ERROR; CheckFailureCount(statuses) > 0; CHK_FAIL; CheckWarningCount(statuses) > 0; CHK_WARN; CHK_PASS)
+CheckSummaryStatus(statuses; utilizations) = if(CheckSummaryDataOK(statuses; utilizations); CheckOverallStatus(statuses); CHK_ERROR)
+CheckGatedStatus(inputs_valid; status) = switch(not(inputs_valid); CHK_ERROR; not(CheckStatusKnown(status)); CHK_ERROR; status)
+
+CheckGoverningUtilization(utilizations) = _
+$block{
+    safe_utilizations = join(clrunits(utilizations); -1);
+    governing_utilization = max(safe_utilizations);
+    result = if(CheckUtilizationsOK(utilizations); governing_utilization; 0/0);
+    result;
+}
+
+CheckGoverningIndex(utilizations) = _
+$block{
+    safe_utilizations = join(clrunits(utilizations); -1);
+    governing_utilization = max(safe_utilizations);
+    governing_indexes = find_eq(safe_utilizations; governing_utilization; 1);
+    governing_index = take(1; governing_indexes);
+    result = if(CheckUtilizationsOK(utilizations); governing_index; 0);
+    result;
+}
+
+CheckWorst(statuses) = CheckOverallStatus(statuses)
+CheckNoFailures(statuses) = CheckOverallStatus(statuses) < CHK_FAIL
+CheckAllPass(statuses) = CheckOverallStatus(statuses) ≡ CHK_PASS
 
 #def CheckStatus$(status$)
     #if status$ ≡ CHK_PASS
@@ -449,6 +484,22 @@ CheckAllPass(statuses) = CheckWorst(statuses) ≡ CHK_PASS
 
 #def EndCheckSummary$
     '</tbody>
+    '</table>
+#end def
+
+#def EndCheckSummaryWithResult$(statuses$; utilizations$; governing_label$)
+    '</tbody>
+    '<tfoot>
+    '<tr class="check-counts"><th>Check counts</th><td><strong>Pass:</strong> 'CheckPassCount(statuses$)'</td><td><strong>Warning:</strong> 'CheckWarningCount(statuses$)'</td><td><strong>Fail:</strong> 'CheckFailureCount(statuses$)'</td><td><strong>Error:</strong> 'CheckErrorCount(statuses$)'</td><td class="status-cell"><strong>Overall:</strong>
+    CheckStatus$(CheckSummaryStatus(statuses$; utilizations$))
+    '</td></tr>
+    #if CheckSummaryDataOK(statuses$; utilizations$)
+        '<tr class="check-governing"><th>Governing check</th><td colspan="3">governing_label$ (row 'CheckGoverningIndex(utilizations$)')</td><th>Utilization</th><td>'CheckGoverningUtilization(utilizations$)'</td></tr>
+    #end if
+    #if not(CheckSummaryDataOK(statuses$; utilizations$))
+        '<tr class="check-governing"><th>Governing check</th><td colspan="3">Not available</td><th>Utilization</th><td>Not available</td></tr>
+    #end if
+    '</tfoot>
     '</table>
 #end def
 #show

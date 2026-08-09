@@ -18,27 +18,57 @@ unit_lower_utilization = CheckLowerUtilization(10kN; 5kN)
 unit_lower_status = CheckLowerStatus(10kN; 5kN; 0.90)
 
 check_statuses = [status_pass; status_warn; status_limit; status_fail; status_bad_capacity]
+check_utilizations = [0.80; 0.95; 1.00; 1.01; 0.50]
 worst_status = CheckWorst(check_statuses)
 warning_count = CheckCount(check_statuses; CHK_WARN)
 failure_count = CheckCount(check_statuses; CHK_FAIL)
 error_count = CheckCount(check_statuses; CHK_ERROR)
 
+summary_statuses = [CHK_PASS; CHK_WARN; CHK_FAIL; CHK_ERROR]
+summary_utilizations = [0.40; 0.95; 1.10; 0.20]
+unknown_statuses = [CHK_PASS; 99]
+mismatched_utilizations = [0.40; 0.95; 1.10]
+negative_utilizations = [0.40; -0.10; 1.10; 0.20]
+#hide
+invalid_utilizations = [0.40; 0/0; 1.10; 0.20]
+#show
+empty_values = find_eq([0]; 1; 1)
+
 utilization_tests = and(upper_utilization ≡ 0.8; abs(lower_utilization - 5/6) < 1*10^-12)
 classification_tests = and(status_pass ≡ CHK_PASS; status_warn ≡ CHK_WARN; status_limit ≡ CHK_WARN; status_fail ≡ CHK_FAIL)
 error_tests = and(status_bad_threshold ≡ CHK_ERROR; status_bad_capacity ≡ CHK_ERROR; lower_status ≡ CHK_PASS)
 aggregation_tests = and(worst_status ≡ CHK_ERROR; warning_count ≡ 2; failure_count ≡ 1; error_count ≡ 1)
+count_tests = and(CheckPassCount(summary_statuses) ≡ 1; CheckWarningCount(summary_statuses) ≡ 1; CheckFailureCount(summary_statuses) ≡ 1; CheckErrorCount(summary_statuses) ≡ 1)
+unknown_tests = and(CheckUnknownCount(unknown_statuses) ≡ 1; CheckErrorCount(unknown_statuses) ≡ 1; not(CheckStatusesOK(unknown_statuses)); CheckOverallStatus(unknown_statuses) ≡ CHK_ERROR)
+overall_tests = and(CheckOverallStatus([CHK_PASS; CHK_PASS]) ≡ CHK_PASS; CheckOverallStatus([CHK_PASS; CHK_WARN]) ≡ CHK_WARN; CheckOverallStatus([CHK_PASS; CHK_FAIL]) ≡ CHK_FAIL; CheckOverallStatus(summary_statuses) ≡ CHK_ERROR)
+summary_data_tests_1 = and(CheckSummaryDataOK(summary_statuses; summary_utilizations); not(CheckSummaryDataOK(summary_statuses; mismatched_utilizations)); not(CheckSummaryDataOK(summary_statuses; negative_utilizations)))
+summary_data_tests_2 = and(not(CheckSummaryDataOK(summary_statuses; invalid_utilizations)); CheckSummaryStatus(summary_statuses; mismatched_utilizations) ≡ CHK_ERROR)
+summary_data_tests = and(summary_data_tests_1; summary_data_tests_2)
+governing_tests = and(CheckGoverningIndex(summary_utilizations) ≡ 3; CheckGoverningUtilization(summary_utilizations) ≡ 1.10; CheckGoverningIndex([0.80; 0.80]) ≡ 1; CheckGoverningIndex(invalid_utilizations) ≡ 0)
+empty_tests = and(not(CheckStatusesOK(empty_values)); not(CheckUtilizationsOK(empty_values)); CheckOverallStatus(empty_values) ≡ CHK_ERROR; CheckGoverningIndex(empty_values) ≡ 0)
+gating_tests_1 = and(CheckGatedStatus(1; CHK_WARN) ≡ CHK_WARN; CheckGatedStatus(0; CHK_PASS) ≡ CHK_ERROR; CheckGatedStatus(1; 99) ≡ CHK_ERROR)
+gating_tests_2 = CheckGatedStatus(not(ValidationHasErrors([VAL_ERR_NONPOSITIVE])); CHK_PASS) ≡ CHK_ERROR
+gating_tests = and(gating_tests_1; gating_tests_2)
 predicate_tests_1 = and(CheckNoFailures([CHK_PASS; CHK_WARN]); not(CheckNoFailures(check_statuses)); CheckAllPass([CHK_PASS; CHK_PASS]))
 predicate_tests_2 = and(not(CheckAllPass([CHK_PASS; CHK_WARN])); CheckStatusKnown(CHK_WARN); not(CheckStatusKnown(99)))
 predicate_tests = and(predicate_tests_1; predicate_tests_2)
 unit_tests = and(unit_upper_utilization ≡ 0.5; unit_upper_status ≡ CHK_PASS; unit_lower_utilization ≡ 0.5; unit_lower_status ≡ CHK_PASS)
 
-all_tests_1 = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests)
-all_tests = and(all_tests_1; unit_tests)
+all_tests_1 = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests; unit_tests)
+all_tests_2 = and(count_tests; unknown_tests; overall_tests; summary_data_tests; governing_tests; empty_tests; gating_tests)
+all_tests = and(all_tests_1; all_tests_2)
 
 ShowCheck$(Upper-limit example; upper_utilization; status_pass)
 
 #novar
 BeginCheckSummary$
 AddCheckRow$(Upper-limit example; 80; 100; upper_utilization; 0.9; Demand ≤ capacity; status_pass)
-EndCheckSummary$
+EndCheckSummaryWithResult$([status_pass]; [upper_utilization]; Upper-limit example)
+
+#hide
+invalid_summary_utilizations = [0/0]
+#show
+BeginCheckSummary$
+AddCheckRow$(Invalid-input example; 0; 0; 0; 0.9; Inputs must be valid; CHK_ERROR)
+EndCheckSummaryWithResult$([CHK_ERROR]; invalid_summary_utilizations; Not available)
 #equ

@@ -64,6 +64,7 @@ capacity_validation = ValidationPositiveStatus(capacity)
 warning_validation = ValidationRangeStatus(warning_threshold; 0; 1)
 input_statuses = [demand_validation; capacity_validation; warning_validation]
 input_validation = ValidationOverallStatus(input_statuses)
+inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
 #novar
@@ -83,7 +84,11 @@ EndValidationSummary$(input_statuses)
 
 #hide
 utilization = CheckUpperUtilization(demand; capacity)
-check_status = CheckUpperStatus(demand; capacity; warning_threshold)
+raw_check_status = CheckUpperStatus(demand; capacity; warning_threshold)
+check_status = CheckGatedStatus(inputs_valid; raw_check_status)
+check_statuses = [check_status]
+check_utilizations = [utilization]
+overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
 #show
 
 "Results
@@ -97,12 +102,12 @@ AddConclusion$(Governing utilization; utilization)
 #novar
 BeginCheckSummary$
 AddCheckRow$(Upper-limit demonstration; demand; capacity; utilization; warning_threshold; Demand ≤ capacity; check_status)
-EndCheckSummary$
+EndCheckSummaryWithResult$(check_statuses; check_utilizations; Upper-limit demonstration)
 #equ
 
 BeginConclusions$
 #novar
 AddValidationConclusion$(Overall input validation; input_validation)
-AddCheckConclusion$(Overall check status; check_status)
+AddCheckConclusion$(Overall check status; overall_check_status)
 EndConclusions$
 #equ

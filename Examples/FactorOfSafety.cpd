@@ -99,6 +99,7 @@ warning_status = ValidationRangeStatus(warning_threshold; 0; 1)
 
 factor_statuses = [material_status; stress_status; geometry_status; failure_status; reliability_status; design_status; warning_status]
 input_validation = ValidationOverallStatus(factor_statuses)
+inputs_valid = not(ValidationHasErrors(factor_statuses))
 #show
 #novar
 BeginValidationSummary$
@@ -116,12 +117,16 @@ EndValidationSummary$(factor_statuses)
 FoS_required = n_material*n_stress*n_geometry*n_failure*n_reliability
 #hide
 FoS_utilization = CheckLowerUtilization(FoS_design; FoS_required)
-FoS_status = CheckLowerStatus(FoS_design; FoS_required; warning_threshold)
+FoS_raw_status = CheckLowerStatus(FoS_design; FoS_required; warning_threshold)
+FoS_status = CheckGatedStatus(inputs_valid; FoS_raw_status)
+check_statuses = [FoS_status]
+check_utilizations = [FoS_utilization]
+overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
 #show
 #novar
 BeginCheckSummary$
 AddCheckRow$(Minimum factor of safety; FoS_required; FoS_design; FoS_utilization; warning_threshold; Design FoS ≥ required FoS; FoS_status)
-EndCheckSummary$
+EndCheckSummaryWithResult$(check_statuses; check_utilizations; Minimum factor of safety)
 #equ
 
 BeginConclusions$
@@ -129,6 +134,6 @@ BeginConclusions$
 AddConclusion$(Recommended minimum factor of safety; FoS_required)
 AddConclusion$(Design factor of safety; FoS_design)
 AddValidationConclusion$(Input validation status; input_validation)
-AddCheckConclusion$(Design check status; FoS_status)
+AddCheckConclusion$(Design check status; overall_check_status)
 EndConclusions$
 #equ

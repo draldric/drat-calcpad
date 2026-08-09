@@ -25,6 +25,8 @@ If a required API is missing or incompatible, the library skips its body and ren
 Use `CheckUpperStatus` when demand must not exceed capacity, and `CheckLowerStatus` when a provided value must meet a minimum requirement.
 The default warning threshold is available as `CHK_DEFAULT_WARNING`.
 Use `BeginCheckSummary$`, `AddCheckRow$`, and `EndCheckSummary$` for expanded comparison tables containing demand or required value, capacity or provided value, utilization, warning threshold, acceptance criterion, and status.
+Use `EndCheckSummaryWithResult$` with matching status and utilization vectors to add pass, warning, fail, and error counts, the overall status, and the governing check.
+`CheckGoverningIndex` selects the first maximum utilization when values tie, and `CheckGatedStatus` forces a check error when its validated inputs are not usable.
 
 `Validation.cpd` validates numeric ranges, positive and nonnegative inputs, integers, and vector or matrix lengths.
 Each validator returns a `VAL_*` status code, and `ValidationStatus$` or `ShowValidation$` can render that status in a worksheet.
