@@ -24,9 +24,11 @@ If a required API is missing or incompatible, the library skips its body and ren
 `Checks.cpd` classifies engineering utilization ratios as `CHK_PASS`, `CHK_WARN`, `CHK_FAIL`, or `CHK_ERROR`.
 Use `CheckUpperStatus` when demand must not exceed capacity, and `CheckLowerStatus` when a provided value must meet a minimum requirement.
 The default warning threshold is available as `CHK_DEFAULT_WARNING`.
+Use `BeginCheckSummary$`, `AddCheckRow$`, and `EndCheckSummary$` for expanded comparison tables containing demand or required value, capacity or provided value, utilization, warning threshold, acceptance criterion, and status.
 
 `Validation.cpd` validates numeric ranges, positive and nonnegative inputs, integers, and vector or matrix lengths.
 Each validator returns a `VAL_*` status code, and `ValidationStatus$` or `ShowValidation$` can render that status in a worksheet.
+Use `BeginValidationSummary$`, `AddValidationRow$`, and `EndValidationSummary$` for compact input, permitted-criterion, error-count, and status reporting.
 
 `Database.cpd` provides column-safe lookup, status, fallback, metadata, and registry helpers for general matrices.
 It shares the `DB_*` status codes and missing-value sentinel defined by `DataWrapper.cpd`.

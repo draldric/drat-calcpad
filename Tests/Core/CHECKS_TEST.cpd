@@ -12,6 +12,10 @@ status_fail = CheckStatus(1.01; 0.90)
 status_bad_threshold = CheckStatus(0.50; 1.10)
 status_bad_capacity = CheckUpperStatus(1; 0; 0.90)
 lower_status = CheckLowerStatus(120; 100; 0.90)
+unit_upper_utilization = CheckUpperUtilization(5kN; 10kN)
+unit_upper_status = CheckUpperStatus(5kN; 10kN; 0.90)
+unit_lower_utilization = CheckLowerUtilization(10kN; 5kN)
+unit_lower_status = CheckLowerStatus(10kN; 5kN; 0.90)
 
 check_statuses = [status_pass; status_warn; status_limit; status_fail; status_bad_capacity]
 worst_status = CheckWorst(check_statuses)
@@ -26,7 +30,15 @@ aggregation_tests = and(worst_status ≡ CHK_ERROR; warning_count ≡ 2; failure
 predicate_tests_1 = and(CheckNoFailures([CHK_PASS; CHK_WARN]); not(CheckNoFailures(check_statuses)); CheckAllPass([CHK_PASS; CHK_PASS]))
 predicate_tests_2 = and(not(CheckAllPass([CHK_PASS; CHK_WARN])); CheckStatusKnown(CHK_WARN); not(CheckStatusKnown(99)))
 predicate_tests = and(predicate_tests_1; predicate_tests_2)
+unit_tests = and(unit_upper_utilization ≡ 0.5; unit_upper_status ≡ CHK_PASS; unit_lower_utilization ≡ 0.5; unit_lower_status ≡ CHK_PASS)
 
-all_tests = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests)
+all_tests_1 = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests)
+all_tests = and(all_tests_1; unit_tests)
 
 ShowCheck$(Upper-limit example; upper_utilization; status_pass)
+
+#novar
+BeginCheckSummary$
+AddCheckRow$(Upper-limit example; 80; 100; upper_utilization; 0.9; Demand ≤ capacity; status_pass)
+EndCheckSummary$
+#equ

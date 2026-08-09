@@ -12,6 +12,9 @@ positive_ok = ValidationPositiveStatus(1)
 positive_zero = ValidationPositiveStatus(0)
 nonnegative_zero = ValidationNonnegativeStatus(0)
 nonnegative_bad = ValidationNonnegativeStatus(-1)
+unit_positive = ValidationPositiveStatus(5m)
+unit_nonnegative = ValidationNonnegativeStatus(0m)
+unit_range = ValidationRangeStatus(5m; 1m; 10m)
 
 integer_ok = ValidationIntegerStatus(3)
 integer_near = ValidationIntegerStatus(3 + 1*10^-13)
@@ -28,13 +31,24 @@ validation_statuses = [range_ok; range_below; range_above; range_bad; range_miss
 
 range_tests = and(range_ok ≡ VAL_OK; range_below ≡ VAL_ERR_BELOW_RANGE; range_above ≡ VAL_ERR_ABOVE_RANGE; range_bad ≡ VAL_ERR_BAD_RANGE; range_missing ≡ VAL_ERR_UNDEFINED)
 sign_tests = and(positive_ok ≡ VAL_OK; positive_zero ≡ VAL_ERR_NONPOSITIVE; nonnegative_zero ≡ VAL_OK; nonnegative_bad ≡ VAL_ERR_NEGATIVE)
+unit_tests = and(unit_positive ≡ VAL_OK; unit_nonnegative ≡ VAL_OK; unit_range ≡ VAL_OK)
 integer_tests = and(integer_ok ≡ VAL_OK; integer_near ≡ VAL_OK; integer_bad ≡ VAL_ERR_NOT_INTEGER)
 length_tests = and(length_ok ≡ VAL_OK; length_short ≡ VAL_ERR_LENGTH; length_long ≡ VAL_ERR_LENGTH)
 aggregation_tests = and(ValidationWorst(validation_statuses) ≡ VAL_ERR_BAD_RANGE; ValidationCount(validation_statuses; VAL_OK) ≡ 1; not(ValidationAllOK(validation_statuses)); ValidationAllOK([VAL_OK; VAL_OK]))
 status_tests = and(ValidationStatusKnown(VAL_ERR_LENGTH); not(ValidationStatusKnown(99)))
 allowed_tests = and(allowed_ok ≡ VAL_OK; allowed_bad ≡ VAL_ERR_NOT_ALLOWED; ValidationStatusKnown(VAL_ERR_NOT_ALLOWED))
-summary_tests = and(aggregation_tests; status_tests; allowed_tests)
+reporting_statuses = [VAL_OK; VAL_WARN; VAL_ERR_LENGTH]
+reporting_tests = and(ValidationWarningCount(reporting_statuses) ≡ 1; ValidationErrorCount(reporting_statuses) ≡ 1; ValidationHasErrors(reporting_statuses))
+overall_tests = and(ValidationOverallStatus([VAL_OK; VAL_OK]) ≡ VAL_OK; ValidationOverallStatus([VAL_OK; VAL_WARN]) ≡ VAL_WARN; ValidationOverallStatus(reporting_statuses) ≡ VAL_ERR_UNKNOWN)
+summary_tests_1 = and(aggregation_tests; status_tests; allowed_tests; reporting_tests; overall_tests)
+summary_tests = and(summary_tests_1; unit_tests)
 
 all_tests = and(range_tests; sign_tests; integer_tests; length_tests; summary_tests)
 
 ShowValidation$(Range example; 5; range_ok)
+
+#novar
+BeginValidationSummary$
+AddValidationRow$(Allowed-value example; 1.3; 1.0, 1.1, or 1.2; allowed_bad)
+EndValidationSummary$([allowed_bad])
+#equ

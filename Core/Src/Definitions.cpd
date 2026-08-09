@@ -75,7 +75,7 @@
 #end def
 #def BeginRevisions$
     '## Revision History
-    '<table class="bordered data" style="width:95%">
+    '<table class="bordered data revision-history" style="width:95%">
     '<thead>
     '<tr><th>Revision</th><th>Description</th><th>Author</th><th>Date</th></tr>
     '</thead>

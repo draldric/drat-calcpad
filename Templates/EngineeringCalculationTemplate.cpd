@@ -64,12 +64,16 @@ demand_validation = ValidationNonnegativeStatus(demand)
 capacity_validation = ValidationPositiveStatus(capacity)
 warning_validation = ValidationRangeStatus(warning_threshold; 0; 1)
 input_statuses = [demand_validation; capacity_validation; warning_validation]
-input_validation = ValidationWorst(input_statuses)
+input_validation = ValidationOverallStatus(input_statuses)
 #show
 
-ShowValidation$(Demand; demand; demand_validation)
-ShowValidation$(Capacity; capacity; capacity_validation)
-ShowValidation$(Warning threshold; warning_threshold; warning_validation)
+#novar
+BeginValidationSummary$
+AddValidationRow$(Demand; demand; Nonnegative; demand_validation)
+AddValidationRow$(Capacity; capacity; Positive; capacity_validation)
+AddValidationRow$(Warning threshold; warning_threshold; 0 to 1; warning_validation)
+EndValidationSummary$(input_statuses)
+#equ
 
 "Methodology
 
@@ -91,7 +95,11 @@ AddConclusion$(Governing utilization; utilization)
 
 "Engineering Checks
 
-ShowCheck$(Demand divided by capacity; utilization; check_status)
+#novar
+BeginCheckSummary$
+AddCheckRow$(Upper-limit demonstration; demand; capacity; utilization; warning_threshold; Demand ≤ capacity; check_status)
+EndCheckSummary$
+#equ
 
 BeginConclusions$
 #novar
