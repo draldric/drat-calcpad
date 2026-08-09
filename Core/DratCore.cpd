@@ -1,8 +1,8 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10400
-DRAT_DEFINITIONS_API = 10200
+DRAT_CORE_API = 10401
+DRAT_DEFINITIONS_API = 10201
 DRAT_STYLESHEET_API = 10400
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
@@ -11,7 +11,7 @@ DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 10200
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.4.0
+#def DRATCoreVersion$ = 1.4.1
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -51,7 +51,7 @@ DRAT_VALIDATION_API = 10200
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
 '<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
-'<!-- Worksheet formatting definitions. Version 1.2.0. -->
+'<!-- Worksheet formatting definitions. Version 1.2.1. -->
 
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -161,7 +161,6 @@ DRAT_VALIDATION_API = 10200
     '</ul>
 #end def
 #def BeginVariables$
-    '<hr/>
     '### List of Variables
     #noc
     '<table class="bordered" style="width:95%">

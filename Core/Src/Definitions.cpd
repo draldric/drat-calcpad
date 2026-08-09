@@ -1,5 +1,5 @@
 #hide
-'<!-- Worksheet formatting definitions. Version 1.2.0. -->
+'<!-- Worksheet formatting definitions. Version 1.2.1. -->
 
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -109,7 +109,6 @@
     '</ul>
 #end def
 #def BeginVariables$
-    '<hr/>
     '### List of Variables
     #noc
     '<table class="bordered" style="width:95%">
