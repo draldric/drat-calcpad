@@ -1,0 +1,205 @@
+#md on
+#include ../Core/DratCore.cpd
+#include ../Libraries/Materials/EngineeringMaterials.cpd
+
+#def Organization$ = EXAMPLE ORGANIZATION
+#def Client$ = EXAMPLE CLIENT
+#def Project$ = MATERIAL SCREENING EXAMPLE
+#def Title$ = TENSILE MEMBER MATERIAL ALLOWABLE CHECK
+#def Purpose$ = DEMONSTRATE AN AUDITABLE MATERIAL LOOKUP, INPUT VALIDATION, AND MULTIPLE ENGINEERING-CHECK WORKFLOW.
+#def Scope$ = SCREEN A UNIFORMLY LOADED TENSILE MEMBER AGAINST FACTORED YIELD AND TENSILE STRENGTH VALUES. THIS EXAMPLE DOES NOT ESTABLISH A CODE-COMPLIANT DESIGN ALLOWABLE.
+#def Calculation$ = EXAMPLE-MAT-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-09
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial integrated example; EXAMPLE AUTHOR; 2026-08-09)
+EndRevisions$
+
+BeginReferences$
+AddReference$(EngineeringMaterialsLibraryName$, revision EngineeringMaterialsLibraryRevision$, dated EngineeringMaterialsLibraryDate$.)
+AddReference$(Project-specific material specification and design basis to be confirmed by the responsible engineer.)
+AddReference$(Material source registry entry reported with the selected material record.)
+EndReferences$
+
+"Design Basis and Assumptions
+
+BeginListSection$(Design Criteria)
+AddListItem$(Nominal axial tensile stress must not exceed the yield-strength screening value divided by the selected yield factor.)
+AddListItem$(Nominal axial tensile stress must not exceed the tensile-strength screening value divided by the selected ultimate factor.)
+AddListItem$(A utilization of 1.0 is the screening limit, and the warning threshold identifies checks approaching that limit.)
+EndListSection$
+
+BeginListSection$(Input Sources)
+AddListItem$(Applied load and gross area are saved demonstration inputs in this worksheet.)
+AddListItem$(Yield and tensile strengths are retrieved from EngineeringMaterialsLibraryName$.)
+EndListSection$
+
+BeginListSection$(Assumptions)
+AddListItem$(The member carries concentric, static, uniaxial tension.)
+AddListItem$(Stress is uniformly distributed over the gross cross-sectional area.)
+AddListItem$(The selected material record represents the member material and condition.)
+EndListSection$
+
+BeginListSection$(Applicability and Limitations)
+AddListItem$(The material library contains representative screening values, not certified project design allowables.)
+AddListItem$(This example excludes net-section reduction, connections, stress concentrations, fatigue, fracture, buckling, temperature effects, and code-specific resistance factors.)
+AddListItem$(The responsible engineer must replace the demonstration inputs and verify all governing requirements before use.)
+EndListSection$
+
+"Inputs
+
+'#### Saved Inputs
+
+material_id = STEEL_ASTM_A36
+F_t = 140kN
+A_g = 1000mm^2
+n_y = 1.5
+n_u = 2.0
+warning_threshold = CHK_DEFAULT_WARNING
+
+'#### Input Validation
+#hide
+material_source_id = MatSourceID(material_id)
+material_data_revision = MatDataRevision(material_id)
+S_y = MatYield(material_id)
+S_u = MatUTS(material_id)
+
+material_validation = ValidationRegisteredResult(material_id; MatHasItem(material_id))
+force_validation = ValidationPositiveResult(F_t)
+area_validation = ValidationPositiveResult(A_g)
+yield_factor_validation = ValidationRangeResult(n_y; 1; 10)
+ultimate_factor_validation = ValidationRangeResult(n_u; 1; 10)
+warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
+yield_property_validation = ValidationAvailableResult(S_y)
+ultimate_property_validation = ValidationAvailableResult(S_u)
+source_validation = ValidationRegisteredResult(material_source_id; MatSourceKnown(material_source_id))
+revision_validation = ValidationPositiveResult(material_data_revision)
+
+input_results = join_rows(material_validation; force_validation; area_validation; yield_factor_validation; ultimate_factor_validation; warning_validation; yield_property_validation; ultimate_property_validation; source_validation; revision_validation)
+input_statuses = ValidationResultsStatuses(input_results)
+input_validation = ValidationOverallStatus(input_statuses)
+inputs_valid = not(ValidationHasErrors(input_statuses))
+#show
+
+#novar
+BeginValidationSummary$
+AddValidationResult$(Material ID; material_validation)
+AddValidationResult$(Applied tensile load; force_validation)
+AddValidationResult$(Gross cross-sectional area; area_validation)
+AddValidationResult$(Yield factor; yield_factor_validation)
+AddValidationResult$(Ultimate factor; ultimate_factor_validation)
+AddValidationResult$(Warning threshold; warning_validation)
+AddValidationResult$(Yield-strength property; yield_property_validation)
+AddValidationResult$(Tensile-strength property; ultimate_property_validation)
+AddValidationResult$(Source registry entry; source_validation)
+AddValidationResult$(Dataset revision; revision_validation)
+EndValidationResults$(input_results)
+#equ
+
+"Material Data
+
+'#### Selected Material Record
+#novar
+ShowMatRecord$(material_id)
+
+'#### Retrieved Properties
+ShowMatPROP$(material_id; MAT_P_YIELD_STRENGTH)
+ShowMatPROP$(material_id; MAT_P_TENSILE_STRENGTH)
+#equ
+
+"Methodology
+
+'The nominal axial tensile stress is the applied load divided by the gross cross-sectional area.
+'The two screening allowables are obtained by dividing the retrieved strengths by their respective factors.
+'Each utilization is the nominal stress divided by its screening allowable.
+
+BeginVariables$
+AddVariable$(F_t; Applied tensile load; kN)
+AddVariable$(A_g; Gross cross-sectional area; mm^2)
+AddVariable$(S_y; Retrieved yield strength; MPa)
+AddVariable$(S_u; Retrieved tensile strength; MPa)
+AddVariable$(n_y; Yield screening factor; dimensionless)
+AddVariable$(n_u; Ultimate screening factor; dimensionless)
+AddVariable$(σ_t; Nominal axial tensile stress; MPa)
+AddVariable$(σ_y_allow; Factored yield-strength screening allowable; MPa)
+AddVariable$(σ_u_allow; Factored tensile-strength screening allowable; MPa)
+EndVariables$
+
+"Calculations
+
+σ_t = F_t/A_g
+σ_y_allow = S_y/n_y
+σ_u_allow = S_u/n_u
+
+#hide
+yield_utilization = CheckUpperUtilization(σ_t; σ_y_allow)
+ultimate_utilization = CheckUpperUtilization(σ_t; σ_u_allow)
+yield_raw_status = CheckUpperStatus(σ_t; σ_y_allow; warning_threshold)
+ultimate_raw_status = CheckUpperStatus(σ_t; σ_u_allow; warning_threshold)
+yield_check_status = CheckGatedStatus(inputs_valid; yield_raw_status)
+ultimate_check_status = CheckGatedStatus(inputs_valid; ultimate_raw_status)
+
+check_statuses = [yield_check_status; ultimate_check_status]
+check_utilizations = [yield_utilization; ultimate_utilization]
+overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
+governing_check_index = CheckGoverningIndex(check_utilizations)
+governing_utilization = CheckGoverningUtilization(check_utilizations)
+#show
+
+"Results
+
+#novar
+AddConclusion$(Nominal axial tensile stress; σ_t)
+AddConclusion$(Yield-strength screening allowable; σ_y_allow)
+AddConclusion$(Tensile-strength screening allowable; σ_u_allow)
+AddConclusion$(Governing utilization; governing_utilization)
+#equ
+
+"Engineering Checks
+
+#novar
+BeginCheckSummary$
+AddCheckRow$(Yield-strength screening; σ_t; σ_y_allow; yield_utilization; warning_threshold; Applied stress ≤ yield strength / yield factor; yield_check_status)
+AddCheckRow$(Tensile-strength screening; σ_t; σ_u_allow; ultimate_utilization; warning_threshold; Applied stress ≤ tensile strength / ultimate factor; ultimate_check_status)
+#if governing_check_index ≡ 1
+	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Yield-strength screening)
+#end if
+#if governing_check_index ≡ 2
+	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Tensile-strength screening)
+#end if
+#if governing_check_index ≡ 0
+	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Not available)
+#end if
+#equ
+
+BeginConclusions$
+#novar
+AddConclusion$(Selected material ID; material_id)
+AddConclusion$(Material dataset revision; material_data_revision)
+AddValidationConclusion$(Overall input validation; input_validation)
+AddCheckConclusion$(Overall material screening status; overall_check_status)
+#if overall_check_status ≡ CHK_PASS
+	    '<p><strong>Engineering interpretation:</strong> The demonstrated section satisfies both factored material-strength screening checks. Project-specific design criteria and certified material properties remain required.</p>
+#end if
+#if overall_check_status ≡ CHK_WARN
+	    '<p><strong>Engineering interpretation:</strong> Both screening limits are satisfied, but at least one utilization meets or exceeds the warning threshold. Review the governing check before proceeding.</p>
+#end if
+#if overall_check_status ≡ CHK_FAIL
+	    '<p><strong>Engineering interpretation:</strong> The demonstrated section does not satisfy at least one factored material-strength screening check.</p>
+#end if
+#if overall_check_status ≡ CHK_ERROR
+	    '<p><strong>Engineering interpretation:</strong> The material screening could not be completed because one or more inputs or material records are invalid.</p>
+#end if
+EndConclusions$
+#equ

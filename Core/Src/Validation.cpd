@@ -1,5 +1,5 @@
 #hide
-'<!-- Input validation helpers. Version 1.2.0. -->
+'<!-- Input validation helpers. Version 1.4.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -13,14 +13,67 @@ VAL_ERR_NOT_INTEGER = 26
 VAL_ERR_LENGTH = 27
 VAL_ERR_NOT_ALLOWED = 28
 VAL_ERR_UNKNOWN = 29
+VAL_ERR_BAD_RESULT = 30
+VAL_ERR_BAD_SET = 31
+VAL_ERR_NOT_REGISTERED = 32
+VAL_ERR_NONNEGATIVE = 33
+VAL_ERR_POSITIVE = 34
+VAL_ERR_ZERO = 35
+VAL_ERR_DIMENSIONS = 36
+VAL_ERR_ORDER = 37
+VAL_ERR_DUPLICATE = 38
+VAL_ERR_INSIDE_RANGE = 39
+VAL_ERR_NONZERO = 40
+
+VAL_RULE_RANGE = 1
+VAL_RULE_POSITIVE = 2
+VAL_RULE_NONNEGATIVE = 3
+VAL_RULE_INTEGER = 4
+VAL_RULE_LENGTH = 5
+VAL_RULE_ALLOWED = 6
+VAL_RULE_AVAILABLE = 7
+VAL_RULE_REGISTERED = 8
+VAL_RULE_DEFINED = 9
+VAL_RULE_NEGATIVE = 10
+VAL_RULE_NONPOSITIVE = 11
+VAL_RULE_NONZERO = 12
+VAL_RULE_MINIMUM = 13
+VAL_RULE_MAXIMUM = 14
+VAL_RULE_OPEN_RANGE = 15
+VAL_RULE_OUTSIDE_RANGE = 16
+VAL_RULE_ABSOLUTE_MAXIMUM = 17
+VAL_RULE_MATRIX_ROWS = 18
+VAL_RULE_MATRIX_COLUMNS = 19
+VAL_RULE_SQUARE_MATRIX = 20
+VAL_RULE_VECTOR_RANGE = 21
+VAL_RULE_VECTOR_POSITIVE = 22
+VAL_RULE_VECTOR_NONNEGATIVE = 23
+VAL_RULE_INCREASING = 24
+VAL_RULE_NONDECREASING = 25
+VAL_RULE_UNIQUE = 26
+VAL_RULE_MATCHING_LENGTH = 27
+VAL_RULE_ZERO = 28
+VAL_RULE_VECTOR_DEFINED = 29
+VAL_RULE_VECTOR_NEGATIVE = 30
+VAL_RULE_VECTOR_NONPOSITIVE = 31
+
+VAL_RESULT_STATUS = 1
+VAL_RESULT_VALUE = 2
+VAL_RESULT_RULE = 3
+VAL_RESULT_DATA_1 = 4
+VAL_RESULT_DATA_2 = 5
+VAL_RESULT_LENGTH = 5
+
+VAL_EMPTY = DB_MISSING
 
 VAL_FINITE_LIMIT = 1*10^300
 VAL_INTEGER_TOLERANCE = 1*10^-9
 
-ValidationStatusKnown(status) = or(status ≡ VAL_OK; status ≡ VAL_WARN; status ≡ VAL_ERR_UNDEFINED; status ≡ VAL_ERR_BELOW_RANGE; status ≡ VAL_ERR_ABOVE_RANGE; status ≡ VAL_ERR_BAD_RANGE; status ≡ VAL_ERR_NONPOSITIVE; status ≡ VAL_ERR_NEGATIVE; status ≡ VAL_ERR_NOT_INTEGER; status ≡ VAL_ERR_LENGTH; status ≡ VAL_ERR_NOT_ALLOWED; status ≡ VAL_ERR_UNKNOWN)
+ValidationStatusKnown(status) = or(status ≡ VAL_OK; status ≡ VAL_WARN; status ≡ VAL_ERR_UNDEFINED; status ≡ VAL_ERR_BELOW_RANGE; status ≡ VAL_ERR_ABOVE_RANGE; status ≡ VAL_ERR_BAD_RANGE; status ≡ VAL_ERR_NONPOSITIVE; status ≡ VAL_ERR_NEGATIVE; status ≡ VAL_ERR_NOT_INTEGER; status ≡ VAL_ERR_LENGTH; status ≡ VAL_ERR_NOT_ALLOWED; status ≡ VAL_ERR_UNKNOWN; status ≡ VAL_ERR_BAD_RESULT; status ≡ VAL_ERR_BAD_SET; status ≡ VAL_ERR_NOT_REGISTERED; status ≡ VAL_ERR_NONNEGATIVE; status ≡ VAL_ERR_POSITIVE; status ≡ VAL_ERR_ZERO; status ≡ VAL_ERR_DIMENSIONS; status ≡ VAL_ERR_ORDER; status ≡ VAL_ERR_DUPLICATE; status ≡ VAL_ERR_INSIDE_RANGE; status ≡ VAL_ERR_NONZERO)
 ValidationIsError(status) = status ≥ VAL_ERR_UNDEFINED
 ValidationIsFinite(value) = and(value ≡ value; abs(clrunits(value)) < VAL_FINITE_LIMIT)
 ValidationIsInteger(value) = and(ValidationIsFinite(value); abs(clrunits(value) - round(clrunits(value))) ≤ VAL_INTEGER_TOLERANCE)
+ValidationRuleKnown(rule_code) = or(rule_code ≡ VAL_RULE_RANGE; rule_code ≡ VAL_RULE_POSITIVE; rule_code ≡ VAL_RULE_NONNEGATIVE; rule_code ≡ VAL_RULE_INTEGER; rule_code ≡ VAL_RULE_LENGTH; rule_code ≡ VAL_RULE_ALLOWED; rule_code ≡ VAL_RULE_AVAILABLE; rule_code ≡ VAL_RULE_REGISTERED; rule_code ≡ VAL_RULE_DEFINED; rule_code ≡ VAL_RULE_NEGATIVE; rule_code ≡ VAL_RULE_NONPOSITIVE; rule_code ≡ VAL_RULE_NONZERO; rule_code ≡ VAL_RULE_MINIMUM; rule_code ≡ VAL_RULE_MAXIMUM; rule_code ≡ VAL_RULE_OPEN_RANGE; rule_code ≡ VAL_RULE_OUTSIDE_RANGE; rule_code ≡ VAL_RULE_ABSOLUTE_MAXIMUM; rule_code ≡ VAL_RULE_MATRIX_ROWS; rule_code ≡ VAL_RULE_MATRIX_COLUMNS; rule_code ≡ VAL_RULE_SQUARE_MATRIX; rule_code ≡ VAL_RULE_VECTOR_RANGE; rule_code ≡ VAL_RULE_VECTOR_POSITIVE; rule_code ≡ VAL_RULE_VECTOR_NONNEGATIVE; rule_code ≡ VAL_RULE_INCREASING; rule_code ≡ VAL_RULE_NONDECREASING; rule_code ≡ VAL_RULE_UNIQUE; rule_code ≡ VAL_RULE_MATCHING_LENGTH; rule_code ≡ VAL_RULE_ZERO; rule_code ≡ VAL_RULE_VECTOR_DEFINED; rule_code ≡ VAL_RULE_VECTOR_NEGATIVE; rule_code ≡ VAL_RULE_VECTOR_NONPOSITIVE)
 
 ValidationRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; value < minimum; VAL_ERR_BELOW_RANGE; value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
 ValidationPositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; clrunits(value) ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK)
@@ -28,6 +81,169 @@ ValidationNonnegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_
 ValidationIntegerStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsInteger(value)); VAL_ERR_NOT_INTEGER; VAL_OK)
 ValidationLengthStatus(values; minimum_length; maximum_length) = switch(minimum_length < 0; VAL_ERR_BAD_RANGE; maximum_length < minimum_length; VAL_ERR_BAD_RANGE; len(values) < minimum_length; VAL_ERR_LENGTH; len(values) > maximum_length; VAL_ERR_LENGTH; VAL_OK)
 ValidationAllowedStatus(value; allowed_values) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; count(allowed_values; value; 1) ≡ 0; VAL_ERR_NOT_ALLOWED; VAL_OK)
+ValidationDefinedStatus(value) = if(ValidationIsFinite(value); VAL_OK; VAL_ERR_UNDEFINED)
+ValidationNegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; clrunits(value) ≥ 0; VAL_ERR_NONNEGATIVE; VAL_OK)
+ValidationNonpositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; clrunits(value) > 0; VAL_ERR_POSITIVE; VAL_OK)
+ValidationNonzeroStatus(value; tolerance) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsFinite(tolerance)); VAL_ERR_BAD_RANGE; clrunits(tolerance) < 0; VAL_ERR_BAD_RANGE; abs(value) ≤ tolerance; VAL_ERR_ZERO; VAL_OK)
+ValidationZeroStatus(value; tolerance) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsFinite(tolerance)); VAL_ERR_BAD_RANGE; clrunits(tolerance) < 0; VAL_ERR_BAD_RANGE; abs(value) > tolerance; VAL_ERR_NONZERO; VAL_OK)
+ValidationMinimumStatus(value; minimum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value < minimum; VAL_ERR_BELOW_RANGE; VAL_OK)
+ValidationMaximumStatus(value; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
+ValidationOpenRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum ≥ maximum; VAL_ERR_BAD_RANGE; value ≤ minimum; VAL_ERR_BELOW_RANGE; value ≥ maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
+ValidationOutsideRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; and(value ≥ minimum; value ≤ maximum); VAL_ERR_INSIDE_RANGE; VAL_OK)
+ValidationAbsoluteMaximumStatus(value; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsFinite(maximum)); VAL_ERR_BAD_RANGE; clrunits(maximum) < 0; VAL_ERR_BAD_RANGE; abs(value) > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
+
+ValidationRegistryAddStatus(set_id; values) = switch(not(ValidationIsInteger(set_id)); VAL_ERR_BAD_SET; set_id ≤ 0; VAL_ERR_BAD_SET; len(values) ≡ 0; VAL_ERR_BAD_SET; VAL_OK)
+
+ValidationRegistryAdd(registry; set_id; values) = _
+$block{
+    value_count = len(values);
+    safe_count = max(value_count; 1);
+    safe_values = if(value_count > 0; values; [VAL_EMPTY]);
+    keys = fill(resize([0]; safe_count); set_id);
+    new_rows = join_cols(keys; safe_values);
+    updated_registry = if(ValidationRegistryAddStatus(set_id; values) ≡ VAL_OK; stack(registry; new_rows); registry);
+    updated_registry;
+}
+
+ValidationRegistryValues(registry; set_id) = vlookup(registry; set_id; 1; 2)
+ValidationRegistrySetExists(registry; set_id) = len(ValidationRegistryValues(registry; set_id)) > 0
+ValidationRegistrySetCount(registry; set_id) = len(ValidationRegistryValues(registry; set_id))
+ValidationValuesUnique(values) = if(len(values) ≤ 1; 1; count(first(sort(values); len(values) - 1) - last(sort(values); len(values) - 1); 0; 1) ≡ 0)
+ValidationRegistrySetStatus(registry; set_id) = switch(not(ValidationRegistrySetExists(registry; set_id)); VAL_ERR_BAD_SET; not(ValidationValuesUnique(ValidationRegistryValues(registry; set_id))); VAL_ERR_BAD_SET; VAL_OK)
+
+ValidationVectorRangeStatus(values; minimum; maximum) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 0; values; [0/0]);
+    lowest_value = min(safe_values);
+    highest_value = max(safe_values);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; not(and(ValidationIsFinite(lowest_value); ValidationIsFinite(highest_value))); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; lowest_value < minimum; VAL_ERR_BELOW_RANGE; highest_value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK);
+    status;
+}
+
+ValidationVectorPositiveStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 0; values; [0/0]);
+    lowest_value = min(safe_values);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; not(ValidationIsFinite(lowest_value)); VAL_ERR_UNDEFINED; clrunits(lowest_value) ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK);
+    status;
+}
+
+ValidationVectorNonnegativeStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 0; values; [0/0]);
+    lowest_value = min(safe_values);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; not(ValidationIsFinite(lowest_value)); VAL_ERR_UNDEFINED; clrunits(lowest_value) < 0; VAL_ERR_NEGATIVE; VAL_OK);
+    status;
+}
+
+ValidationVectorDefinedStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 0; values; [0/0]);
+    lowest_value = min(safe_values);
+    highest_value = max(safe_values);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; not(and(ValidationIsFinite(lowest_value); ValidationIsFinite(highest_value))); VAL_ERR_UNDEFINED; VAL_OK);
+    status;
+}
+
+ValidationVectorNegativeStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 0; values; [0/0]);
+    highest_value = max(safe_values);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; not(ValidationIsFinite(highest_value)); VAL_ERR_UNDEFINED; clrunits(highest_value) ≥ 0; VAL_ERR_NONNEGATIVE; VAL_OK);
+    status;
+}
+
+ValidationVectorNonpositiveStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 0; values; [0/0]);
+    highest_value = max(safe_values);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; not(ValidationIsFinite(highest_value)); VAL_ERR_UNDEFINED; clrunits(highest_value) > 0; VAL_ERR_POSITIVE; VAL_OK);
+    status;
+}
+
+ValidationIncreasingStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 1; values; [0; 1]);
+    differences = last(safe_values; len(safe_values) - 1) - first(safe_values; len(safe_values) - 1);
+    smallest_difference = min(differences);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; value_count ≡ 1; VAL_OK; not(ValidationIsFinite(smallest_difference)); VAL_ERR_UNDEFINED; clrunits(smallest_difference) ≤ 0; VAL_ERR_ORDER; VAL_OK);
+    status;
+}
+
+ValidationNondecreasingStatus(values) = _
+$block{
+    value_count = len(values);
+    safe_values = if(value_count > 1; values; [0; 1]);
+    differences = last(safe_values; len(safe_values) - 1) - first(safe_values; len(safe_values) - 1);
+    smallest_difference = min(differences);
+    status = switch(value_count ≡ 0; VAL_ERR_LENGTH; value_count ≡ 1; VAL_OK; not(ValidationIsFinite(smallest_difference)); VAL_ERR_UNDEFINED; clrunits(smallest_difference) < 0; VAL_ERR_ORDER; VAL_OK);
+    status;
+}
+
+ValidationUniqueStatus(values) = switch(len(values) ≡ 0; VAL_ERR_LENGTH; not(ValidationValuesUnique(values)); VAL_ERR_DUPLICATE; VAL_OK)
+ValidationMatchingLengthStatus(first_values; second_values) = if(len(first_values) ≡ len(second_values); VAL_OK; VAL_ERR_LENGTH)
+ValidationMatrixRowsStatus(matrix; minimum_rows; maximum_rows) = ValidationRangeStatus(n_rows(matrix); minimum_rows; maximum_rows)
+ValidationMatrixColumnsStatus(matrix; minimum_columns; maximum_columns) = ValidationRangeStatus(n_cols(matrix); minimum_columns; maximum_columns)
+ValidationSquareMatrixStatus(matrix) = if(n_rows(matrix) ≡ n_cols(matrix); VAL_OK; VAL_ERR_DIMENSIONS)
+
+ValidationAllowedRegistry = join_rows([VAL_EMPTY; VAL_EMPTY])
+
+ValidationAllowedSetValues(set_id) = ValidationRegistryValues(ValidationAllowedRegistry; set_id)
+ValidationAllowedSetExists(set_id) = ValidationRegistrySetExists(ValidationAllowedRegistry; set_id)
+ValidationAllowedSetCount(set_id) = ValidationRegistrySetCount(ValidationAllowedRegistry; set_id)
+ValidationAllowedSetStatus(value; set_id) = switch(ValidationRegistrySetStatus(ValidationAllowedRegistry; set_id) ≠ VAL_OK; VAL_ERR_BAD_SET; ValidationAllowedStatus(value; ValidationAllowedSetValues(set_id)))
+
+ValidationRangeResult(value; minimum; maximum) = [ValidationRangeStatus(value; minimum; maximum); value; VAL_RULE_RANGE; minimum; maximum]
+ValidationPositiveResult(value) = [ValidationPositiveStatus(value); value; VAL_RULE_POSITIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationNonnegativeResult(value) = [ValidationNonnegativeStatus(value); value; VAL_RULE_NONNEGATIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationIntegerResult(value) = [ValidationIntegerStatus(value); value; VAL_RULE_INTEGER; VAL_EMPTY; VAL_EMPTY]
+ValidationLengthResult(values; minimum_length; maximum_length) = [ValidationLengthStatus(values; minimum_length; maximum_length); len(values); VAL_RULE_LENGTH; minimum_length; maximum_length]
+ValidationAllowedSetResult(value; set_id) = [ValidationAllowedSetStatus(value; set_id); value; VAL_RULE_ALLOWED; set_id; ValidationAllowedSetCount(set_id)]
+ValidationAvailableResult(value) = [if(ValidationIsFinite(value); VAL_OK; VAL_ERR_UNDEFINED); value; VAL_RULE_AVAILABLE; VAL_EMPTY; VAL_EMPTY]
+ValidationRegisteredResult(value; registered) = [if(registered; VAL_OK; VAL_ERR_NOT_REGISTERED); value; VAL_RULE_REGISTERED; VAL_EMPTY; VAL_EMPTY]
+ValidationDefinedResult(value) = [ValidationDefinedStatus(value); value; VAL_RULE_DEFINED; VAL_EMPTY; VAL_EMPTY]
+ValidationNegativeResult(value) = [ValidationNegativeStatus(value); value; VAL_RULE_NEGATIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationNonpositiveResult(value) = [ValidationNonpositiveStatus(value); value; VAL_RULE_NONPOSITIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationNonzeroResult(value; tolerance) = [ValidationNonzeroStatus(value; tolerance); value; VAL_RULE_NONZERO; tolerance; VAL_EMPTY]
+ValidationZeroResult(value; tolerance) = [ValidationZeroStatus(value; tolerance); value; VAL_RULE_ZERO; tolerance; VAL_EMPTY]
+ValidationMinimumResult(value; minimum) = [ValidationMinimumStatus(value; minimum); value; VAL_RULE_MINIMUM; minimum; VAL_EMPTY]
+ValidationMaximumResult(value; maximum) = [ValidationMaximumStatus(value; maximum); value; VAL_RULE_MAXIMUM; maximum; VAL_EMPTY]
+ValidationOpenRangeResult(value; minimum; maximum) = [ValidationOpenRangeStatus(value; minimum; maximum); value; VAL_RULE_OPEN_RANGE; minimum; maximum]
+ValidationOutsideRangeResult(value; minimum; maximum) = [ValidationOutsideRangeStatus(value; minimum; maximum); value; VAL_RULE_OUTSIDE_RANGE; minimum; maximum]
+ValidationAbsoluteMaximumResult(value; maximum) = [ValidationAbsoluteMaximumStatus(value; maximum); value; VAL_RULE_ABSOLUTE_MAXIMUM; maximum; VAL_EMPTY]
+ValidationMatrixRowsResult(matrix; minimum_rows; maximum_rows) = [ValidationMatrixRowsStatus(matrix; minimum_rows; maximum_rows); n_rows(matrix); VAL_RULE_MATRIX_ROWS; minimum_rows; maximum_rows]
+ValidationMatrixColumnsResult(matrix; minimum_columns; maximum_columns) = [ValidationMatrixColumnsStatus(matrix; minimum_columns; maximum_columns); n_cols(matrix); VAL_RULE_MATRIX_COLUMNS; minimum_columns; maximum_columns]
+ValidationSquareMatrixResult(matrix) = [ValidationSquareMatrixStatus(matrix); n_rows(matrix); VAL_RULE_SQUARE_MATRIX; n_rows(matrix); n_cols(matrix)]
+ValidationMatrixDimensionsResults(matrix; required_rows; required_columns) = join_rows(ValidationMatrixRowsResult(matrix; required_rows; required_rows); ValidationMatrixColumnsResult(matrix; required_columns; required_columns))
+ValidationVectorRangeResult(values; minimum; maximum) = [ValidationVectorRangeStatus(values; minimum; maximum); len(values); VAL_RULE_VECTOR_RANGE; minimum; maximum]
+ValidationVectorPositiveResult(values) = [ValidationVectorPositiveStatus(values); len(values); VAL_RULE_VECTOR_POSITIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationVectorNonnegativeResult(values) = [ValidationVectorNonnegativeStatus(values); len(values); VAL_RULE_VECTOR_NONNEGATIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationVectorDefinedResult(values) = [ValidationVectorDefinedStatus(values); len(values); VAL_RULE_VECTOR_DEFINED; VAL_EMPTY; VAL_EMPTY]
+ValidationVectorNegativeResult(values) = [ValidationVectorNegativeStatus(values); len(values); VAL_RULE_VECTOR_NEGATIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationVectorNonpositiveResult(values) = [ValidationVectorNonpositiveStatus(values); len(values); VAL_RULE_VECTOR_NONPOSITIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationIncreasingResult(values) = [ValidationIncreasingStatus(values); len(values); VAL_RULE_INCREASING; VAL_EMPTY; VAL_EMPTY]
+ValidationNondecreasingResult(values) = [ValidationNondecreasingStatus(values); len(values); VAL_RULE_NONDECREASING; VAL_EMPTY; VAL_EMPTY]
+ValidationUniqueResult(values) = [ValidationUniqueStatus(values); len(values); VAL_RULE_UNIQUE; VAL_EMPTY; VAL_EMPTY]
+ValidationMatchingLengthResult(first_values; second_values) = [ValidationMatchingLengthStatus(first_values; second_values); len(first_values); VAL_RULE_MATCHING_LENGTH; len(second_values); VAL_EMPTY]
+
+ValidationResultShapeOK(result) = len(result) ≡ VAL_RESULT_LENGTH
+ValidationResultSafe(result) = first(join(result; [VAL_ERR_BAD_RESULT; VAL_EMPTY; 0; VAL_EMPTY; VAL_EMPTY]); VAL_RESULT_LENGTH)
+ValidationResultStoredStatus(result) = take(VAL_RESULT_STATUS; ValidationResultSafe(result))
+ValidationResultValue(result) = take(VAL_RESULT_VALUE; ValidationResultSafe(result))
+ValidationResultRule(result) = take(VAL_RESULT_RULE; ValidationResultSafe(result))
+ValidationResultData1(result) = take(VAL_RESULT_DATA_1; ValidationResultSafe(result))
+ValidationResultData2(result) = take(VAL_RESULT_DATA_2; ValidationResultSafe(result))
+ValidationResultAllowedSetCurrent(result) = and(ValidationAllowedSetExists(ValidationResultData1(result)); ValidationAllowedSetCount(ValidationResultData1(result)) ≡ ValidationResultData2(result))
+ValidationResultRegistryOK(result) = if(ValidationResultRule(result) ≡ VAL_RULE_ALLOWED; ValidationResultAllowedSetCurrent(result); 1)
+ValidationResultStatus(result) = switch(not(ValidationResultShapeOK(result)); VAL_ERR_BAD_RESULT; not(ValidationStatusKnown(ValidationResultStoredStatus(result))); VAL_ERR_BAD_RESULT; not(ValidationRuleKnown(ValidationResultRule(result))); VAL_ERR_BAD_RESULT; not(ValidationResultRegistryOK(result)); VAL_ERR_BAD_SET; ValidationResultStoredStatus(result))
+ValidationResultsStatuses(results) = col(results; VAL_RESULT_STATUS)
 
 ValidationWorst(statuses) = max(statuses)
 ValidationCount(statuses; status) = count(statuses; status; 1)
@@ -70,6 +286,39 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     #end if
     #if status$ ≡ VAL_ERR_NOT_ALLOWED
         '<span class="err">Value is not one of the permitted options</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BAD_RESULT
+        '<span class="err">Validation result is malformed or incompatible</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BAD_SET
+        '<span class="err">Permitted-value set is missing or has changed</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NOT_REGISTERED
+        '<span class="err">Value is not registered</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NONNEGATIVE
+        '<span class="err">Value must be negative</span>
+    #end if
+    #if status$ ≡ VAL_ERR_POSITIVE
+        '<span class="err">Value must be nonpositive</span>
+    #end if
+    #if status$ ≡ VAL_ERR_ZERO
+        '<span class="err">Value must be nonzero outside the specified tolerance</span>
+    #end if
+    #if status$ ≡ VAL_ERR_DIMENSIONS
+        '<span class="err">Matrix dimensions are invalid</span>
+    #end if
+    #if status$ ≡ VAL_ERR_ORDER
+        '<span class="err">Vector ordering is invalid</span>
+    #end if
+    #if status$ ≡ VAL_ERR_DUPLICATE
+        '<span class="err">Vector contains duplicate values</span>
+    #end if
+    #if status$ ≡ VAL_ERR_INSIDE_RANGE
+        '<span class="err">Value lies inside the excluded range</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NONZERO
+        '<span class="err">Value must be zero within the specified tolerance</span>
     #end if
     #if or(status$ ≡ VAL_ERR_UNKNOWN; not(ValidationStatusKnown(status$)))
         '<span class="err">Unknown validation status</span>
@@ -114,6 +363,149 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
 #end def
 
+#def ValidationPermitted$(result$)
+    #hide
+    ζVAL_rule = ValidationResultRule(result$)
+    ζVAL_data_1 = ValidationResultData1(result$)
+    ζVAL_data_2 = ValidationResultData2(result$)
+    #show
+    #if ζVAL_rule ≡ VAL_RULE_RANGE
+        '<span class="validation-permitted">'ζVAL_data_1' to 'ζVAL_data_2'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_POSITIVE
+        '<span class="validation-permitted">Positive</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_NONNEGATIVE
+        '<span class="validation-permitted">Nonnegative</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_INTEGER
+        '<span class="validation-permitted">Integer</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_LENGTH
+        '<span class="validation-permitted">'ζVAL_data_1' to 'ζVAL_data_2' entries</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_ALLOWED
+        #hide
+        ζVAL_allowed_values = ValidationAllowedSetValues(ζVAL_data_1)
+        #show
+        '<span class="validation-permitted">'ζVAL_allowed_values'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_AVAILABLE
+        '<span class="validation-permitted">Available</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_REGISTERED
+        '<span class="validation-permitted">Registered</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_DEFINED
+        '<span class="validation-permitted">Defined and finite</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_NEGATIVE
+        '<span class="validation-permitted">Negative</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_NONPOSITIVE
+        '<span class="validation-permitted">Nonpositive</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_NONZERO
+        '<span class="validation-permitted">Absolute value greater than 'ζVAL_data_1'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_MINIMUM
+        '<span class="validation-permitted">At least 'ζVAL_data_1'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_MAXIMUM
+        '<span class="validation-permitted">At most 'ζVAL_data_1'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_OPEN_RANGE
+        '<span class="validation-permitted">Greater than 'ζVAL_data_1' and less than 'ζVAL_data_2'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_OUTSIDE_RANGE
+        '<span class="validation-permitted">Less than 'ζVAL_data_1' or greater than 'ζVAL_data_2'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_ABSOLUTE_MAXIMUM
+        '<span class="validation-permitted">Absolute value at most 'ζVAL_data_1'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_MATRIX_ROWS
+        '<span class="validation-permitted">'ζVAL_data_1' to 'ζVAL_data_2' rows</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_MATRIX_COLUMNS
+        '<span class="validation-permitted">'ζVAL_data_1' to 'ζVAL_data_2' columns</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_SQUARE_MATRIX
+        '<span class="validation-permitted">Equal row and column counts</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_VECTOR_RANGE
+        '<span class="validation-permitted">Every entry from 'ζVAL_data_1' to 'ζVAL_data_2'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_VECTOR_POSITIVE
+        '<span class="validation-permitted">Every entry positive</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_VECTOR_NONNEGATIVE
+        '<span class="validation-permitted">Every entry nonnegative</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_INCREASING
+        '<span class="validation-permitted">Strictly increasing entries</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_NONDECREASING
+        '<span class="validation-permitted">Nondecreasing entries</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_UNIQUE
+        '<span class="validation-permitted">Unique entries</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_MATCHING_LENGTH
+        '<span class="validation-permitted">Matching vector lengths</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_ZERO
+        '<span class="validation-permitted">Absolute value at most 'ζVAL_data_1'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_VECTOR_DEFINED
+        '<span class="validation-permitted">Every entry defined and finite</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_VECTOR_NEGATIVE
+        '<span class="validation-permitted">Every entry negative</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_VECTOR_NONPOSITIVE
+        '<span class="validation-permitted">Every entry nonpositive</span>
+    #end if
+    #if not(ValidationRuleKnown(ζVAL_rule))
+        '<span class="err">Unknown validation rule</span>
+    #end if
+#end def
+
+#def ValidationResultValue$(result$)
+    #hide
+    ζVAL_value_rule = ValidationResultRule(result$)
+    ζVAL_display_value = ValidationResultValue(result$)
+    ζVAL_value_data_1 = ValidationResultData1(result$)
+    ζVAL_value_data_2 = ValidationResultData2(result$)
+    ζVAL_vector_rule = or(and(ζVAL_value_rule ≥ VAL_RULE_VECTOR_RANGE; ζVAL_value_rule ≤ VAL_RULE_UNIQUE); and(ζVAL_value_rule ≥ VAL_RULE_VECTOR_DEFINED; ζVAL_value_rule ≤ VAL_RULE_VECTOR_NONPOSITIVE))
+    #show
+    #if ζVAL_value_rule ≡ VAL_RULE_SQUARE_MATRIX
+        '<span class="validation-value">'ζVAL_value_data_1' × 'ζVAL_value_data_2'</span>
+    #end if
+    #if ζVAL_value_rule ≡ VAL_RULE_MATCHING_LENGTH
+        '<span class="validation-value">'ζVAL_display_value' and 'ζVAL_value_data_1' entries</span>
+    #end if
+    #if or(ζVAL_value_rule ≡ VAL_RULE_LENGTH; ζVAL_vector_rule)
+        '<span class="validation-value">'ζVAL_display_value' entries</span>
+    #end if
+    #if and(ζVAL_value_rule ≠ VAL_RULE_SQUARE_MATRIX; ζVAL_value_rule ≠ VAL_RULE_MATCHING_LENGTH; ζVAL_value_rule ≠ VAL_RULE_LENGTH; not(ζVAL_vector_rule))
+        '<span class="validation-value">'ζVAL_display_value'</span>
+    #end if
+#end def
+
+#def AddValidationResult$(label$; result$)
+    #hide
+    ζVAL_result = result$
+    ζVAL_status = ValidationResultStatus(ζVAL_result)
+    #show
+    '<tr><td>label$</td><td>
+    ValidationResultValue$(ζVAL_result)
+    '</td><td>
+    ValidationPermitted$(ζVAL_result)
+    '</td><td class="status-cell">
+    ValidationStatus$(ζVAL_status)
+    '</td></tr>
+#end def
+
 #def EndValidationSummary$(statuses$)
     '</tbody>
     '<tfoot>
@@ -122,5 +514,9 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
     '</tfoot>
     '</table>
+#end def
+
+#def EndValidationResults$(results$)
+    EndValidationSummary$(ValidationResultsStatuses(results$))
 #end def
 #show

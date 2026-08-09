@@ -30,9 +30,25 @@ Use `BeginCheckSummary$`, `AddCheckRow$`, and `EndCheckSummary$` for expanded co
 Use `EndCheckSummaryWithResult$` with matching status and utilization vectors to add pass, warning, fail, and error counts, the overall status, and the governing check.
 `CheckGoverningIndex` selects the first maximum utilization when values tie, and `CheckGatedStatus` forces a check error when its validated inputs are not usable.
 
-`Validation.cpd` validates numeric ranges, positive and nonnegative inputs, integers, and vector or matrix lengths.
-Each validator returns a `VAL_*` status code, and `ValidationStatus$` or `ShowValidation$` can render that status in a worksheet.
-Use `BeginValidationSummary$`, `AddValidationRow$`, and `EndValidationSummary$` for compact input, permitted-criterion, error-count, and status reporting.
+`Validation.cpd` validates defined values, the complete positive/negative/zero sign family, inclusive and open ranges, excluded ranges, one-sided and absolute bounds, integers, vector length and contents, vector ordering and uniqueness, matching vector lengths, matrix row and column counts, square matrices, registered values, available values, and values from registered option sets.
+The result constructors return `[status; value; rule_code; data_1; data_2]`, allowing `AddValidationResult$` to render the value, permitted criterion, and status from one result.
+Stack results with `join_rows`, obtain their statuses with `ValidationResultsStatuses`, and close the table with `EndValidationResults$`.
+The original scalar `Validation*Status` functions and `AddValidationRow$` remain available for compatibility.
+`ValidationLengthResult` checks the number of entries in a vector rather than the magnitude of its entries; use `ValidationRangeResult` for a scalar magnitude and `ValidationVectorRangeResult` to check every vector entry.
+Use separate `ValidationMatrixRowsResult` and `ValidationMatrixColumnsResult` records for bounded dimensions, or `ValidationMatrixDimensionsResults` to produce both records for an exact matrix shape.
+
+The global `ValidationAllowedRegistry` stores reusable permitted-value sets as `[set_id; value]` rows.
+Add a vector of values with `ValidationRegistryAdd`, then create results with `ValidationAllowedSetResult`; calculation and reporting retrieve the same registered values.
+
+```text
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; set_id; [1.1; 1.2; 1.3])
+input_result = ValidationAllowedSetResult(input_value; set_id)
+input_results = join_rows(input_result)
+
+BeginValidationSummary$
+AddValidationResult$(Input prompt; input_result)
+EndValidationResults$(input_results)
+```
 
 `Database.cpd` provides column-safe lookup, status, fallback, metadata, and registry helpers for general matrices.
 It shares the `DB_*` status codes and missing-value sentinel defined by `DataWrapper.cpd`.
@@ -49,3 +65,5 @@ Numbered H3 sections begin on new pages when printed or exported to PDF; H4 and 
 Required organization, client, project, calculation, and preparation metadata uses direct, readable placeholders, while unchecked and unapproved states remain visible in the document header.
 
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
+`Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
+Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.

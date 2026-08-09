@@ -59,20 +59,21 @@ warning_threshold = CHK_DEFAULT_WARNING
 
 '#### Input Validation
 #hide
-demand_validation = ValidationNonnegativeStatus(demand)
-capacity_validation = ValidationPositiveStatus(capacity)
-warning_validation = ValidationRangeStatus(warning_threshold; 0; 1)
-input_statuses = [demand_validation; capacity_validation; warning_validation]
+demand_validation = ValidationNonnegativeResult(demand)
+capacity_validation = ValidationPositiveResult(capacity)
+warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
+input_results = join_rows(demand_validation; capacity_validation; warning_validation)
+input_statuses = ValidationResultsStatuses(input_results)
 input_validation = ValidationOverallStatus(input_statuses)
 inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
 #novar
 BeginValidationSummary$
-AddValidationRow$(Demand; demand; Nonnegative; demand_validation)
-AddValidationRow$(Capacity; capacity; Positive; capacity_validation)
-AddValidationRow$(Warning threshold; warning_threshold; 0 to 1; warning_validation)
-EndValidationSummary$(input_statuses)
+AddValidationResult$(Demand; demand_validation)
+AddValidationResult$(Capacity; capacity_validation)
+AddValidationResult$(Warning threshold; warning_validation)
+EndValidationResults$(input_results)
 #equ
 
 "Methodology

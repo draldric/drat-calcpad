@@ -4,9 +4,13 @@
 '<!-- Common engineering materials library. Representative screening data; not design allowables. -->
 
 #def EngineeringMaterialsLibraryName$ = Common Engineering Materials Library
-#def EngineeringMaterialsLibraryRevision$ = 1.0.0
-#def EngineeringMaterialsLibraryDate$ = 2026-08-07
+#def EngineeringMaterialsLibraryRevision$ = 1.1.0
+#def EngineeringMaterialsLibraryDate$ = 2026-08-09
 #def EngineeringMaterialsLibraryScope$ = 126 common materials and 18 nominal room-temperature properties.
+
+#show
+'<style>table.data.material-record td:nth-child(2),table.data.material-record td:nth-child(2) p,table.data.material-property td:nth-child(2),table.data.material-property td:nth-child(2) p{text-align:right;}</style>
+#hide
 
 STEEL_ASTM_A36 = 1001
 A36 = STEEL_ASTM_A36
@@ -1101,6 +1105,35 @@ MatSourceKnown(source_id) = and(source_id ≥ 1; source_id ≤ 11)
 	    #end if
 #end def
 
+#def ShowMatRecord$(item$)
+	    #hide
+	    ζMAT_record_status = if(MatHasItem(item$); DB_OK; DB_ERR_NAME)
+	    ζMAT_record_source = if(DBIsFatal(ζMAT_record_status); 0; MatSourceID(item$))
+	    ζMAT_record_revision = if(DBIsFatal(ζMAT_record_status); 0; MatDataRevision(item$))
+	    #show
+	    #novar
+	    '<table class="bordered data material-record" style="width:95%">
+	    '<tbody>
+	    '<tr><td><strong>Material</strong></td><td>
+	    MatName$(item$)
+	    '</td></tr>
+	    '<tr><td><strong>Material ID</strong></td><td>'item$'</td></tr>
+	    '<tr><td><strong>Status</strong></td><td>
+	    DBStatus$(ζMAT_record_status)
+	    '</td></tr>
+	    #if not(DBIsFatal(ζMAT_record_status))
+	        '<tr><td><strong>Library</strong></td><td>EngineeringMaterialsLibraryName$</td></tr>
+	        '<tr><td><strong>Library revision</strong></td><td>EngineeringMaterialsLibraryRevision$</td></tr>
+	        '<tr><td><strong>Dataset revision</strong></td><td>'ζMAT_record_revision'</td></tr>
+	        '<tr><td><strong>Source registry</strong></td><td>
+	        MatSource$(ζMAT_record_source)
+	        '</td></tr>
+	        #varsub
+	    #end if
+	    '</tbody>
+	    '</table>
+#end def
+
 #def ShowMatPROP$(item$; property$)
 	    #hide
 	    ζMAT_status = MatPROPStatus(item$; property$)
@@ -1108,7 +1141,7 @@ MatSourceKnown(source_id) = and(source_id ≥ 1; source_id ≤ 11)
 	    ζMAT_source = if(DBIsFatal(ζMAT_status); 0; MatSourceID(item$))
 	    #show
 	    #novar
-	    '<table class="bordered data" style="width:95%">
+	    '<table class="bordered data material-property" style="width:95%">
 	    '<tbody>
 	    '<tr><td><strong>Material</strong></td><td>
 	    MatName$(item$)
