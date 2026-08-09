@@ -1,17 +1,17 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10401
+DRAT_CORE_API = 10500
 DRAT_DEFINITIONS_API = 10201
 DRAT_STYLESHEET_API = 10400
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
 DRAT_CHECKS_API = 10200
 DRAT_DATABASE_API = 10000
-DRAT_VALIDATION_API = 10200
+DRAT_VALIDATION_API = 10300
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.4.1
+#def DRATCoreVersion$ = 1.5.0
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -544,7 +544,7 @@ DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
 DBRegistryCount(ids) = len(ids)
 #show
 #hide
-'<!-- Input validation helpers. Version 1.2.0. -->
+'<!-- Input validation helpers. Version 1.3.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -558,14 +558,36 @@ VAL_ERR_NOT_INTEGER = 26
 VAL_ERR_LENGTH = 27
 VAL_ERR_NOT_ALLOWED = 28
 VAL_ERR_UNKNOWN = 29
+VAL_ERR_BAD_RESULT = 30
+VAL_ERR_BAD_SET = 31
+VAL_ERR_NOT_REGISTERED = 32
+
+VAL_RULE_RANGE = 1
+VAL_RULE_POSITIVE = 2
+VAL_RULE_NONNEGATIVE = 3
+VAL_RULE_INTEGER = 4
+VAL_RULE_LENGTH = 5
+VAL_RULE_ALLOWED = 6
+VAL_RULE_AVAILABLE = 7
+VAL_RULE_REGISTERED = 8
+
+VAL_RESULT_STATUS = 1
+VAL_RESULT_VALUE = 2
+VAL_RESULT_RULE = 3
+VAL_RESULT_DATA_1 = 4
+VAL_RESULT_DATA_2 = 5
+VAL_RESULT_LENGTH = 5
+
+VAL_EMPTY = DB_MISSING
 
 VAL_FINITE_LIMIT = 1*10^300
 VAL_INTEGER_TOLERANCE = 1*10^-9
 
-ValidationStatusKnown(status) = or(status ≡ VAL_OK; status ≡ VAL_WARN; status ≡ VAL_ERR_UNDEFINED; status ≡ VAL_ERR_BELOW_RANGE; status ≡ VAL_ERR_ABOVE_RANGE; status ≡ VAL_ERR_BAD_RANGE; status ≡ VAL_ERR_NONPOSITIVE; status ≡ VAL_ERR_NEGATIVE; status ≡ VAL_ERR_NOT_INTEGER; status ≡ VAL_ERR_LENGTH; status ≡ VAL_ERR_NOT_ALLOWED; status ≡ VAL_ERR_UNKNOWN)
+ValidationStatusKnown(status) = or(status ≡ VAL_OK; status ≡ VAL_WARN; status ≡ VAL_ERR_UNDEFINED; status ≡ VAL_ERR_BELOW_RANGE; status ≡ VAL_ERR_ABOVE_RANGE; status ≡ VAL_ERR_BAD_RANGE; status ≡ VAL_ERR_NONPOSITIVE; status ≡ VAL_ERR_NEGATIVE; status ≡ VAL_ERR_NOT_INTEGER; status ≡ VAL_ERR_LENGTH; status ≡ VAL_ERR_NOT_ALLOWED; status ≡ VAL_ERR_UNKNOWN; status ≡ VAL_ERR_BAD_RESULT; status ≡ VAL_ERR_BAD_SET; status ≡ VAL_ERR_NOT_REGISTERED)
 ValidationIsError(status) = status ≥ VAL_ERR_UNDEFINED
 ValidationIsFinite(value) = and(value ≡ value; abs(clrunits(value)) < VAL_FINITE_LIMIT)
 ValidationIsInteger(value) = and(ValidationIsFinite(value); abs(clrunits(value) - round(clrunits(value))) ≤ VAL_INTEGER_TOLERANCE)
+ValidationRuleKnown(rule_code) = or(rule_code ≡ VAL_RULE_RANGE; rule_code ≡ VAL_RULE_POSITIVE; rule_code ≡ VAL_RULE_NONNEGATIVE; rule_code ≡ VAL_RULE_INTEGER; rule_code ≡ VAL_RULE_LENGTH; rule_code ≡ VAL_RULE_ALLOWED; rule_code ≡ VAL_RULE_AVAILABLE; rule_code ≡ VAL_RULE_REGISTERED)
 
 ValidationRangeStatus(value; minimum; maximum) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; minimum > maximum; VAL_ERR_BAD_RANGE; value < minimum; VAL_ERR_BELOW_RANGE; value > maximum; VAL_ERR_ABOVE_RANGE; VAL_OK)
 ValidationPositiveStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; clrunits(value) ≤ 0; VAL_ERR_NONPOSITIVE; VAL_OK)
@@ -573,6 +595,53 @@ ValidationNonnegativeStatus(value) = switch(not(ValidationIsFinite(value)); VAL_
 ValidationIntegerStatus(value) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; not(ValidationIsInteger(value)); VAL_ERR_NOT_INTEGER; VAL_OK)
 ValidationLengthStatus(values; minimum_length; maximum_length) = switch(minimum_length < 0; VAL_ERR_BAD_RANGE; maximum_length < minimum_length; VAL_ERR_BAD_RANGE; len(values) < minimum_length; VAL_ERR_LENGTH; len(values) > maximum_length; VAL_ERR_LENGTH; VAL_OK)
 ValidationAllowedStatus(value; allowed_values) = switch(not(ValidationIsFinite(value)); VAL_ERR_UNDEFINED; count(allowed_values; value; 1) ≡ 0; VAL_ERR_NOT_ALLOWED; VAL_OK)
+
+ValidationRegistryAddStatus(set_id; values) = switch(not(ValidationIsInteger(set_id)); VAL_ERR_BAD_SET; set_id ≤ 0; VAL_ERR_BAD_SET; len(values) ≡ 0; VAL_ERR_BAD_SET; VAL_OK)
+
+ValidationRegistryAdd(registry; set_id; values) = _
+$block{
+    value_count = len(values);
+    safe_count = max(value_count; 1);
+    safe_values = if(value_count > 0; values; [VAL_EMPTY]);
+    keys = fill(resize([0]; safe_count); set_id);
+    new_rows = join_cols(keys; safe_values);
+    updated_registry = if(ValidationRegistryAddStatus(set_id; values) ≡ VAL_OK; stack(registry; new_rows); registry);
+    updated_registry;
+}
+
+ValidationRegistryValues(registry; set_id) = vlookup(registry; set_id; 1; 2)
+ValidationRegistrySetExists(registry; set_id) = len(ValidationRegistryValues(registry; set_id)) > 0
+ValidationRegistrySetCount(registry; set_id) = len(ValidationRegistryValues(registry; set_id))
+ValidationValuesUnique(values) = if(len(values) ≤ 1; 1; count(first(sort(values); len(values) - 1) - last(sort(values); len(values) - 1); 0; 1) ≡ 0)
+ValidationRegistrySetStatus(registry; set_id) = switch(not(ValidationRegistrySetExists(registry; set_id)); VAL_ERR_BAD_SET; not(ValidationValuesUnique(ValidationRegistryValues(registry; set_id))); VAL_ERR_BAD_SET; VAL_OK)
+
+ValidationAllowedRegistry = join_rows([VAL_EMPTY; VAL_EMPTY])
+
+ValidationAllowedSetValues(set_id) = ValidationRegistryValues(ValidationAllowedRegistry; set_id)
+ValidationAllowedSetExists(set_id) = ValidationRegistrySetExists(ValidationAllowedRegistry; set_id)
+ValidationAllowedSetCount(set_id) = ValidationRegistrySetCount(ValidationAllowedRegistry; set_id)
+ValidationAllowedSetStatus(value; set_id) = switch(ValidationRegistrySetStatus(ValidationAllowedRegistry; set_id) ≠ VAL_OK; VAL_ERR_BAD_SET; ValidationAllowedStatus(value; ValidationAllowedSetValues(set_id)))
+
+ValidationRangeResult(value; minimum; maximum) = [ValidationRangeStatus(value; minimum; maximum); value; VAL_RULE_RANGE; minimum; maximum]
+ValidationPositiveResult(value) = [ValidationPositiveStatus(value); value; VAL_RULE_POSITIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationNonnegativeResult(value) = [ValidationNonnegativeStatus(value); value; VAL_RULE_NONNEGATIVE; VAL_EMPTY; VAL_EMPTY]
+ValidationIntegerResult(value) = [ValidationIntegerStatus(value); value; VAL_RULE_INTEGER; VAL_EMPTY; VAL_EMPTY]
+ValidationLengthResult(values; minimum_length; maximum_length) = [ValidationLengthStatus(values; minimum_length; maximum_length); len(values); VAL_RULE_LENGTH; minimum_length; maximum_length]
+ValidationAllowedSetResult(value; set_id) = [ValidationAllowedSetStatus(value; set_id); value; VAL_RULE_ALLOWED; set_id; ValidationAllowedSetCount(set_id)]
+ValidationAvailableResult(value) = [if(ValidationIsFinite(value); VAL_OK; VAL_ERR_UNDEFINED); value; VAL_RULE_AVAILABLE; VAL_EMPTY; VAL_EMPTY]
+ValidationRegisteredResult(value; registered) = [if(registered; VAL_OK; VAL_ERR_NOT_REGISTERED); value; VAL_RULE_REGISTERED; VAL_EMPTY; VAL_EMPTY]
+
+ValidationResultShapeOK(result) = len(result) ≡ VAL_RESULT_LENGTH
+ValidationResultSafe(result) = first(join(result; [VAL_ERR_BAD_RESULT; VAL_EMPTY; 0; VAL_EMPTY; VAL_EMPTY]); VAL_RESULT_LENGTH)
+ValidationResultStoredStatus(result) = take(VAL_RESULT_STATUS; ValidationResultSafe(result))
+ValidationResultValue(result) = take(VAL_RESULT_VALUE; ValidationResultSafe(result))
+ValidationResultRule(result) = take(VAL_RESULT_RULE; ValidationResultSafe(result))
+ValidationResultData1(result) = take(VAL_RESULT_DATA_1; ValidationResultSafe(result))
+ValidationResultData2(result) = take(VAL_RESULT_DATA_2; ValidationResultSafe(result))
+ValidationResultAllowedSetCurrent(result) = and(ValidationAllowedSetExists(ValidationResultData1(result)); ValidationAllowedSetCount(ValidationResultData1(result)) ≡ ValidationResultData2(result))
+ValidationResultRegistryOK(result) = if(ValidationResultRule(result) ≡ VAL_RULE_ALLOWED; ValidationResultAllowedSetCurrent(result); 1)
+ValidationResultStatus(result) = switch(not(ValidationResultShapeOK(result)); VAL_ERR_BAD_RESULT; not(ValidationStatusKnown(ValidationResultStoredStatus(result))); VAL_ERR_BAD_RESULT; not(ValidationRuleKnown(ValidationResultRule(result))); VAL_ERR_BAD_RESULT; not(ValidationResultRegistryOK(result)); VAL_ERR_BAD_SET; ValidationResultStoredStatus(result))
+ValidationResultsStatuses(results) = col(results; VAL_RESULT_STATUS)
 
 ValidationWorst(statuses) = max(statuses)
 ValidationCount(statuses; status) = count(statuses; status; 1)
@@ -615,6 +684,15 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     #end if
     #if status$ ≡ VAL_ERR_NOT_ALLOWED
         '<span class="err">Value is not one of the permitted options</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BAD_RESULT
+        '<span class="err">Validation result is malformed or incompatible</span>
+    #end if
+    #if status$ ≡ VAL_ERR_BAD_SET
+        '<span class="err">Permitted-value set is missing or has changed</span>
+    #end if
+    #if status$ ≡ VAL_ERR_NOT_REGISTERED
+        '<span class="err">Value is not registered</span>
     #end if
     #if or(status$ ≡ VAL_ERR_UNKNOWN; not(ValidationStatusKnown(status$)))
         '<span class="err">Unknown validation status</span>
@@ -659,6 +737,57 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
 #end def
 
+#def ValidationPermitted$(result$)
+    #hide
+    ζVAL_rule = ValidationResultRule(result$)
+    ζVAL_data_1 = ValidationResultData1(result$)
+    ζVAL_data_2 = ValidationResultData2(result$)
+    #show
+    #if ζVAL_rule ≡ VAL_RULE_RANGE
+        '<span class="validation-permitted">'ζVAL_data_1' to 'ζVAL_data_2'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_POSITIVE
+        '<span class="validation-permitted">Positive</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_NONNEGATIVE
+        '<span class="validation-permitted">Nonnegative</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_INTEGER
+        '<span class="validation-permitted">Integer</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_LENGTH
+        '<span class="validation-permitted">'ζVAL_data_1' to 'ζVAL_data_2' entries</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_ALLOWED
+        #hide
+        ζVAL_allowed_values = ValidationAllowedSetValues(ζVAL_data_1)
+        #show
+        '<span class="validation-permitted">'ζVAL_allowed_values'</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_AVAILABLE
+        '<span class="validation-permitted">Available</span>
+    #end if
+    #if ζVAL_rule ≡ VAL_RULE_REGISTERED
+        '<span class="validation-permitted">Registered</span>
+    #end if
+    #if not(ValidationRuleKnown(ζVAL_rule))
+        '<span class="err">Unknown validation rule</span>
+    #end if
+#end def
+
+#def AddValidationResult$(label$; result$)
+    #hide
+    ζVAL_result = result$
+    ζVAL_value = ValidationResultValue(ζVAL_result)
+    ζVAL_status = ValidationResultStatus(ζVAL_result)
+    #show
+    '<tr><td>label$</td><td>'ζVAL_value'</td><td>
+    ValidationPermitted$(ζVAL_result)
+    '</td><td class="status-cell">
+    ValidationStatus$(ζVAL_status)
+    '</td></tr>
+#end def
+
 #def EndValidationSummary$(statuses$)
     '</tbody>
     '<tfoot>
@@ -667,6 +796,10 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
     '</tfoot>
     '</table>
+#end def
+
+#def EndValidationResults$(results$)
+    EndValidationSummary$(ValidationResultsStatuses(results$))
 #end def
 #show
 #hide

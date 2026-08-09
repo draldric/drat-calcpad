@@ -27,6 +27,44 @@ length_long = ValidationLengthStatus([1; 2; 3; 4; 5]; 2; 4)
 allowed_ok = ValidationAllowedStatus(1.2; [1.0; 1.1; 1.2])
 allowed_bad = ValidationAllowedStatus(1.3; [1.0; 1.1; 1.2])
 
+test_set_id = 9001
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; test_set_id; [1.0; 1.1; 1.2])
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; test_set_id; [1.3])
+registered_values = ValidationAllowedSetValues(test_set_id)
+
+range_result = ValidationRangeResult(5m; 1m; 10m)
+positive_result = ValidationPositiveResult(5kN)
+nonnegative_result = ValidationNonnegativeResult(0m)
+integer_result = ValidationIntegerResult(3)
+length_result = ValidationLengthResult([1; 2; 3]; 2; 4)
+allowed_result = ValidationAllowedSetResult(1.2; test_set_id)
+allowed_result_bad = ValidationAllowedSetResult(1.5; test_set_id)
+missing_set_result = ValidationAllowedSetResult(1.2; 9999)
+available_result = ValidationAvailableResult(5MPa)
+registered_result = ValidationRegisteredResult(101; 1)
+unregistered_result = ValidationRegisteredResult(999; 0)
+
+duplicate_set_id = 9002
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; duplicate_set_id; [2; 2])
+duplicate_set_result = ValidationAllowedSetResult(2; duplicate_set_id)
+
+stale_set_id = 9003
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; stale_set_id; [3])
+stale_set_result = ValidationAllowedSetResult(3; stale_set_id)
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; stale_set_id; [4])
+
+validation_results = join_rows(range_result; positive_result; nonnegative_result; integer_result; length_result; allowed_result; available_result; registered_result)
+result_statuses = ValidationResultsStatuses(validation_results)
+
+result_shape_value = ValidationResultShapeOK(range_result)
+result_status_value = ValidationResultStatus(range_result)
+result_value_value = ValidationResultValue(range_result)
+result_rule_value = ValidationResultRule(range_result)
+result_data_1_value = ValidationResultData1(range_result)
+result_data_2_value = ValidationResultData2(range_result)
+malformed_shape_value = ValidationResultShapeOK([VAL_OK; 1])
+malformed_status_value = ValidationResultStatus([VAL_OK; 1])
+
 validation_statuses = [range_ok; range_below; range_above; range_bad; range_missing]
 
 range_tests = and(range_ok ≡ VAL_OK; range_below ≡ VAL_ERR_BELOW_RANGE; range_above ≡ VAL_ERR_ABOVE_RANGE; range_bad ≡ VAL_ERR_BAD_RANGE; range_missing ≡ VAL_ERR_UNDEFINED)
@@ -37,11 +75,15 @@ length_tests = and(length_ok ≡ VAL_OK; length_short ≡ VAL_ERR_LENGTH; length
 aggregation_tests = and(ValidationWorst(validation_statuses) ≡ VAL_ERR_BAD_RANGE; ValidationCount(validation_statuses; VAL_OK) ≡ 1; not(ValidationAllOK(validation_statuses)); ValidationAllOK([VAL_OK; VAL_OK]))
 status_tests = and(ValidationStatusKnown(VAL_ERR_LENGTH); not(ValidationStatusKnown(99)))
 allowed_tests = and(allowed_ok ≡ VAL_OK; allowed_bad ≡ VAL_ERR_NOT_ALLOWED; ValidationStatusKnown(VAL_ERR_NOT_ALLOWED))
+registry_tests = and(ValidationRegistryAddStatus(test_set_id; [1; 2]) ≡ VAL_OK; ValidationRegistryAddStatus(0; [1; 2]) ≡ VAL_ERR_BAD_SET; ValidationRegistryAddStatus(test_set_id; find_eq([0]; 1; 1)) ≡ VAL_ERR_BAD_SET; ValidationAllowedSetExists(test_set_id); ValidationAllowedSetCount(test_set_id) ≡ 4; len(registered_values) ≡ 4; take(4; registered_values) ≡ 1.3; ValidationValuesUnique(registered_values); not(ValidationValuesUnique([1; 1; 2])); ValidationRegistrySetStatus(ValidationAllowedRegistry; duplicate_set_id) ≡ VAL_ERR_BAD_SET)
+result_access_tests = and(result_shape_value; result_status_value ≡ VAL_OK; result_value_value ≡ 5m; result_rule_value ≡ VAL_RULE_RANGE; result_data_1_value ≡ 1m; result_data_2_value ≡ 10m; not(malformed_shape_value); malformed_status_value ≡ VAL_ERR_BAD_RESULT)
+result_rule_tests = and(ValidationResultStatus(positive_result) ≡ VAL_OK; ValidationResultStatus(nonnegative_result) ≡ VAL_OK; ValidationResultStatus(integer_result) ≡ VAL_OK; ValidationResultStatus(length_result) ≡ VAL_OK; ValidationResultStatus(allowed_result) ≡ VAL_OK; ValidationResultStatus(allowed_result_bad) ≡ VAL_ERR_NOT_ALLOWED; ValidationResultStatus(missing_set_result) ≡ VAL_ERR_BAD_SET; ValidationResultStatus(available_result) ≡ VAL_OK; ValidationResultStatus(registered_result) ≡ VAL_OK; ValidationResultStatus(unregistered_result) ≡ VAL_ERR_NOT_REGISTERED; ValidationResultStatus(duplicate_set_result) ≡ VAL_ERR_BAD_SET; ValidationResultStatus(stale_set_result) ≡ VAL_ERR_BAD_SET)
+result_aggregation_tests = and(len(result_statuses) ≡ 8; ValidationAllOK(result_statuses))
 reporting_statuses = [VAL_OK; VAL_WARN; VAL_ERR_LENGTH]
 reporting_tests = and(ValidationWarningCount(reporting_statuses) ≡ 1; ValidationErrorCount(reporting_statuses) ≡ 1; ValidationHasErrors(reporting_statuses))
 overall_tests = and(ValidationOverallStatus([VAL_OK; VAL_OK]) ≡ VAL_OK; ValidationOverallStatus([VAL_OK; VAL_WARN]) ≡ VAL_WARN; ValidationOverallStatus(reporting_statuses) ≡ VAL_ERR_UNKNOWN)
 summary_tests_1 = and(aggregation_tests; status_tests; allowed_tests; reporting_tests; overall_tests)
-summary_tests = and(summary_tests_1; unit_tests)
+summary_tests = and(summary_tests_1; unit_tests; registry_tests; result_access_tests; result_rule_tests; result_aggregation_tests)
 
 all_tests = and(range_tests; sign_tests; integer_tests; length_tests; summary_tests)
 
@@ -49,6 +91,8 @@ ShowValidation$(Range example; 5; range_ok)
 
 #novar
 BeginValidationSummary$
-AddValidationRow$(Allowed-value example; 1.3; 1.0, 1.1, or 1.2; allowed_bad)
-EndValidationSummary$([allowed_bad])
+AddValidationResult$(Range result; range_result)
+AddValidationResult$(Allowed-set result; allowed_result)
+AddValidationResult$(Registered result; registered_result)
+EndValidationResults$(join_rows(range_result; allowed_result; registered_result))
 #equ

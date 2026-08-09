@@ -89,28 +89,41 @@ warning_threshold = CHK_DEFAULT_WARNING
 
 "Input Validation
 #hide
-material_status = ValidationAllowedStatus(n_material; material_options)
-stress_status = ValidationAllowedStatus(n_stress; stress_options)
-geometry_status = ValidationAllowedStatus(n_geometry; geometry_options)
-failure_status = ValidationAllowedStatus(n_failure; failure_options)
-reliability_status = ValidationAllowedStatus(n_reliability; reliability_options)
-design_status = ValidationPositiveStatus(FoS_design)
-warning_status = ValidationRangeStatus(warning_threshold; 0; 1)
+fos_material_set = 9001
+fos_stress_set = 9002
+fos_geometry_set = 9003
+fos_failure_set = 9004
+fos_reliability_set = 9005
 
-factor_statuses = [material_status; stress_status; geometry_status; failure_status; reliability_status; design_status; warning_status]
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; fos_material_set; material_options)
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; fos_stress_set; stress_options)
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; fos_geometry_set; geometry_options)
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; fos_failure_set; failure_options)
+ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; fos_reliability_set; reliability_options)
+
+material_validation = ValidationAllowedSetResult(n_material; fos_material_set)
+stress_validation = ValidationAllowedSetResult(n_stress; fos_stress_set)
+geometry_validation = ValidationAllowedSetResult(n_geometry; fos_geometry_set)
+failure_validation = ValidationAllowedSetResult(n_failure; fos_failure_set)
+reliability_validation = ValidationAllowedSetResult(n_reliability; fos_reliability_set)
+design_validation = ValidationPositiveResult(FoS_design)
+warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
+
+factor_results = join_rows(material_validation; stress_validation; geometry_validation; failure_validation; reliability_validation; design_validation; warning_validation)
+factor_statuses = ValidationResultsStatuses(factor_results)
 input_validation = ValidationOverallStatus(factor_statuses)
 inputs_valid = not(ValidationHasErrors(factor_statuses))
 #show
 #novar
 BeginValidationSummary$
-AddValidationRow$(Material factor; n_material; 1.0, 1.1, or 1.4; material_status)
-AddValidationRow$(Stress factor; n_stress; 1.1, 1.3, or 1.7; stress_status)
-AddValidationRow$(Geometry factor; n_geometry; 1.0 or 1.2; geometry_status)
-AddValidationRow$(Failure-analysis factor; n_failure; 1.1, 1.2, or 1.5; failure_status)
-AddValidationRow$(Reliability factor; n_reliability; 1.1, 1.2, or 1.7; reliability_status)
-AddValidationRow$(Design factor of safety; FoS_design; Positive; design_status)
-AddValidationRow$(Warning threshold; warning_threshold; 0 to 1; warning_status)
-EndValidationSummary$(factor_statuses)
+AddValidationResult$(Material factor; material_validation)
+AddValidationResult$(Stress factor; stress_validation)
+AddValidationResult$(Geometry factor; geometry_validation)
+AddValidationResult$(Failure-analysis factor; failure_validation)
+AddValidationResult$(Reliability factor; reliability_validation)
+AddValidationResult$(Design factor of safety; design_validation)
+AddValidationResult$(Warning threshold; warning_validation)
+EndValidationResults$(factor_results)
 #equ
 
 "Calculation
