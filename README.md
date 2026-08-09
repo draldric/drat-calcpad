@@ -14,6 +14,8 @@ Worksheets load the generated core bundle before any optional libraries:
 Maintain the individual core modules in `Core/Src/`.
 Run `Tools/BuildCore.ps1` after changing a core source module, and commit the regenerated `Core/DratCore.cpd`.
 Run `Tools/BuildCore.ps1 -Check` to verify that the committed bundle is current.
+Run `Tools/VerifyRepository.ps1` before opening a pull request to verify the generated Core, API versions, include graph, whitespace, Core tests, examples, and engineering template.
+Pass `-SkipCalcPad` when only static checks are available, or `-CalcPadCli <path>` when CalcPad CE is installed outside its default location.
 
 Libraries do not include their own dependencies.
 Each library checks the core API and its required component APIs before loading its definitions.
