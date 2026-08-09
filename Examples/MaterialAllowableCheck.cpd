@@ -129,7 +129,7 @@ ShowMatPROP$(material_id; MAT_P_TENSILE_STRENGTH)
 
 BeginVariables$
 AddVariable$(F_t; Applied tensile load; kN)
-AddVariable$(A_g; Gross cross-sectional area; mm²)
+AddVariable$(A_g; Gross cross-sectional area; mm^2)
 AddVariable$(S_y; Retrieved yield strength; MPa)
 AddVariable$(S_u; Retrieved tensile strength; MPa)
 AddVariable$(n_y; Yield screening factor; dimensionless)
@@ -176,13 +176,13 @@ BeginCheckSummary$
 AddCheckRow$(Yield-strength screening; σ_t; σ_y_allow; yield_utilization; warning_threshold; Applied stress ≤ yield strength / yield factor; yield_check_status)
 AddCheckRow$(Tensile-strength screening; σ_t; σ_u_allow; ultimate_utilization; warning_threshold; Applied stress ≤ tensile strength / ultimate factor; ultimate_check_status)
 #if governing_check_index ≡ 1
-    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Yield-strength screening)
+	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Yield-strength screening)
 #end if
 #if governing_check_index ≡ 2
-    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Tensile-strength screening)
+	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Tensile-strength screening)
 #end if
 #if governing_check_index ≡ 0
-    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Not available)
+	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Not available)
 #end if
 #equ
 
@@ -193,16 +193,16 @@ AddConclusion$(Material dataset revision; material_data_revision)
 AddValidationConclusion$(Overall input validation; input_validation)
 AddCheckConclusion$(Overall material screening status; overall_check_status)
 #if overall_check_status ≡ CHK_PASS
-    '<p><strong>Engineering interpretation:</strong> The demonstrated section satisfies both factored material-strength screening checks. Project-specific design criteria and certified material properties remain required.</p>
+	    '<p><strong>Engineering interpretation:</strong> The demonstrated section satisfies both factored material-strength screening checks. Project-specific design criteria and certified material properties remain required.</p>
 #end if
 #if overall_check_status ≡ CHK_WARN
-    '<p><strong>Engineering interpretation:</strong> Both screening limits are satisfied, but at least one utilization meets or exceeds the warning threshold. Review the governing check before proceeding.</p>
+	    '<p><strong>Engineering interpretation:</strong> Both screening limits are satisfied, but at least one utilization meets or exceeds the warning threshold. Review the governing check before proceeding.</p>
 #end if
 #if overall_check_status ≡ CHK_FAIL
-    '<p><strong>Engineering interpretation:</strong> The demonstrated section does not satisfy at least one factored material-strength screening check.</p>
+	    '<p><strong>Engineering interpretation:</strong> The demonstrated section does not satisfy at least one factored material-strength screening check.</p>
 #end if
 #if overall_check_status ≡ CHK_ERROR
-    '<p><strong>Engineering interpretation:</strong> The material screening could not be completed because one or more inputs or material records are invalid.</p>
+	    '<p><strong>Engineering interpretation:</strong> The material screening could not be completed because one or more inputs or material records are invalid.</p>
 #end if
 EndConclusions$
 #equ

@@ -118,7 +118,7 @@
     '<tbody>
 #end def
 #def AddVariable$(var$; desc$; units$)
-    '<tr><td>var$</td><td>desc$</td><td>units$</td></tr>
+    '<tr><td>'var$'</td><td>desc$</td><td>'units$'</td></tr>
 #end def
 #def EndVariables$
     '</tbody>
