@@ -58,7 +58,6 @@ capacity = 100
 warning_threshold = CHK_DEFAULT_WARNING
 
 '#### Input Validation
-
 #hide
 demand_validation = ValidationNonnegativeStatus(demand)
 capacity_validation = ValidationPositiveStatus(capacity)
