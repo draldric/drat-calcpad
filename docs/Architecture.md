@@ -48,7 +48,8 @@ This contract avoids relying on ambiguous nested-include path behavior and makes
 5. `Checks.cpd`
 6. `Database.cpd`
 7. `Validation.cpd`
-8. `Plotting.cpd`
+8. `CalculationStatus.cpd`
+9. `Plotting.cpd`
 
 The order is part of the Core contract because later modules use constants and macros defined earlier.
 
@@ -65,7 +66,8 @@ The standard worksheet flow is:
 4. Calculate demands, capacities, and utilizations.
 5. Gate engineering-check statuses on valid inputs.
 6. Aggregate check counts, overall status, and governing utilization.
-7. Present results, source records, checks, and conclusions.
+7. Aggregate the document-level calculation status.
+8. Present results, source records, checks, status, and conclusions.
 
 The validation records and engineering-status vectors are deliberately reused for both calculation decisions and reporting.
 This prevents displayed criteria from drifting away from the rules that were evaluated.

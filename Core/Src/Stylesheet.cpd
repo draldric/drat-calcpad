@@ -26,6 +26,16 @@
 '<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
 '<style>.document-summary h2{margin-bottom:0.25em;}</style>
 '<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
+'<style>.calculation-status-banner{border:2px solid #444;border-left-width:8px;background:#f5f5f5;padding:0.75em 1em;margin:1.5em 2em;break-inside:avoid;page-break-inside:avoid;}</style>
+'<style>.calculation-status-heading{display:flex;justify-content:space-between;align-items:center;gap:1em;font-size:12pt;text-transform:uppercase;}</style>
+'<style>.calculation-status-label{display:inline-block;padding:0.2em 0.6em;border:2px solid currentColor;font-weight:bold;white-space:nowrap;}</style>
+'<style>.calculation-status-pass{color:#176b2c;background:#e8f5e9;}</style>
+'<style>.calculation-status-warning{color:#795500;background:#fff4c2;}</style>
+'<style>.calculation-status-fail,.calculation-status-error{color:#9b1c1c;background:#fdeaea;}</style>
+'<style>.calculation-status-incomplete{color:#555;background:#eeeeee;}</style>
+'<style>.calculation-status-message{margin:0.75em 0 0.5em 0;text-align:left;}</style>
+'<style>.calculation-status-counts{width:100%;margin:0;table-layout:auto;}</style>
+'<style>.calculation-status-counts th,.calculation-status-counts td{text-align:center;}</style>
 '<style>.reporting-summary{width:95%;table-layout:auto;}</style>
 '<style>.reporting-summary th,.reporting-summary td{vertical-align:top;}</style>
 '<style>.reporting-summary .status-cell{white-space:nowrap;text-align:center;}</style>
@@ -34,4 +44,4 @@
 '<style>.check-summary .check-counts td{text-align:center;}</style>
 '<style>.check-summary .check-governing td:first-of-type{text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
