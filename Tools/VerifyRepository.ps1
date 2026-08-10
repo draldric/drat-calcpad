@@ -162,9 +162,36 @@ function Test-ApiVersions {
     }
 }
 
+function Test-DistributionTooling {
+    $distributionTestPath = Join-Path $script:repositoryRoot 'Tests\Distribution\DISTRIBUTION_TEST.ps1'
+    if (-not (Test-Path -LiteralPath $distributionTestPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'Tests\Distribution\DISTRIBUTION_TEST.ps1 is missing.'
+        return
+    }
+
+    $powerShellPath = (Get-Process -Id $PID).Path
+    $distributionArguments = @('-NoProfile', '-File', $distributionTestPath)
+    if (-not $script:SkipCalcPad) {
+        $resolvedCli = Resolve-CalcPadCli
+        if (-not [string]::IsNullOrWhiteSpace($resolvedCli) -and (Test-Path -LiteralPath $resolvedCli -PathType Leaf)) {
+            $distributionArguments += @('-CalcPadCli', $resolvedCli)
+        }
+    }
+    $testOutput = & $powerShellPath @distributionArguments 2>&1
+    $testExitCode = $LASTEXITCODE
+    if ($testExitCode -ne 0) {
+        Add-VerificationFailure -Message ('Distribution verification failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+
+    Write-Output '[PASS] Distribution build, install, update, and portable-project workflow.'
+}
+
 function Test-IncludeGraph {
     $startingFailureCount = $script:verificationFailures.Count
+    $artifactsPrefix = (Join-Path $script:repositoryRoot 'artifacts').TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
     $sourceFiles = Get-ChildItem -LiteralPath $script:repositoryRoot -Recurse -File -Filter '*.cpd' |
+        Where-Object { -not $_.FullName.StartsWith($artifactsPrefix, [System.StringComparison]::OrdinalIgnoreCase) } |
         Sort-Object FullName
 
     foreach ($sourceFile in $sourceFiles) {
@@ -365,6 +392,7 @@ Test-CoreBundle
 Test-ApiVersions
 Test-IncludeGraph
 Test-GitWhitespace
+Test-DistributionTooling
 
 if ($SkipCalcPad) {
     Write-Output '[SKIP] CalcPad worksheet execution was skipped.'
