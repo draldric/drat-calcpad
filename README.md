@@ -81,5 +81,6 @@ Required organization, client, project, calculation, and preparation metadata us
 `Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.
 Use `MatItemsByCategory`, `MatAvailablePropertyIDs`, and `MatItemsWithProperty` to discover suitable records without duplicating catalog data in a worksheet.
-Use `ShowMatDatasetSummary$`, `ShowMatCategory$`, and `ShowMatProperties$` to render dataset coverage and filtered selections.
+Use `MatCandidateItems`, `MatRankCandidates`, and the unit-aware threshold helpers to create transparent screening shortlists without an implicit weighted score.
+Use `ShowMatDatasetSummary$`, `ShowMatCategory$`, `ShowMatProperties$`, `ShowMatRanking$`, and `ShowMatComparison$` to render dataset coverage, ranked candidates, and side-by-side selections.
 Current populated values are explicitly classified as screening values; consult the [Engineering Materials library reference](docs/EngineeringMaterials.md) before using them in a design check.

@@ -309,7 +309,8 @@ function Test-CalcPadWorksheets {
             '<span class="err">Error in',
             'Undefined variable or units',
             'Invalid syntax:',
-            'Parser error'
+            'Parser error',
+            'ζMAT_'
         )
         $matchedError = $errorPatterns | Where-Object { $html.Contains($_) } | Select-Object -First 1
         if ($null -ne $matchedError) {

@@ -11,6 +11,10 @@ The project follows semantic versioning for the generated Core API.
 - Engineering Materials discovery APIs for category filtering, property availability, coverage counts, and predefined catalog tables.
 - Explicit screening-value classification plus material, property, provenance, and dataset-integrity statuses.
 - Library-specific regression verification under `Tests/Libraries/`.
+- Multi-property candidate selection across one category or the complete material catalog.
+- Ascending and descending property ranking with structured status, material ID, and raw-value results.
+- Unit-aware minimum, maximum, and bounded material filters.
+- Predefined ranked-candidate and side-by-side material-comparison tables.
 
 ## 1.6.0 - 2026-08-09
 

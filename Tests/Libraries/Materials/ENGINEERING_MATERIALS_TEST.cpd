@@ -33,4 +33,23 @@ dataset_count_tests = and(EngineeringMaterialAvailableValueCount ≡ 2011; Engin
 dataset_integrity_tests = and(EngineeringMaterialCatalogOK; EngineeringMaterialCategoriesOK; EngineeringMaterialSourcesOK; EngineeringMaterialRevisionsOK; EngineeringMaterialClassificationsOK; EngineeringMaterialCompletenessOK; EngineeringMaterialDatasetStatus ≡ DB_OK)
 alias_tests = and(A36 ≡ STEEL_ASTM_A36; MatCategory(A36) ≡ MatCategory(STEEL_ASTM_A36); MatAvailablePropertyCount(A36) ≡ MatAvailablePropertyCount(STEEL_ASTM_A36))
 
-all_tests = and(catalog_tests; category_count_tests; category_mapping_tests; category_filter_tests; item_availability_tests; property_availability_tests; classification_registry_tests; classification_tests; provenance_tests; dataset_count_tests; dataset_integrity_tests; alias_tests)
+empty_property_set = find_eq([0]; 1; 1)
+selection_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGTH]
+ferrous_candidates = MatCandidateItems(MAT_CAT_FERROUS_METAL; selection_properties)
+all_elastic_candidates = MatCandidateItems(MAT_CAT_ALL; [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS])
+elastomer_yield_candidates = MatCandidateItems(MAT_CAT_ELASTOMER; [MAT_P_YIELD_STRENGTH])
+selection_contract_tests = and(MatCategoryFilterKnown(MAT_CAT_ALL); MatPropertySetKnown(selection_properties); not(MatPropertySetKnown(empty_property_set)); MatCategoryCount(MAT_CAT_ALL) ≡ 126; len(MatItemsByCategory(MAT_CAT_ALL)) ≡ 126)
+candidate_tests = and(MatCandidateStatus(MAT_CAT_FERROUS_METAL; selection_properties) ≡ DB_OK; len(ferrous_candidates) ≡ 26; MatValuesUnique(ferrous_candidates); len(all_elastic_candidates) ≡ 126; len(elastomer_yield_candidates) ≡ 1; take(1; elastomer_yield_candidates) ≡ ELASTOMER_TPU; MatCandidateStatus(999; selection_properties) ≡ DB_ERR_NAME; MatCandidateStatus(MAT_CAT_GLASS; [MAT_P_YIELD_STRENGTH]) ≡ DB_ERR_MISSING; MatCandidateStatus(MAT_CAT_GLASS; [999]) ≡ DB_ERR_PROPERTY)
+
+yield_ranking_descending = MatRankCandidates(MAT_CAT_FERROUS_METAL; selection_properties; MAT_P_YIELD_STRENGTH; MAT_RANK_DESCENDING)
+yield_ranking_ascending = MatRankByProperty(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; MAT_RANK_ASCENDING)
+invalid_property_ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; selection_properties; 999; MAT_RANK_DESCENDING)
+invalid_direction_ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; selection_properties; MAT_P_YIELD_STRENGTH; 999)
+ranking_tests = and(MatRankingDirectionKnown(MAT_RANK_ASCENDING); MatRankingDirectionKnown(MAT_RANK_DESCENDING); not(MatRankingDirectionKnown(999)); MatRankingResultStatus(yield_ranking_descending) ≡ DB_OK; MatRankingCount(yield_ranking_descending) ≡ 26; n_cols(yield_ranking_descending) ≡ 3; take(1; MatRankedItems(yield_ranking_descending)) ≡ MARAGING_STEEL_18NI_250; take(1; MatRankedRawValues(yield_ranking_descending)) ≡ 1700; take(1; MatRankedRawValues(yield_ranking_ascending)) ≡ 170; MatRankingResultStatus(invalid_property_ranking) ≡ DB_ERR_PROPERTY; MatRankingCount(invalid_property_ranking) ≡ 0; len(MatRankedItems(invalid_property_ranking)) ≡ 0; MatRankingResultStatus(invalid_direction_ranking) ≡ DB_ERR_BAD_METHOD)
+
+minimum_yield_items = MatItemsAtLeast(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1000MPa)
+maximum_yield_items = MatItemsAtMost(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 200MPa)
+range_yield_items = MatItemsBetween(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1000MPa; 1600MPa)
+threshold_tests = and(len(minimum_yield_items) ≡ 6; DBHasID(minimum_yield_items; MARAGING_STEEL_18NI_250); not(DBHasID(minimum_yield_items; STEEL_ASTM_A36)); len(maximum_yield_items) ≡ 2; len(range_yield_items) ≡ 5; DBHasID(range_yield_items; TOOL_STEEL_H13_HARDENED); not(DBHasID(range_yield_items; MARAGING_STEEL_18NI_250)); len(MatItemsBetween(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1600MPa; 1000MPa)) ≡ 0; len(MatItemsAtLeast(999; MAT_P_YIELD_STRENGTH; 1000MPa)) ≡ 0)
+
+all_tests = and(catalog_tests; category_count_tests; category_mapping_tests; category_filter_tests; item_availability_tests; property_availability_tests; classification_registry_tests; classification_tests; provenance_tests; dataset_count_tests; dataset_integrity_tests; alias_tests; selection_contract_tests; candidate_tests; ranking_tests; threshold_tests)
