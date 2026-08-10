@@ -70,6 +70,8 @@ def build(workbook: Path) -> str:
     e("#def AiscChannelPropertyName$(property$)")
     for i, (_, name, _, _) in enumerate(PROPERTIES, 1): e(f"    #if property$ ≡ {i}"); e(f"        '{name}"); e("    #end if")
     e("#end def")
+    e("#def ShowAiscChannelDatasetSummary$"); e("    #novar"); e("    '<table class=\"bordered data channel-summary\" style=\"width:95%\"><tbody>")
+    e("    '<tr><td><strong>Library</strong></td><td>AiscChannelLibraryName$</td></tr>"); e("    '<tr><td><strong>Library revision</strong></td><td>AiscChannelLibraryRevision$</td></tr>"); e("    '<tr><td><strong>Source</strong></td><td>AiscChannelLibrarySource$</td></tr>"); e("    '<tr><td><strong>Scope</strong></td><td>AiscChannelLibraryScope$</td></tr>"); e("    '<tr><td><strong>Section count</strong></td><td>'AiscChannelItemCount'</td></tr>"); e("    '<tr><td><strong>Property count</strong></td><td>'AiscChannelPropertyCount'</td></tr>"); e("    '<tr><td><strong>Dataset status</strong></td><td>"); e("    DBStatus$(AiscChannelDatasetStatus)"); e("    '</td></tr></tbody></table>"); e("#end def")
     e("#def ShowAiscChannelRecord$(item$)"); e("    #hide"); e("    ζAISC_channel_record_status = if(AiscChannelHasItem(item$); AiscChannelDatasetStatus; DB_ERR_NAME)"); e("    #show"); e("    #novar"); e("    '<table class=\"bordered data channel-record\" style=\"width:95%\"><tbody>")
     e("    '<tr><td><strong>Section</strong></td><td>"); e("    AiscChannelName$(item$)"); e("    '</td></tr>")
     e("    '<tr><td><strong>Section ID</strong></td><td>'item$'</td></tr>")

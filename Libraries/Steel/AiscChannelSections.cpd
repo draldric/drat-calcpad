@@ -550,6 +550,19 @@ AiscChannelDatasetStatus = if(AiscChannelDataOK; DB_OK; DB_ERR_MISSING)
         'Warping constant
     #end if
 #end def
+#def ShowAiscChannelDatasetSummary$
+    #novar
+    '<table class="bordered data channel-summary" style="width:95%"><tbody>
+    '<tr><td><strong>Library</strong></td><td>AiscChannelLibraryName$</td></tr>
+    '<tr><td><strong>Library revision</strong></td><td>AiscChannelLibraryRevision$</td></tr>
+    '<tr><td><strong>Source</strong></td><td>AiscChannelLibrarySource$</td></tr>
+    '<tr><td><strong>Scope</strong></td><td>AiscChannelLibraryScope$</td></tr>
+    '<tr><td><strong>Section count</strong></td><td>'AiscChannelItemCount'</td></tr>
+    '<tr><td><strong>Property count</strong></td><td>'AiscChannelPropertyCount'</td></tr>
+    '<tr><td><strong>Dataset status</strong></td><td>
+    DBStatus$(AiscChannelDatasetStatus)
+    '</td></tr></tbody></table>
+#end def
 #def ShowAiscChannelRecord$(item$)
     #hide
     ζAISC_channel_record_status = if(AiscChannelHasItem(item$); AiscChannelDatasetStatus; DB_ERR_NAME)

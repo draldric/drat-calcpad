@@ -3,6 +3,7 @@
 `Libraries/Steel/StructuralSections.cpd` provides tabulated geometric properties for the 289 W-shapes in the AISC Shapes Database v16.0.
 `Libraries/Steel/AiscHssSections.cpd` provides the 714 square, rectangular, and round HSS records from the same source.
 `Libraries/Steel/AiscChannelSections.cpd` provides the 32 standard C and 40 miscellaneous MC channels.
+`Libraries/Steel/AiscAngleSections.cpd` provides 137 single-angle L sections; double angles are intentionally excluded.
 Load the generated Core first, then load the library directly from the worksheet:
 
 ```text
@@ -10,11 +11,12 @@ Load the generated Core first, then load the library directly from the worksheet
 #include ../Libraries/Steel/StructuralSections.cpd
 #include ../Libraries/Steel/AiscHssSections.cpd
 #include ../Libraries/Steel/AiscChannelSections.cpd
+#include ../Libraries/Steel/AiscAngleSections.cpd
 ```
 
 ## Scope and provenance
 
-The initial release contains the AISC W-shape, HSS, and C/MC channel families in US customary units.
+The initial release contains the AISC W-shape, HSS, C/MC channel, and single-angle families in US customary units.
 Each record stores nominal weight, area, dimensions, strong- and weak-axis elastic and plastic section properties, radii of gyration, and torsional properties.
 
 `StructuralSectionsLibrarySource$`, `StructuralSectionsLibraryRevision$`, and `StructuralSectionsLibraryScope$` expose the dataset basis in a worksheet.
@@ -70,7 +72,8 @@ In addition to dimensions and conventional section properties, it provides centr
 - `ShowAiscWRecord$(item)` reports one selected section and its provenance.
 - `ShowAiscWProperties$(item)` renders all tabulated properties for one selected section.
 - `ShowAiscHssDatasetSummary$`, `ShowAiscHssRecord$(item)`, and `ShowAiscHssProperties$(item)` provide corresponding HSS reports.
-- `ShowAiscChannelRecord$(item)` and `ShowAiscChannelProperties$(item)` render channel provenance and geometric-property tables.
+- `ShowAiscChannelDatasetSummary$`, `ShowAiscChannelRecord$(item)`, and `ShowAiscChannelProperties$(item)` provide the matching channel reports.
+- `ShowAiscAngleDatasetSummary$`, `ShowAiscAngleRecord$(item)`, and `ShowAiscAngleProperties$(item)` provide the matching single-angle reports.
 
 All values in the reporting tables are right aligned, while descriptions remain left aligned.
 The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.

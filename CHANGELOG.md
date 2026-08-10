@@ -25,6 +25,7 @@ The project follows semantic versioning for the generated Core API.
 - AISC v16 W-shape structural-sections library with 289 embedded geometric-property records, unit-aware lookup, aliases, screening, provenance tables, demo, and regression coverage.
 - AISC v16 HSS library with 714 square, rectangular, and round section records, including HSS-specific dimensions, lookup, reporting, and regression coverage.
 - AISC v16 C and MC channel library with 72 asymmetric-section records, including centroid and shear-center properties, lookup, reporting, and regression coverage.
+- AISC v16 single-angle library with 137 L-section records, principal-axis properties, lookup, screening, reporting, and regression coverage; double angles are excluded.
 
 ## 1.6.0 - 2026-08-09
 
