@@ -1,0 +1,116 @@
+#include ../Core/DratCore.cpd
+#include ../Libraries/Steel/StructuralSections.cpd
+#include ../Libraries/Steel/AiscHssSections.cpd
+#include ../Libraries/Steel/AiscChannelSections.cpd
+#include ../Libraries/Steel/AiscAngleSections.cpd
+
+"AISC Structural Sections Library Demo
+
+'The structural-section libraries provide tabulated geometric properties and transparent property-threshold screening.
+'They do not select a member, assign material strength, establish design capacity, or replace verification against the governing AISC edition.
+
+"Wide-Flange W Sections
+
+'<h4>Dataset Summary</h4>
+
+ShowAiscWDatasetSummary$
+
+'<h4>Selected Section</h4>
+
+#hide
+selected_w = W14X90
+#show
+
+ShowAiscWRecord$(selected_w)
+
+ShowAiscWProperties$(selected_w)
+
+'<h4>Property Screening</h4>
+
+#hide
+w_minimum_Sx = 140in^3
+w_candidates = AiscWItemsAtLeast(AISC_W_P_SX; w_minimum_Sx)
+w_candidate_count = len(w_candidates)
+#show
+
+'<p>'w_candidate_count' W sections have Sx at least 'w_minimum_Sx'.</p>
+
+"Hollow Structural Sections
+
+'<h4>Dataset Summary</h4>
+
+ShowAiscHssDatasetSummary$
+
+'<h4>Selected Section</h4>
+
+#hide
+selected_hss = HSS12X8X3_8
+#show
+
+ShowAiscHssRecord$(selected_hss)
+
+ShowAiscHssProperties$(selected_hss)
+
+'<h4>Property Screening</h4>
+
+#hide
+hss_minimum_Sx = 40in^3
+hss_candidates = AiscHssItemsAtLeast(AISC_HSS_P_SX; hss_minimum_Sx)
+hss_candidate_count = len(hss_candidates)
+#show
+
+'<p>'hss_candidate_count' HSS sections have Sx at least 'hss_minimum_Sx'.</p>
+
+"Standard and Miscellaneous Channels
+
+'<h4>Dataset Summary</h4>
+
+ShowAiscChannelDatasetSummary$
+
+'<h4>Selected Section</h4>
+
+#hide
+selected_channel = MC12X50
+#show
+
+ShowAiscChannelRecord$(selected_channel)
+
+ShowAiscChannelProperties$(selected_channel)
+
+'<h4>Property Screening</h4>
+
+#hide
+channel_minimum_Sx = 20in^3
+channel_candidates = AiscChannelItemsAtLeast(AISC_CHANNEL_P_SX; channel_minimum_Sx)
+channel_candidate_count = len(channel_candidates)
+#show
+
+'<p>'channel_candidate_count' C and MC channels have Sx at least 'channel_minimum_Sx'.</p>
+
+"Single Angles
+
+'<h4>Dataset Summary</h4>
+
+ShowAiscAngleDatasetSummary$
+
+'<h4>Selected Section</h4>
+
+#hide
+selected_angle = L12X12X1
+#show
+
+ShowAiscAngleRecord$(selected_angle)
+
+ShowAiscAngleProperties$(selected_angle)
+
+'<h4>Property Screening</h4>
+
+#hide
+angle_minimum_Sx = 15in^3
+angle_candidates = AiscAngleItemsAtLeast(AISC_ANGLE_P_SX; angle_minimum_Sx)
+angle_candidate_count = len(angle_candidates)
+#show
+
+'<p>'angle_candidate_count' single angles have Sx at least 'angle_minimum_Sx'.</p>
+
+'All screening results are geometric filters only. Apply material properties, unbraced lengths, limit states, resistance factors, and project-specific requirements separately.

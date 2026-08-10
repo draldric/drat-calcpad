@@ -1,0 +1,12 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Steel/StructuralSections.cpd
+
+"AISC W-Shape Structural Sections Test
+
+catalog_tests = and(AiscWItemCount ≡ 289; AiscWPropertyCount ≡ 16; n_rows(AiscWData) ≡ 289; n_cols(AiscWData) ≡ 17; AiscWDatasetStatus ≡ DB_OK)
+alias_tests = and(W14X90 ≡ AISC_W14X90; W6X8P5 ≡ AISC_W6X8P5; AiscWHasItem(W14X90); not(AiscWHasItem(999999)))
+property_tests = and(AiscWPropertyStatus(W14X90; AISC_W_P_WEIGHT) ≡ DB_OK; AiscWPropertyStatus(W14X90; 999) ≡ DB_ERR_PROPERTY; AiscWPropertyStatus(999999; AISC_W_P_WEIGHT) ≡ DB_ERR_NAME; AiscWWeight(W14X90) ≡ 90lb/ft; AiscWArea(W14X90) ≡ 26.5in^2; AiscWIx(W14X90) ≡ 999in^4; AiscWSx(W14X90) ≡ 143in^3; AiscWIy(W14X90) ≡ 362in^4; AiscWSy(W14X90) ≡ 49.9in^3)
+reference_value_tests = and(AiscWProperty(W44X408; AISC_W_P_D) ≡ 44.8in; AiscWProperty(W12X26; AISC_W_P_TF) ≡ 0.38in; AiscWProperty(W6X8P5; AISC_W_P_CW) ≡ 15.8in^6)
+selection_tests = and(len(AiscWItemsAtLeast(AISC_W_P_SX; 140in^3)) > 0; not(DBHasID(AiscWItemsAtLeast(AISC_W_P_SX; 140in^3); W12X26)); DBHasID(AiscWItemsAtLeast(AISC_W_P_SX; 140in^3); W14X90); len(AiscWItemsAtLeast(999; 1)) ≡ 0)
+
+all_tests = and(catalog_tests; alias_tests; property_tests; reference_value_tests; selection_tests)
