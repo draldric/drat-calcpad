@@ -2,6 +2,18 @@
 
 Modular framework for reusable engineering calculations.
 
+## Documentation
+
+- [Quick start](docs/QuickStart.md)
+- [Architecture](docs/Architecture.md)
+- [Core API reference](docs/CoreApi.md)
+- [Status-code reference](docs/StatusCodes.md)
+- [Library-authoring guide](docs/LibraryAuthoring.md)
+- [Versioning policy](docs/Versioning.md)
+- [Contributor guide](CONTRIBUTING.md)
+- [Release checklist](docs/ReleaseChecklist.md)
+- [Changelog](CHANGELOG.md)
+
 ## Core and libraries
 
 Worksheets load the generated core bundle before any optional libraries:
