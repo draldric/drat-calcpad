@@ -9,7 +9,7 @@
 #def EngineeringMaterialsLibraryScope$ = 126 common materials and 18 nominal room-temperature screening properties with category, availability, classification, and provenance discovery.
 
 #show
-'<style>table.data.material-record td:nth-child(2),table.data.material-record td:nth-child(2) p,table.data.material-property td:nth-child(2),table.data.material-property td:nth-child(2) p{text-align:right;}</style>
+'<style>table.data.material-record td:nth-child(2),table.data.material-record td:nth-child(2) p,table.data.material-property td:nth-child(2),table.data.material-property td:nth-child(2) p,table.data.material-dataset-summary td:nth-child(2),table.data.material-dataset-summary td:nth-child(2) p{text-align:right;}</style>
 #hide
 
 STEEL_ASTM_A36 = 1001
@@ -1255,7 +1255,7 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
     '<tbody>
     '<tr><td><strong>Library</strong></td><td>EngineeringMaterialsLibraryName$</td></tr>
     '<tr><td><strong>Library revision</strong></td><td>EngineeringMaterialsLibraryRevision$</td></tr>
-    '<tr><td><strong>Scope</strong></td><td style="text-align:left">EngineeringMaterialsLibraryScope$</td></tr>
+    '<tr><td><strong>Scope</strong></td><td>EngineeringMaterialsLibraryScope$</td></tr>
     '<tr><td><strong>Materials</strong></td><td>'EngineeringMaterialItemCount'</td></tr>
     '<tr><td><strong>Categories</strong></td><td>'len(EngineeringMaterialCategoryIDs)'</td></tr>
     '<tr><td><strong>Supported properties</strong></td><td>'EngineeringMaterialPropertyCount'</td></tr>
