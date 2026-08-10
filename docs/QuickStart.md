@@ -97,6 +97,7 @@ Retrieve both the property value and its status, and report the selected record 
 material = STEEL_ASTM_A36
 yield_strength = MatYield(material)
 yield_status = MatPROPStatus(material; MAT_P_YIELD_STRENGTH)
+available_properties = MatAvailablePropertyIDs(material)
 
 ShowMatRecord$(material)
 ShowMatPROP$(material; MAT_P_YIELD_STRENGTH)
@@ -104,6 +105,8 @@ ShowMatPROP$(material; MAT_P_YIELD_STRENGTH)
 
 The current Engineering Materials values are nominal room-temperature screening data.
 Confirm that a value is suitable for the governing design basis before treating it as a specified minimum or design allowable.
+Use `MatItemsByCategory` to browse one material family and `MatItemsWithProperty` to filter records by data availability.
+See the [Engineering Materials library reference](EngineeringMaterials.md) for category IDs, classification semantics, provenance checks, and reporting tables.
 
 ## Verify the work
 

@@ -1,0 +1,36 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Materials/EngineeringMaterials.cpd
+
+"Engineering Materials Discovery and Classification Test
+
+expected_category_counts = [27; 27; 25; 7; 3; 13; 5; 9; 10]
+actual_category_counts = [MatCategoryCount(MAT_CAT_FERROUS_METAL); MatCategoryCount(MAT_CAT_NONFERROUS_METAL); MatCategoryCount(MAT_CAT_POLYMER); MatCategoryCount(MAT_CAT_ELASTOMER); MatCategoryCount(MAT_CAT_GLASS); MatCategoryCount(MAT_CAT_CERAMIC_RELATED); MatCategoryCount(MAT_CAT_COMPOSITE); MatCategoryCount(MAT_CAT_WOOD); MatCategoryCount(MAT_CAT_CONSTRUCTION)]
+
+catalog_tests = and(EngineeringMaterialItemCount ≡ 126; EngineeringMaterialPropertyCount ≡ 18; n_rows(EngineeringMaterialCatalog) ≡ 126; n_cols(EngineeringMaterialCatalog) ≡ 2)
+category_count_tests = norm_1(actual_category_counts - expected_category_counts) ≡ 0
+category_mapping_tests = and(MatCategory(STEEL_ASTM_A36) ≡ MAT_CAT_FERROUS_METAL; MatCategory(ALUMINUM_6061_T6) ≡ MAT_CAT_NONFERROUS_METAL; MatCategory(POLYMER_PEEK) ≡ MAT_CAT_POLYMER; MatCategory(ELASTOMER_EPDM) ≡ MAT_CAT_ELASTOMER; MatCategory(GLASS_SODA_LIME) ≡ MAT_CAT_GLASS; MatCategory(CERAMIC_ALUMINA_96) ≡ MAT_CAT_CERAMIC_RELATED; MatCategory(COMPOSITE_CFRP_UD) ≡ MAT_CAT_COMPOSITE; MatCategory(WOOD_DOUGLAS_FIR) ≡ MAT_CAT_WOOD; MatCategory(CONCRETE_NORMAL_25MPA) ≡ MAT_CAT_CONSTRUCTION)
+
+glass_materials = MatItemsByCategory(MAT_CAT_GLASS)
+invalid_category_materials = MatItemsByCategory(999)
+category_filter_tests = and(len(glass_materials) ≡ 3; take(1; glass_materials) ≡ GLASS_SODA_LIME; take(3; glass_materials) ≡ GLASS_FUSED_SILICA; len(invalid_category_materials) ≡ 0; MatCategoryStatus(STEEL_ASTM_A36) ≡ DB_OK; MatCategoryStatus(999999) ≡ DB_ERR_NAME)
+
+expected_A36_properties = [1; 2; 3; 4; 5; 6; 9; 10; 11; 12; 13; 14; 15; 16; 17; 18]
+available_A36_properties = MatAvailablePropertyIDs(STEEL_ASTM_A36)
+invalid_item_properties = MatAvailablePropertyIDs(999999)
+item_availability_tests = and(norm_1(available_A36_properties - expected_A36_properties) ≡ 0; MatAvailablePropertyCount(STEEL_ASTM_A36) ≡ 16; abs(MatItemCompleteness(STEEL_ASTM_A36) - 16/18) < 10^-12; len(invalid_item_properties) ≡ 0; MatPropertyAvailable(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH); not(MatPropertyAvailable(STEEL_ASTM_A36; MAT_P_COMPRESSIVE_STRENGTH)))
+
+expected_property_counts = [126; 126; 126; 126; 79; 126; 68; 67; 126; 102; 126; 126; 126; 126; 126; 126; 73; 110]
+yield_materials = MatItemsWithProperty(MAT_P_YIELD_STRENGTH)
+invalid_property_materials = MatItemsWithProperty(999)
+property_availability_tests = and(norm_1(EngineeringMaterialPropertyAvailableCounts - expected_property_counts) ≡ 0; MatPropertyAvailableCount(MAT_P_DENSITY) ≡ 126; MatPropertyAvailableCount(MAT_P_YIELD_STRENGTH) ≡ 79; len(yield_materials) ≡ 79; DBHasID(yield_materials; STEEL_ASTM_A36); not(DBHasID(yield_materials; ELASTOMER_EPDM)); len(invalid_property_materials) ≡ 0)
+
+classification_registry_tests = and(MatClassificationKnown(MAT_CLASS_TYPICAL); MatClassificationKnown(MAT_CLASS_SCREENING); MatClassificationKnown(MAT_CLASS_SPECIFIED_MINIMUM); MatClassificationKnown(MAT_CLASS_DESIGN_ALLOWABLE); not(MatClassificationKnown(MAT_CLASS_UNKNOWN)); ValidationValuesUnique(EngineeringMaterialClassificationIDs))
+classification_tests = and(EngineeringMaterialDefaultClassification ≡ MAT_CLASS_SCREENING; MatClassification(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ MAT_CLASS_SCREENING; MatClassification(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH) ≡ MAT_CLASS_UNKNOWN; MatClassificationStatus(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ DB_OK; MatClassificationStatus(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH) ≡ DB_ERR_MISSING)
+
+provenance_tests = and(MatProvenanceStatus(STEEL_ASTM_A36) ≡ DB_OK; MatSourceKnown(MatSourceID(STEEL_ASTM_A36)); MatDataRevision(STEEL_ASTM_A36) ≡ 1; MatProvenanceStatus(999999) ≡ DB_ERR_NAME; MatPropertyProvenanceStatus(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ DB_OK; MatPropertyProvenanceStatus(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH) ≡ DB_ERR_MISSING; MatPropertyRecordStatus(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ DB_OK)
+
+dataset_count_tests = and(EngineeringMaterialAvailableValueCount ≡ 2011; EngineeringMaterialPossibleValueCount ≡ 2268; abs(EngineeringMaterialDatasetCompleteness - 2011/2268) < 10^-12)
+dataset_integrity_tests = and(EngineeringMaterialCatalogOK; EngineeringMaterialCategoriesOK; EngineeringMaterialSourcesOK; EngineeringMaterialRevisionsOK; EngineeringMaterialClassificationsOK; EngineeringMaterialCompletenessOK; EngineeringMaterialDatasetStatus ≡ DB_OK)
+alias_tests = and(A36 ≡ STEEL_ASTM_A36; MatCategory(A36) ≡ MatCategory(STEEL_ASTM_A36); MatAvailablePropertyCount(A36) ≡ MatAvailablePropertyCount(STEEL_ASTM_A36))
+
+all_tests = and(catalog_tests; category_count_tests; category_mapping_tests; category_filter_tests; item_availability_tests; property_availability_tests; classification_registry_tests; classification_tests; provenance_tests; dataset_count_tests; dataset_integrity_tests; alias_tests)

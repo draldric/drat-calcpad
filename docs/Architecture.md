@@ -12,6 +12,7 @@ Libraries/                        Optional engineering data libraries
 Templates/                        Starting points for worksheets and libraries
 Examples/                         Complete supported workflows
 Tests/Core/                       Deterministic Core regression worksheets
+Tests/Libraries/                  Deterministic library regression worksheets
 Tools/VerifyRepository.ps1       Static and CalcPad verification entry point
 ```
 

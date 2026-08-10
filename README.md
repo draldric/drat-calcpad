@@ -7,6 +7,7 @@ Modular framework for reusable engineering calculations.
 - [Quick start](docs/QuickStart.md)
 - [Architecture](docs/Architecture.md)
 - [Core API reference](docs/CoreApi.md)
+- [Engineering Materials library](docs/EngineeringMaterials.md)
 - [Status-code reference](docs/StatusCodes.md)
 - [Library-authoring guide](docs/LibraryAuthoring.md)
 - [Versioning policy](docs/Versioning.md)
@@ -65,7 +66,7 @@ EndValidationResults$(input_results)
 `Database.cpd` provides column-safe lookup, status, fallback, metadata, and registry helpers for general matrices.
 It shares the `DB_*` status codes and missing-value sentinel defined by `DataWrapper.cpd`.
 
-Focused regression worksheets are in `Tests/Core/`.
+Focused regression worksheets are organized under `Tests/Core/` and `Tests/Libraries/`.
 
 ## Starting a calculation
 
@@ -79,3 +80,6 @@ Required organization, client, project, calculation, and preparation metadata us
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
 `Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.
+Use `MatItemsByCategory`, `MatAvailablePropertyIDs`, and `MatItemsWithProperty` to discover suitable records without duplicating catalog data in a worksheet.
+Use `ShowMatDatasetSummary$`, `ShowMatCategory$`, and `ShowMatProperties$` to render dataset coverage and filtered selections.
+Current populated values are explicitly classified as screening values; consult the [Engineering Materials library reference](docs/EngineeringMaterials.md) before using them in a design check.

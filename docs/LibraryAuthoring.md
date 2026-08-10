@@ -99,6 +99,8 @@ For curves, also retain valid minimum and maximum query values.
 
 The Engineering Materials library uses one metadata row per material because all properties for that record currently share a source and revision.
 Use per-property metadata when sources or revisions differ by property.
+Its category and availability indexes are derived from the same material and property registries used by public lookups.
+Its current populated values are classified as screening data; stronger classifications require supporting source data rather than a reporting-only label change.
 
 ## Public lookup contract
 
@@ -143,7 +145,7 @@ Do not duplicate property values inside display macros.
 
 ## Testing
 
-Add a deterministic worksheet under `Tests/Core/` for reusable Core changes, or a focused library test when the repository gains library-specific test folders.
+Add a deterministic worksheet under `Tests/Core/` for reusable Core changes or under `Tests/Libraries/` for library behavior.
 Cover:
 
 - Nominal lookup.
