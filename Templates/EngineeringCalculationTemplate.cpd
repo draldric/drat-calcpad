@@ -90,6 +90,7 @@ check_status = CheckGatedStatus(inputs_valid; raw_check_status)
 check_statuses = [check_status]
 check_utilizations = [utilization]
 overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
+calculation_status = CalculationStatus(input_statuses; check_statuses)
 #show
 
 "Results
@@ -106,8 +107,11 @@ AddCheckRow$(Upper-limit demonstration; demand; capacity; utilization; warning_t
 EndCheckSummaryWithResult$(check_statuses; check_utilizations; Upper-limit demonstration)
 #equ
 
+ShowCalculationStatus$(input_statuses; check_statuses)
+
 BeginConclusions$
 #novar
+AddCalculationStatusConclusion$(Document calculation status; calculation_status)
 AddValidationConclusion$(Overall input validation; input_validation)
 AddCheckConclusion$(Overall check status; overall_check_status)
 EndConclusions$

@@ -7,6 +7,8 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Document-level calculation status aggregation with distinct pass, warning, fail, incomplete-input, and calculation-error outcomes.
+- Standard calculation-status banner with validation and engineering-check counts.
 - Structured project documentation for Core APIs, status codes, architecture, library authoring, versioning, contribution, and releases.
 - Engineering Materials discovery APIs for category filtering, property availability, coverage counts, and predefined catalog tables.
 - Explicit screening-value classification plus material, property, provenance, and dataset-integrity statuses.

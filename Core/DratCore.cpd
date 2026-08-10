@@ -1,7 +1,7 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10600
+DRAT_CORE_API = 10700
 DRAT_DEFINITIONS_API = 10201
 DRAT_STYLESHEET_API = 10400
 DRAT_PLOTTING_API = 30200
@@ -9,9 +9,10 @@ DRAT_DATA_WRAPPER_API = 302
 DRAT_CHECKS_API = 10200
 DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 10400
+DRAT_CALCULATION_STATUS_API = 10000
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.6.0
+#def DRATCoreVersion$ = 1.7.0
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -41,6 +42,16 @@ DRAT_VALIDATION_API = 10400
 '<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
 '<style>.document-summary h2{margin-bottom:0.25em;}</style>
 '<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
+'<style>.calculation-status-banner{border:2px solid #444;border-left-width:8px;background:#f5f5f5;padding:0.75em 1em;margin:1.5em 2em;break-inside:avoid;page-break-inside:avoid;}</style>
+'<style>.calculation-status-heading{display:flex;justify-content:space-between;align-items:center;gap:1em;font-size:12pt;text-transform:uppercase;}</style>
+'<style>.calculation-status-label{display:inline-block;padding:0.2em 0.6em;border:2px solid currentColor;font-weight:bold;white-space:nowrap;}</style>
+'<style>.calculation-status-pass{color:#176b2c;background:#e8f5e9;}</style>
+'<style>.calculation-status-warning{color:#795500;background:#fff4c2;}</style>
+'<style>.calculation-status-fail,.calculation-status-error{color:#9b1c1c;background:#fdeaea;}</style>
+'<style>.calculation-status-incomplete{color:#555;background:#eeeeee;}</style>
+'<style>.calculation-status-message{margin:0.75em 0 0.5em 0;text-align:left;}</style>
+'<style>.calculation-status-counts{width:100%;margin:0;table-layout:auto;}</style>
+'<style>.calculation-status-counts th,.calculation-status-counts td{text-align:center;}</style>
 '<style>.reporting-summary{width:95%;table-layout:auto;}</style>
 '<style>.reporting-summary th,.reporting-summary td{vertical-align:top;}</style>
 '<style>.reporting-summary .status-cell{white-space:nowrap;text-align:center;}</style>
@@ -49,7 +60,7 @@ DRAT_VALIDATION_API = 10400
 '<style>.check-summary .check-counts td{text-align:center;}</style>
 '<style>.check-summary .check-governing td:first-of-type{text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
 '<!-- Worksheet formatting definitions. Version 1.2.1. -->
 
@@ -1063,6 +1074,96 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 
 #def EndValidationResults$(results$)
     EndValidationSummary$(ValidationResultsStatuses(results$))
+#end def
+#show
+#hide
+'<!-- Document-level calculation status helpers. Version 1.0.0. -->
+
+CALC_PASS = 0
+CALC_WARN = 10
+CALC_FAIL = 20
+CALC_INCOMPLETE = 30
+CALC_ERROR = 40
+
+CalculationStatusKnown(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN; status ≡ CALC_FAIL; status ≡ CALC_INCOMPLETE; status ≡ CALC_ERROR)
+CalculationValidationKnownCount(statuses) = ValidationCount(statuses; VAL_OK) + ValidationCount(statuses; VAL_WARN) + ValidationCount(statuses; VAL_ERR_UNDEFINED) + ValidationCount(statuses; VAL_ERR_BELOW_RANGE) + ValidationCount(statuses; VAL_ERR_ABOVE_RANGE) + ValidationCount(statuses; VAL_ERR_BAD_RANGE) + ValidationCount(statuses; VAL_ERR_NONPOSITIVE) + ValidationCount(statuses; VAL_ERR_NEGATIVE) + ValidationCount(statuses; VAL_ERR_NOT_INTEGER) + ValidationCount(statuses; VAL_ERR_LENGTH) + ValidationCount(statuses; VAL_ERR_NOT_ALLOWED) + ValidationCount(statuses; VAL_ERR_UNKNOWN) + ValidationCount(statuses; VAL_ERR_BAD_RESULT) + ValidationCount(statuses; VAL_ERR_BAD_SET) + ValidationCount(statuses; VAL_ERR_NOT_REGISTERED) + ValidationCount(statuses; VAL_ERR_NONNEGATIVE) + ValidationCount(statuses; VAL_ERR_POSITIVE) + ValidationCount(statuses; VAL_ERR_ZERO) + ValidationCount(statuses; VAL_ERR_DIMENSIONS) + ValidationCount(statuses; VAL_ERR_ORDER) + ValidationCount(statuses; VAL_ERR_DUPLICATE) + ValidationCount(statuses; VAL_ERR_INSIDE_RANGE) + ValidationCount(statuses; VAL_ERR_NONZERO)
+CalculationValidationStatusesOK(statuses) = and(len(statuses) > 0; CalculationValidationKnownCount(statuses) ≡ len(statuses))
+CalculationInputsComplete(validation_statuses) = and(CalculationValidationStatusesOK(validation_statuses); not(ValidationHasErrors(validation_statuses)))
+CalculationChecksComplete(check_statuses) = and(len(check_statuses) > 0; CheckStatusesOK(check_statuses); CheckErrorCount(check_statuses) ≡ 0)
+
+CalculationStatus(validation_statuses; check_statuses) = switch(len(validation_statuses) ≡ 0; CALC_INCOMPLETE; not(CalculationValidationStatusesOK(validation_statuses)); CALC_ERROR; ValidationHasErrors(validation_statuses); CALC_INCOMPLETE; len(check_statuses) ≡ 0; CALC_INCOMPLETE; not(CheckStatusesOK(check_statuses)); CALC_ERROR; CheckErrorCount(check_statuses) > 0; CALC_ERROR; CheckFailureCount(check_statuses) > 0; CALC_FAIL; or(ValidationWarningCount(validation_statuses) > 0; CheckWarningCount(check_statuses) > 0); CALC_WARN; CALC_PASS)
+
+CalculationIsPass(status) = status ≡ CALC_PASS
+CalculationHasWarning(status) = status ≡ CALC_WARN
+CalculationHasFailure(status) = status ≡ CALC_FAIL
+CalculationIsIncomplete(status) = status ≡ CALC_INCOMPLETE
+CalculationHasError(status) = status ≡ CALC_ERROR
+CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
+
+#def CalculationStatus$(status$)
+    #if status$ ≡ CALC_PASS
+        '<span class="calculation-status-label calculation-status-pass">PASS</span>
+    #end if
+    #if status$ ≡ CALC_WARN
+        '<span class="calculation-status-label calculation-status-warning">WARNING</span>
+    #end if
+    #if status$ ≡ CALC_FAIL
+        '<span class="calculation-status-label calculation-status-fail">FAIL</span>
+    #end if
+    #if status$ ≡ CALC_INCOMPLETE
+        '<span class="calculation-status-label calculation-status-incomplete">INCOMPLETE</span>
+    #end if
+    #if status$ ≡ CALC_ERROR
+        '<span class="calculation-status-label calculation-status-error">CALCULATION ERROR</span>
+    #end if
+    #if not(CalculationStatusKnown(status$))
+        '<span class="calculation-status-label calculation-status-error">UNKNOWN STATUS</span>
+    #end if
+#end def
+
+#def CalculationStatusMessage$(status$)
+    #if status$ ≡ CALC_PASS
+        'All validated inputs and engineering checks pass.
+    #end if
+    #if status$ ≡ CALC_WARN
+        'The calculation is valid, but one or more warnings require review.
+    #end if
+    #if status$ ≡ CALC_FAIL
+        'One or more engineering checks fail the acceptance criteria.
+    #end if
+    #if status$ ≡ CALC_INCOMPLETE
+        'Required inputs are missing or invalid. Engineering conclusions are not available.
+    #end if
+    #if status$ ≡ CALC_ERROR
+        'The engineering checks could not be evaluated reliably. Review the calculation and status data.
+    #end if
+    #if not(CalculationStatusKnown(status$))
+        'The document-level calculation status is unknown.
+    #end if
+#end def
+
+#def ShowCalculationStatus$(validation_statuses$; check_statuses$)
+    #hide
+    ζCALC_status = CalculationStatus(validation_statuses$; check_statuses$)
+    #show
+    '<section class="calculation-status-banner">
+    '<div class="calculation-status-heading"><strong>Calculation Status</strong>
+    CalculationStatus$(ζCALC_status)
+    '</div>
+    '<p class="calculation-status-message">
+    CalculationStatusMessage$(ζCALC_status)
+    '</p>
+    '<table class="bordered data calculation-status-counts">
+    '<thead><tr><th>Input validation</th><th>Engineering checks</th></tr></thead>
+    '<tbody><tr><td><strong>Warnings:</strong> 'ValidationWarningCount(validation_statuses$)' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(validation_statuses$)'</td><td><strong>Pass:</strong> 'CheckPassCount(check_statuses$)' &nbsp; <strong>Warning:</strong> 'CheckWarningCount(check_statuses$)' &nbsp; <strong>Fail:</strong> 'CheckFailureCount(check_statuses$)' &nbsp; <strong>Error:</strong> 'CheckErrorCount(check_statuses$)'</td></tr></tbody>
+    '</table>
+    '</section>
+#end def
+
+#def AddCalculationStatusConclusion$(label$; status$)
+    '<p><strong>label$:</strong>
+    CalculationStatus$(status$)
+    '</p>
 #end def
 #show
 #hide

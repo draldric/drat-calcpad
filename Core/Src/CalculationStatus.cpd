@@ -1,0 +1,90 @@
+#hide
+'<!-- Document-level calculation status helpers. Version 1.0.0. -->
+
+CALC_PASS = 0
+CALC_WARN = 10
+CALC_FAIL = 20
+CALC_INCOMPLETE = 30
+CALC_ERROR = 40
+
+CalculationStatusKnown(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN; status ≡ CALC_FAIL; status ≡ CALC_INCOMPLETE; status ≡ CALC_ERROR)
+CalculationValidationKnownCount(statuses) = ValidationCount(statuses; VAL_OK) + ValidationCount(statuses; VAL_WARN) + ValidationCount(statuses; VAL_ERR_UNDEFINED) + ValidationCount(statuses; VAL_ERR_BELOW_RANGE) + ValidationCount(statuses; VAL_ERR_ABOVE_RANGE) + ValidationCount(statuses; VAL_ERR_BAD_RANGE) + ValidationCount(statuses; VAL_ERR_NONPOSITIVE) + ValidationCount(statuses; VAL_ERR_NEGATIVE) + ValidationCount(statuses; VAL_ERR_NOT_INTEGER) + ValidationCount(statuses; VAL_ERR_LENGTH) + ValidationCount(statuses; VAL_ERR_NOT_ALLOWED) + ValidationCount(statuses; VAL_ERR_UNKNOWN) + ValidationCount(statuses; VAL_ERR_BAD_RESULT) + ValidationCount(statuses; VAL_ERR_BAD_SET) + ValidationCount(statuses; VAL_ERR_NOT_REGISTERED) + ValidationCount(statuses; VAL_ERR_NONNEGATIVE) + ValidationCount(statuses; VAL_ERR_POSITIVE) + ValidationCount(statuses; VAL_ERR_ZERO) + ValidationCount(statuses; VAL_ERR_DIMENSIONS) + ValidationCount(statuses; VAL_ERR_ORDER) + ValidationCount(statuses; VAL_ERR_DUPLICATE) + ValidationCount(statuses; VAL_ERR_INSIDE_RANGE) + ValidationCount(statuses; VAL_ERR_NONZERO)
+CalculationValidationStatusesOK(statuses) = and(len(statuses) > 0; CalculationValidationKnownCount(statuses) ≡ len(statuses))
+CalculationInputsComplete(validation_statuses) = and(CalculationValidationStatusesOK(validation_statuses); not(ValidationHasErrors(validation_statuses)))
+CalculationChecksComplete(check_statuses) = and(len(check_statuses) > 0; CheckStatusesOK(check_statuses); CheckErrorCount(check_statuses) ≡ 0)
+
+CalculationStatus(validation_statuses; check_statuses) = switch(len(validation_statuses) ≡ 0; CALC_INCOMPLETE; not(CalculationValidationStatusesOK(validation_statuses)); CALC_ERROR; ValidationHasErrors(validation_statuses); CALC_INCOMPLETE; len(check_statuses) ≡ 0; CALC_INCOMPLETE; not(CheckStatusesOK(check_statuses)); CALC_ERROR; CheckErrorCount(check_statuses) > 0; CALC_ERROR; CheckFailureCount(check_statuses) > 0; CALC_FAIL; or(ValidationWarningCount(validation_statuses) > 0; CheckWarningCount(check_statuses) > 0); CALC_WARN; CALC_PASS)
+
+CalculationIsPass(status) = status ≡ CALC_PASS
+CalculationHasWarning(status) = status ≡ CALC_WARN
+CalculationHasFailure(status) = status ≡ CALC_FAIL
+CalculationIsIncomplete(status) = status ≡ CALC_INCOMPLETE
+CalculationHasError(status) = status ≡ CALC_ERROR
+CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
+
+#def CalculationStatus$(status$)
+    #if status$ ≡ CALC_PASS
+        '<span class="calculation-status-label calculation-status-pass">PASS</span>
+    #end if
+    #if status$ ≡ CALC_WARN
+        '<span class="calculation-status-label calculation-status-warning">WARNING</span>
+    #end if
+    #if status$ ≡ CALC_FAIL
+        '<span class="calculation-status-label calculation-status-fail">FAIL</span>
+    #end if
+    #if status$ ≡ CALC_INCOMPLETE
+        '<span class="calculation-status-label calculation-status-incomplete">INCOMPLETE</span>
+    #end if
+    #if status$ ≡ CALC_ERROR
+        '<span class="calculation-status-label calculation-status-error">CALCULATION ERROR</span>
+    #end if
+    #if not(CalculationStatusKnown(status$))
+        '<span class="calculation-status-label calculation-status-error">UNKNOWN STATUS</span>
+    #end if
+#end def
+
+#def CalculationStatusMessage$(status$)
+    #if status$ ≡ CALC_PASS
+        'All validated inputs and engineering checks pass.
+    #end if
+    #if status$ ≡ CALC_WARN
+        'The calculation is valid, but one or more warnings require review.
+    #end if
+    #if status$ ≡ CALC_FAIL
+        'One or more engineering checks fail the acceptance criteria.
+    #end if
+    #if status$ ≡ CALC_INCOMPLETE
+        'Required inputs are missing or invalid. Engineering conclusions are not available.
+    #end if
+    #if status$ ≡ CALC_ERROR
+        'The engineering checks could not be evaluated reliably. Review the calculation and status data.
+    #end if
+    #if not(CalculationStatusKnown(status$))
+        'The document-level calculation status is unknown.
+    #end if
+#end def
+
+#def ShowCalculationStatus$(validation_statuses$; check_statuses$)
+    #hide
+    ζCALC_status = CalculationStatus(validation_statuses$; check_statuses$)
+    #show
+    '<section class="calculation-status-banner">
+    '<div class="calculation-status-heading"><strong>Calculation Status</strong>
+    CalculationStatus$(ζCALC_status)
+    '</div>
+    '<p class="calculation-status-message">
+    CalculationStatusMessage$(ζCALC_status)
+    '</p>
+    '<table class="bordered data calculation-status-counts">
+    '<thead><tr><th>Input validation</th><th>Engineering checks</th></tr></thead>
+    '<tbody><tr><td><strong>Warnings:</strong> 'ValidationWarningCount(validation_statuses$)' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(validation_statuses$)'</td><td><strong>Pass:</strong> 'CheckPassCount(check_statuses$)' &nbsp; <strong>Warning:</strong> 'CheckWarningCount(check_statuses$)' &nbsp; <strong>Fail:</strong> 'CheckFailureCount(check_statuses$)' &nbsp; <strong>Error:</strong> 'CheckErrorCount(check_statuses$)'</td></tr></tbody>
+    '</table>
+    '</section>
+#end def
+
+#def AddCalculationStatusConclusion$(label$; status$)
+    '<p><strong>label$:</strong>
+    CalculationStatus$(status$)
+    '</p>
+#end def
+#show

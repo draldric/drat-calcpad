@@ -3,6 +3,20 @@
 Status codes are numeric so they can be stored in CalcPad vectors and matrices.
 Use the associated predicate or rendering macro instead of embedding numeric literals in worksheets.
 
+## Document calculation status
+
+| Constant | Value | Meaning |
+| --- | ---: | --- |
+| `CALC_PASS` | 0 | Inputs are valid and every engineering check passes |
+| `CALC_WARN` | 10 | The calculation is valid with one or more warnings |
+| `CALC_FAIL` | 20 | At least one engineering check fails |
+| `CALC_INCOMPLETE` | 30 | Validation/check results are missing, or input validation contains errors |
+| `CALC_ERROR` | 40 | A status is unknown or an engineering check contains an evaluation error |
+
+`CalculationStatus` derives the document status from validation and check vectors.
+Invalid inputs produce `CALC_INCOMPLETE` even when their gated engineering checks return `CHK_ERROR`.
+This keeps an unfinished worksheet distinct from a valid calculation that fails its acceptance criteria.
+
 ## Engineering checks
 
 | Constant | Value | Meaning |

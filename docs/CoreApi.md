@@ -12,7 +12,7 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `10600` | Complete generated-Core API |
+| `DRAT_CORE_API` | `10700` | Complete generated-Core API |
 | `DRAT_DEFINITIONS_API` | `10201` | Worksheet reporting definitions |
 | `DRAT_STYLESHEET_API` | `10400` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
@@ -20,6 +20,7 @@ Macro names end with `$`.
 | `DRAT_CHECKS_API` | `10200` | Engineering checks and summaries |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
 | `DRAT_VALIDATION_API` | `10400` | Structured input validation |
+| `DRAT_CALCULATION_STATUS_API` | `10000` | Document-level calculation status |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
 `DBWrapperName$` and `DBWrapperVersion$` identify the bundled DataWrapper implementation.
@@ -58,6 +59,24 @@ The worksheet must first define the `$` macros used by the header, including `Or
 | `BeginConclusions$` | `AddConclusion$(label; value)` | `EndConclusions$` | Conclusions block |
 
 `AddValidationConclusion$(label; status)` and `AddCheckConclusion$(label; status)` add rendered statuses to an open conclusions block.
+
+## Calculation status
+
+`CalculationStatus(validation_statuses; check_statuses)` combines the input-validation and engineering-check vectors into one document-level result.
+Its precedence distinguishes incomplete inputs from a completed calculation that fails an engineering requirement:
+
+| Constant | Meaning |
+| --- | --- |
+| `CALC_PASS` | All validated inputs and engineering checks pass |
+| `CALC_WARN` | The calculation is valid but contains a validation or check warning |
+| `CALC_FAIL` | At least one completed engineering check fails |
+| `CALC_INCOMPLETE` | Validation or engineering-check results are missing, or inputs contain errors |
+| `CALC_ERROR` | Validation/check statuses are unknown or a completed check contains an evaluation error |
+
+Use `CalculationStatus$` for an inline label and `ShowCalculationStatus$` for the document banner with validation and check counts.
+`AddCalculationStatusConclusion$` adds the same status to an open conclusions block.
+`CalculationCanBeIssued` returns true for pass and warning statuses; the checker must still decide whether each warning is acceptable before issue.
+`CalculationValidationStatusesOK`, `CalculationInputsComplete`, and `CalculationChecksComplete` expose the completeness checks used by the aggregate.
 
 ## Engineering checks
 
