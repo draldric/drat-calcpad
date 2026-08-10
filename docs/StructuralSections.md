@@ -2,17 +2,19 @@
 
 `Libraries/Steel/StructuralSections.cpd` provides tabulated geometric properties for the 289 W-shapes in the AISC Shapes Database v16.0.
 `Libraries/Steel/AiscHssSections.cpd` provides the 714 square, rectangular, and round HSS records from the same source.
+`Libraries/Steel/AiscChannelSections.cpd` provides the 32 standard C and 40 miscellaneous MC channels.
 Load the generated Core first, then load the library directly from the worksheet:
 
 ```text
 #include ../Core/DratCore.cpd
 #include ../Libraries/Steel/StructuralSections.cpd
 #include ../Libraries/Steel/AiscHssSections.cpd
+#include ../Libraries/Steel/AiscChannelSections.cpd
 ```
 
 ## Scope and provenance
 
-The initial release contains the AISC W-shape and HSS families in US customary units.
+The initial release contains the AISC W-shape, HSS, and C/MC channel families in US customary units.
 Each record stores nominal weight, area, dimensions, strong- and weak-axis elastic and plastic section properties, radii of gyration, and torsional properties.
 
 `StructuralSectionsLibrarySource$`, `StructuralSectionsLibraryRevision$`, and `StructuralSectionsLibraryScope$` expose the dataset basis in a worksheet.
@@ -59,12 +61,16 @@ Use identifiers such as `HSS12X8X3_8` for the AISC label `HSS12X8X3/8`, and `HSS
 HSS-specific property IDs include `AISC_HSS_P_HT`, `AISC_HSS_P_B`, `AISC_HSS_P_OD`, and `AISC_HSS_P_TDES`.
 Height and width are unavailable for round HSS, while outside diameter is unavailable for square and rectangular HSS; the corresponding status is `DB_ERR_MISSING`.
 
+The channel module follows the parallel `AiscChannel*` API and supports both `C15X50` and `MC12X50` aliases.
+In addition to dimensions and conventional section properties, it provides centroid x-coordinate (`AISC_CHANNEL_P_X`) and shear-center eccentricity (`AISC_CHANNEL_P_EO`) for this asymmetric family.
+
 ## Reporting
 
 - `ShowAiscWDatasetSummary$` reports library scope, source, record count, and dataset status.
 - `ShowAiscWRecord$(item)` reports one selected section and its provenance.
 - `ShowAiscWProperties$(item)` renders all tabulated properties for one selected section.
 - `ShowAiscHssDatasetSummary$`, `ShowAiscHssRecord$(item)`, and `ShowAiscHssProperties$(item)` provide corresponding HSS reports.
+- `ShowAiscChannelRecord$(item)` and `ShowAiscChannelProperties$(item)` render channel provenance and geometric-property tables.
 
 All values in the reporting tables are right aligned, while descriptions remain left aligned.
 The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
@@ -75,5 +81,5 @@ The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
 They read the official AISC workbook and expect exactly 289 W-shape and 714 HSS records respectively; a changed source layout or record count stops generation.
 The source workbook itself is not committed.
 
-Run `Tests/Libraries/Steel/STRUCTURAL_SECTIONS_TEST.cpd` and `Tests/Libraries/Steel/AISC_HSS_SECTIONS_TEST.cpd` in CalcPad CE and confirm `all_tests` is true.
+Run `Tests/Libraries/Steel/STRUCTURAL_SECTIONS_TEST.cpd`, `Tests/Libraries/Steel/AISC_HSS_SECTIONS_TEST.cpd`, and `Tests/Libraries/Steel/AISC_CHANNEL_SECTIONS_TEST.cpd` in CalcPad CE and confirm `all_tests` is true.
 The regression tests lock record count, data-table dimensions, aliases, representative AISC values, lookup statuses, and unit-aware `Sx` screening queries.

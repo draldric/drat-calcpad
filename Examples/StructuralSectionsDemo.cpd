@@ -1,6 +1,7 @@
 #include ../Core/DratCore.cpd
 #include ../Libraries/Steel/StructuralSections.cpd
 #include ../Libraries/Steel/AiscHssSections.cpd
+#include ../Libraries/Steel/AiscChannelSections.cpd
 "AISC W-Shape Structural Sections Demo
 
 'This library contains tabulated geometric properties only. It does not select a member or establish design capacity.
@@ -35,3 +36,12 @@ selected_hss = HSS12X8X3_8
 ShowAiscHssRecord$(selected_hss)
 
 ShowAiscHssProperties$(selected_hss)
+
+"Channel Selected Section
+#hide
+selected_channel = MC12X50
+#show
+
+ShowAiscChannelRecord$(selected_channel)
+
+ShowAiscChannelProperties$(selected_channel)
