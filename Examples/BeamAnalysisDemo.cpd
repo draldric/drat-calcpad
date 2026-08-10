@@ -1,0 +1,178 @@
+#include ../Core/DratCore.cpd
+#include ../Libraries/Analysis/BeamAnalysis.cpd
+
+"Static Beam Analysis Demo
+
+'This demonstration uses closed-form elastic response for a prismatic beam.
+'It does not select a design standard, combine factored loads, or establish member capacity.
+
+"Simply Supported Beam with Full-Span UDL
+
+#hide
+simple_udl_support = BEAM_SIMPLE_SUPPORTED
+simple_udl_type = BEAM_FULL_UDL
+simple_udl_span = 6m
+simple_udl_point_load = 0N
+simple_udl_point_position = 0m
+simple_udl_distributed_load = 2kN/m
+simple_udl_modulus = 200GPa
+simple_udl_inertia = 8*10^-6m^4
+#show
+
+ShowBeamCaseSummary$(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)
+
+'<h4>Response at midspan</h4>
+ShowBeamResponse$(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia; 3m)
+
+'<h4>Peak response</h4>
+#hide
+ζBEAM_demo_max_shear = BeamMaxShear(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)
+ζBEAM_demo_max_moment = BeamMaxMoment(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)
+ζBEAM_demo_max_deflection = BeamMaxDeflection(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)
+#show
+#novar
+'<table class="bordered data beam-response">
+'<thead><tr><th>Response</th><th>Value</th></tr></thead>
+'<tbody>
+'<tr><td>Maximum shear</td><td>'ζBEAM_demo_max_shear'</td></tr>
+'<tr><td>Maximum moment</td><td>'ζBEAM_demo_max_moment'</td></tr>
+'<tr><td>Maximum deflection</td><td>'ζBEAM_demo_max_deflection'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Composable point loads and piecewise-constant distributed loads
+
+#hide
+modular_support = BEAM_SIMPLE_SUPPORTED
+modular_span = 6m
+modular_point_loads = [10kN; 4kN]
+modular_point_positions = [2m; 4m]
+modular_udl_starts = [0m; 3m]
+modular_udl_ends = [3m; 6m]
+modular_udl_values = [1kN/m; 1kN/m]
+modular_modulus = 200GPa
+modular_inertia = 8*10^-6m^4
+modular_samples = [0m; 1m; 2m; 3m; 4m; 5m; 6m]
+ζBEAM_demo_shear_series = BeamShearSampleSeries(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+ζBEAM_demo_moment_series = BeamMomentSampleSeries(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+ζBEAM_demo_deflection_series = BeamDeflectionSampleSeries(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+#show
+
+ShowBeamLoadSummary$(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia)
+ShowBeamLoadResponse$(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; 3m)
+ShowBeamLoadReactions$(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia)
+ShowBeamLoadExtrema$(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+
+'<h4>Plot-ready response series</h4>
+#novar
+'<table class="bordered data beam-response">
+'<thead><tr><th>Sample series</th><th>Value</th></tr></thead>
+'<tbody>
+'<tr><td>Sample positions</td><td>'modular_samples'</td></tr>
+'<tr><td>Shear</td><td>'ζBEAM_demo_shear_series'</td></tr>
+'<tr><td>Moment</td><td>'ζBEAM_demo_moment_series'</td></tr>
+'<tr><td>Deflection</td><td>'ζBEAM_demo_deflection_series'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+'<h4>Screening helpers (illustrative member limits)</h4>
+#hide
+modular_section_modulus = 600cm^3
+modular_shear_area = 2400mm^2
+modular_allowable_stress = 250MPa
+modular_allowable_deflection = 50mm
+ζBEAM_demo_modular_max_shear = BeamMaxShearAtSamples(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+ζBEAM_demo_modular_max_moment = BeamMaxMomentAtSamples(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+ζBEAM_demo_modular_max_deflection = BeamMaxDeflectionAtSamples(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; modular_modulus; modular_inertia; modular_samples)
+ζBEAM_demo_bending_stress = BeamBendingStress(ζBEAM_demo_modular_max_moment; modular_section_modulus)
+ζBEAM_demo_bending_utilization = BeamBendingUtilization(ζBEAM_demo_modular_max_moment; modular_section_modulus; modular_allowable_stress)
+ζBEAM_demo_bending_status = BeamBendingStatus(ζBEAM_demo_modular_max_moment; modular_section_modulus; modular_allowable_stress; CHK_DEFAULT_WARNING)
+ζBEAM_demo_shear_stress = BeamShearStress(ζBEAM_demo_modular_max_shear; modular_shear_area)
+ζBEAM_demo_shear_utilization = BeamShearUtilization(ζBEAM_demo_modular_max_shear; modular_shear_area; modular_allowable_stress)
+ζBEAM_demo_shear_status = BeamShearStatus(ζBEAM_demo_modular_max_shear; modular_shear_area; modular_allowable_stress; CHK_DEFAULT_WARNING)
+ζBEAM_demo_deflection_utilization = BeamDeflectionUtilization(ζBEAM_demo_modular_max_deflection; modular_allowable_deflection)
+ζBEAM_demo_deflection_status = BeamDeflectionStatus(ζBEAM_demo_modular_max_deflection; modular_allowable_deflection; CHK_DEFAULT_WARNING)
+ζBEAM_demo_screening_status = CheckOverallStatus([ζBEAM_demo_bending_status; ζBEAM_demo_shear_status; ζBEAM_demo_deflection_status])
+#show
+#novar
+'<table class="bordered data beam-response">
+'<thead><tr><th>Screening helper</th><th>Value</th></tr></thead>
+'<tbody>
+'<tr><td>Maximum sampled moment</td><td>'ζBEAM_demo_modular_max_moment'</td></tr>
+'<tr><td>Section modulus</td><td>'modular_section_modulus'</td></tr>
+'<tr><td>Bending stress</td><td>'ζBEAM_demo_bending_stress'</td></tr>
+'<tr><td>Bending utilization</td><td>'ζBEAM_demo_bending_utilization'</td></tr>
+'<tr><td>Bending status</td><td>
+CheckStatus$(ζBEAM_demo_bending_status)
+'</td></tr>
+'<tr><td>Maximum sampled shear</td><td>'ζBEAM_demo_modular_max_shear'</td></tr>
+'<tr><td>Shear stress</td><td>'ζBEAM_demo_shear_stress'</td></tr>
+'<tr><td>Shear utilization</td><td>'ζBEAM_demo_shear_utilization'</td></tr>
+'<tr><td>Shear status</td><td>
+CheckStatus$(ζBEAM_demo_shear_status)
+'</td></tr>
+'<tr><td>Maximum sampled deflection</td><td>'ζBEAM_demo_modular_max_deflection'</td></tr>
+'<tr><td>Allowable deflection</td><td>'modular_allowable_deflection'</td></tr>
+'<tr><td>Deflection utilization</td><td>'ζBEAM_demo_deflection_utilization'</td></tr>
+'<tr><td>Deflection status</td><td>
+CheckStatus$(ζBEAM_demo_deflection_status)
+'</td></tr>
+'<tr><td>Overall screening status</td><td>
+CheckStatus$(ζBEAM_demo_screening_status)
+'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Cantilever with Point Load
+
+#hide
+cantilever_point_support = BEAM_CANTILEVER
+cantilever_point_type = BEAM_POINT_LOAD
+cantilever_point_span = 6m
+cantilever_point_load = 10kN
+cantilever_point_position = 4m
+cantilever_point_distributed_load = 0N/m
+cantilever_point_modulus = 200GPa
+cantilever_point_inertia = 8*10^-6m^4
+#show
+
+ShowBeamCaseSummary$(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia)
+
+'<h4>Response at the free end</h4>
+ShowBeamResponse$(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia; 6m)
+
+"Modular Cantilever Load Set
+
+#hide
+cantilever_modular_support = BEAM_CANTILEVER
+cantilever_modular_span = 6m
+cantilever_modular_point_loads = [10kN]
+cantilever_modular_point_positions = [4m]
+cantilever_modular_udl_starts = [0m]
+cantilever_modular_udl_ends = [6m]
+cantilever_modular_udl_values = [0N/m]
+cantilever_modular_modulus = 200GPa
+cantilever_modular_inertia = 8*10^-6m^4
+cantilever_modular_samples = [0m; 2m; 4m; 6m]
+ζBEAM_demo_cantilever_reaction = BeamReactionLeftLoads(cantilever_modular_support; cantilever_modular_span; cantilever_modular_point_loads; cantilever_modular_point_positions; cantilever_modular_udl_starts; cantilever_modular_udl_ends; cantilever_modular_udl_values; cantilever_modular_modulus; cantilever_modular_inertia)
+ζBEAM_demo_cantilever_moment = BeamReactionMomentLoads(cantilever_modular_support; cantilever_modular_span; cantilever_modular_point_loads; cantilever_modular_point_positions; cantilever_modular_udl_starts; cantilever_modular_udl_ends; cantilever_modular_udl_values; cantilever_modular_modulus; cantilever_modular_inertia)
+#show
+
+ShowBeamLoadSummary$(cantilever_modular_support; cantilever_modular_span; cantilever_modular_point_loads; cantilever_modular_point_positions; cantilever_modular_udl_starts; cantilever_modular_udl_ends; cantilever_modular_udl_values; cantilever_modular_modulus; cantilever_modular_inertia)
+ShowBeamLoadResponse$(cantilever_modular_support; cantilever_modular_span; cantilever_modular_point_loads; cantilever_modular_point_positions; cantilever_modular_udl_starts; cantilever_modular_udl_ends; cantilever_modular_udl_values; cantilever_modular_modulus; cantilever_modular_inertia; 6m)
+ShowBeamLoadExtrema$(cantilever_modular_support; cantilever_modular_span; cantilever_modular_point_loads; cantilever_modular_point_positions; cantilever_modular_udl_starts; cantilever_modular_udl_ends; cantilever_modular_udl_values; cantilever_modular_modulus; cantilever_modular_inertia; cantilever_modular_samples)
+
+#novar
+'<table class="bordered data beam-response">
+'<thead><tr><th>Fixed-end reaction</th><th>Value</th></tr></thead>
+'<tbody>
+'<tr><td>Vertical reaction</td><td>'ζBEAM_demo_cantilever_reaction'</td></tr>
+'<tr><td>Reaction moment</td><td>'ζBEAM_demo_cantilever_moment'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+'<p>Use the response and screening helpers as inputs to project-specific resistance checks, serviceability limits, and governing code provisions.</p>
