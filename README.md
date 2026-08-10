@@ -11,6 +11,8 @@ Modular framework for reusable engineering calculations.
 - [Status-code reference](docs/StatusCodes.md)
 - [Library-authoring guide](docs/LibraryAuthoring.md)
 - [Versioning policy](docs/Versioning.md)
+- [Compatibility matrix](docs/Compatibility.md)
+- [Distribution and installation](docs/Distribution.md)
 - [Contributor guide](CONTRIBUTING.md)
 - [Release checklist](docs/ReleaseChecklist.md)
 - [Changelog](CHANGELOG.md)
@@ -27,6 +29,10 @@ Worksheets load the generated core bundle before any optional libraries:
 Maintain the individual core modules in `Core/Src/`.
 Run `Tools/BuildCore.ps1` after changing a core source module, and commit the regenerated `Core/DratCore.cpd`.
 Run `Tools/BuildCore.ps1 -Check` to verify that the committed bundle is current.
+
+Build a versioned release directory and ZIP archive with `Tools/BuildDistribution.ps1 -Archive`.
+Install an extracted release with `Tools/InstallDratCalcpad.ps1`, or create a self-contained calculation folder with `Tools/NewDratProject.ps1`.
+See the [distribution guide](docs/Distribution.md) for the managed installation and portable-project workflows.
 Run `Tools/VerifyRepository.ps1` before opening a pull request to verify the generated Core, API versions, include graph, whitespace, Core tests, examples, and engineering template.
 Pass `-SkipCalcPad` when only static checks are available, or `-CalcPadCli <path>` when CalcPad CE is installed outside its default location.
 

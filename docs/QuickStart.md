@@ -8,7 +8,15 @@
 
 ## Start a worksheet
 
-Copy `Templates/EngineeringCalculationTemplate.cpd` into a calculation folder one level below the repository root, then retain the direct Core include:
+For an installed release, create a portable calculation project:
+
+```powershell
+pwsh -File "$env:LOCALAPPDATA\DRAT-Calcpad\Current\Tools\NewDratProject.ps1" `
+    -DestinationPath C:\Engineering\MyCalculation `
+    -IncludeMaterials
+```
+
+Within a repository checkout, copy `Templates/EngineeringCalculationTemplate.cpd` into a calculation folder one level below the repository root, then retain the direct Core include:
 
 ```text
 #include ../Core/DratCore.cpd
@@ -23,6 +31,7 @@ Add optional libraries directly after Core:
 
 Includes must be relative, direct, and match the exact path casing.
 Libraries do not load Core or other libraries on behalf of a worksheet.
+See [Distribution and installation](Distribution.md) for installed and portable workflows.
 
 ## Complete the document controls
 

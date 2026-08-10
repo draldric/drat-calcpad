@@ -7,6 +7,10 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Versioned distribution-directory and ZIP creation with a machine-readable compatibility and SHA-256 manifest.
+- Managed per-user installation and update tooling with retained versions and a stable `Current` path.
+- Portable-project generation with direct relative Core and optional Materials includes.
+- Automated clean-directory distribution, installation, update, and project-generation regression checks.
 - Document-level calculation status aggregation with distinct pass, warning, fail, incomplete-input, and calculation-error outcomes.
 - Standard calculation-status banner with validation and engineering-check counts.
 - Structured project documentation for Core APIs, status codes, architecture, library authoring, versioning, contribution, and releases.

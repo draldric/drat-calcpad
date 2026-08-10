@@ -41,7 +41,10 @@
 - [ ] Open the release pull request from `develop` to `main`.
 - [ ] Confirm the release diff contains only intended source, generated Core, documentation, and tests.
 - [ ] Create the versioned bundle from the merged `main` commit.
+- [ ] Run `pwsh -File Tools/BuildDistribution.ps1 -Archive`.
+- [ ] Confirm `manifest.json` contains the expected Core API, library revisions, compatibility bounds, and file hashes.
 - [ ] Include `Core/DratCore.cpd`, selected libraries, templates, examples, documentation, and license files.
 - [ ] Publish release notes and the compatibility matrix.
 - [ ] Tag the merged release commit.
-- [ ] Test installation or extraction in a clean directory.
+- [ ] Run `Tests/Distribution/DISTRIBUTION_TEST.ps1`.
+- [ ] Test the archive installer and portable-project generator in a clean user-controlled directory.
