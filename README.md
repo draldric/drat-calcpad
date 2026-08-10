@@ -82,5 +82,5 @@ Required organization, client, project, calculation, and preparation metadata us
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.
 Use `MatItemsByCategory`, `MatAvailablePropertyIDs`, and `MatItemsWithProperty` to discover suitable records without duplicating catalog data in a worksheet.
 Use `MatCandidateItems`, `MatRankCandidates`, and the unit-aware threshold helpers to create transparent screening shortlists without an implicit weighted score.
-Use `ShowMatDatasetSummary$`, `ShowMatCategory$`, `ShowMatProperties$`, `ShowMatRanking$`, and `ShowMatComparison$` to render dataset coverage, ranked candidates, and side-by-side selections.
+Use `ShowMatDatasetSummary$`, `ShowMatCategory$`, `ShowMatProperties$`, `ShowMatRanking$`, `ShowMatComparison$`, and the material plotting macros to render dataset coverage, ranked candidates, side-by-side selections, and property trade-offs.
 Current populated values are explicitly classified as screening values; consult the [Engineering Materials library reference](docs/EngineeringMaterials.md) before using them in a design check.

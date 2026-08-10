@@ -119,10 +119,13 @@ comparison_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENG
 #novar
 ShowMatRanking$(candidate_ranking; MAT_P_YIELD_STRENGTH; 10)
 ShowMatComparison$(comparison_items; comparison_properties)
+ShowMatPropertyComparisonPlot$(yieldComparison; comparison_items; MAT_P_YIELD_STRENGTH)
+ShowMatPropertyTradeoffPlot$(densityYieldTradeoff; comparison_items; MAT_P_DENSITY; MAT_P_YIELD_STRENGTH)
 #equ
 ```
 
 The ranking is a screening aid, not a design recommendation or substituted design allowable.
+Material plots require network access because Core loads Plotly from a CDN.
 See the [Engineering Materials library reference](EngineeringMaterials.md) for category IDs, classification semantics, provenance checks, and reporting tables.
 
 ## Verify the work

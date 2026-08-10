@@ -41,6 +41,13 @@ ShowMatRanking$(ferrous_yield_ranking; MAT_P_YIELD_STRENGTH; 10)
 ShowMatComparison$(comparison_items; comparison_properties)
 #equ
 
+"Candidate Property Plots
+
+#novar
+ShowMatPropertyComparisonPlot$(ferrousYieldComparison; comparison_items; MAT_P_YIELD_STRENGTH)
+ShowMatPropertyTradeoffPlot$(ferrousDensityYieldTradeoff; comparison_items; MAT_P_DENSITY; MAT_P_YIELD_STRENGTH)
+#equ
+
 "Representative Lookups
 
 rho_A36 = MatRho(STEEL_ASTM_A36)

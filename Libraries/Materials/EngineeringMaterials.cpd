@@ -1,10 +1,11 @@
 #if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 20000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
+#if and(DRAT_PLOTTING_API ≥ 30200; DRAT_PLOTTING_API < 40000)
 #hide
 '<!-- Common engineering materials library. Representative screening data; not design allowables. -->
 
 #def EngineeringMaterialsLibraryName$ = Common Engineering Materials Library
-#def EngineeringMaterialsLibraryRevision$ = 1.3.0
+#def EngineeringMaterialsLibraryRevision$ = 1.4.0
 #def EngineeringMaterialsLibraryDate$ = 2026-08-10
 #def EngineeringMaterialsLibraryScope$ = 126 common materials and 18 nominal room-temperature screening properties with discovery, selection, comparison, classification, and provenance reporting.
 
@@ -16,6 +17,7 @@
 '<style>table.material-ranking th:nth-child(1){width:6%;}table.material-ranking th:nth-child(2){width:10%;}table.material-ranking th:nth-child(3){width:24%;}table.material-ranking th:nth-child(4){width:17%;}table.material-ranking th:nth-child(5){width:18%;}table.material-ranking th:nth-child(6){width:15%;}</style>
 '<style>table.material-comparison th:nth-child(1){width:8%;}table.material-comparison th:nth-child(2){width:18%;}table.material-comparison th:nth-child(3){width:15%;}</style>
 '<style>table.material-property{table-layout:fixed;}table.material-property td:first-child{width:25%;}table.material-property td:nth-child(2),table.material-property td:nth-child(2) p{overflow-wrap:anywhere;word-break:break-word;white-space:normal;}table.material-property td:nth-child(2) p{margin:0;text-align:right;}</style>
+'<style>.material-plot-note{width:calc(100% - 2em);max-width:900px;margin:-12px auto 20px auto;text-align:center;font-size:9pt;}</style>
 #hide
 
 STEEL_ASTM_A36 = 1001
@@ -1483,6 +1485,187 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
     #varsub
 #end def
 
+#def RenderMatPlot$(id$)
+    #val
+    '<div id="id$" class="ts-plot"></div>
+    '<script>
+    '(function(){
+    '  var p=window.TSPlots&&window.TSPlots["id$"];
+    '  var el=document.getElementById("id$");
+    '  if(!el){return;}
+    '  if(!p){el.innerHTML="<div class=\"ts-plot-status err\">Figure was not initialized.</div>";return;}
+    '  p.layout.height=p.height;
+    '  el.style.maxWidth=p.maxWidth+"px";
+    '  el.style.height=p.height+"px";
+    '  if(typeof Plotly==="undefined"){
+    '    el.innerHTML="<div class=\"ts-plot-status err\">Plotly.js did not load. Check the network connection.</div>";
+    '    return;
+    '  }
+    '  if(!p.data.length){el.innerHTML="<div class=\"ts-plot-status err\">No material data were added.</div>";return;}
+    '  try{
+    '    var result=Plotly.newPlot(el,p.data,p.layout,p.config);
+    '    if(result&&typeof result.catch==="function"){
+    '      result.catch(function(error){el.innerHTML="<div class=\"ts-plot-status err\">Plot failed: "+error.message+"</div>";});
+    '    }
+    '  }catch(error){
+    '    el.innerHTML="<div class=\"ts-plot-status err\">Plot failed: "+error.message+"</div>";
+    '  }
+    '})();
+    '</script>
+    #equ
+#end def
+
+#def ShowMatPropertyComparisonPlot$(id$; items$; property$)
+    #hide
+    ζMAT_plot_items = items$
+    ζMAT_plot_property = property$
+    ζMAT_plot_count = len(ζMAT_plot_items)
+    ζMAT_plot_property_ok = MatHasProperty(ζMAT_plot_property)
+    ζMAT_plot_safe_property = if(ζMAT_plot_property_ok; ζMAT_plot_property; MAT_P_DENSITY)
+    ζMAT_plot_values = vector(max(1; ζMAT_plot_count))
+    ζMAT_plot_status = switch(ζMAT_plot_count ≡ 0; DB_ERR_INSUFFICIENT_DATA; not(ζMAT_plot_property_ok); DB_ERR_PROPERTY; DB_OK)
+    #if ζMAT_plot_count > 0
+        #for ζMAT_plot_index = 1 : ζMAT_plot_count
+            ζMAT_plot_item = take(ζMAT_plot_index; ζMAT_plot_items)
+            ζMAT_plot_value_status = MatPROPStatus(ζMAT_plot_item; ζMAT_plot_safe_property)
+            ζMAT_plot_values.ζMAT_plot_index = if(ζMAT_plot_value_status ≡ DB_OK; MatPROPRaw(ζMAT_plot_item; ζMAT_plot_safe_property); 0)
+            ζMAT_plot_status = switch(ζMAT_plot_status ≠ DB_OK; ζMAT_plot_status; ζMAT_plot_value_status ≠ DB_OK; ζMAT_plot_value_status; DB_OK)
+        #loop
+    #end if
+    ζMAT_plot_height = min(700; max(360; 110 + 34*ζMAT_plot_count))
+    #show
+    #novar
+    #if ζMAT_plot_status ≡ DB_OK
+        figure$(id$)
+        figureSize$(id$; 900; ζMAT_plot_height)
+        #val
+        '<script>
+        '(function(){
+        '  var p=window.TSPlots["id$"];
+        '  p.layout.title={text:"
+        MatPropertyName$(ζMAT_plot_property)
+        ' comparison",x:0.5,xanchor:"center"};
+        '  p.layout.xaxis.title={text:"
+        MatPropertyName$(ζMAT_plot_property)
+        ' (
+        MatPropertyUnit$(ζMAT_plot_property)
+        ')"};
+        '  p.layout.yaxis.title={text:"Material"};
+        '  p.layout.yaxis.autorange="reversed";
+        '  p.layout.showlegend=false;
+        '  p.layout.margin.l=220;
+        '  p.data.push({
+        '    x:'clrunits(ζMAT_plot_values)',
+        '    y:[
+        #for ζMAT_plot_label_index = 1 : ζMAT_plot_count
+            #hide
+            ζMAT_plot_label_item = take(ζMAT_plot_label_index; ζMAT_plot_items)
+            #show
+            '      "
+            MatName$(ζMAT_plot_label_item)
+            '"
+            #if ζMAT_plot_label_index < ζMAT_plot_count
+                ',
+            #end if
+        #loop
+        '    ],
+        '    customdata:'clrunits(ζMAT_plot_items)',
+        '    type:"bar",orientation:"h",marker:{color:"#337ab7"},
+        '    hovertemplate:"%{y}<br>Material ID: %{customdata}<br>Value: %{x}<extra></extra>"
+        '  });
+        '})();
+        '</script>
+        #equ
+        RenderMatPlot$(id$)
+        '<div class="material-plot-note">Representative screening values only. Verify project-specific design data.</div>
+    #end if
+    #if ζMAT_plot_status ≠ DB_OK
+        '<div class="ts-plot" style="height:160px;max-width:900px"><div class="ts-plot-status err">
+        DBStatus$(ζMAT_plot_status)
+        '</div></div>
+    #end if
+    #equ
+    #varsub
+#end def
+
+#def ShowMatPropertyTradeoffPlot$(id$; items$; x_property$; y_property$)
+    #hide
+    ζMAT_tradeoff_items = items$
+    ζMAT_tradeoff_x_property = x_property$
+    ζMAT_tradeoff_y_property = y_property$
+    ζMAT_tradeoff_count = len(ζMAT_tradeoff_items)
+    ζMAT_tradeoff_x_ok = MatHasProperty(ζMAT_tradeoff_x_property)
+    ζMAT_tradeoff_y_ok = MatHasProperty(ζMAT_tradeoff_y_property)
+    ζMAT_tradeoff_safe_x = if(ζMAT_tradeoff_x_ok; ζMAT_tradeoff_x_property; MAT_P_DENSITY)
+    ζMAT_tradeoff_safe_y = if(ζMAT_tradeoff_y_ok; ζMAT_tradeoff_y_property; MAT_P_DENSITY)
+    ζMAT_tradeoff_x_values = vector(max(1; ζMAT_tradeoff_count))
+    ζMAT_tradeoff_y_values = vector(max(1; ζMAT_tradeoff_count))
+    ζMAT_tradeoff_status = switch(ζMAT_tradeoff_count ≡ 0; DB_ERR_INSUFFICIENT_DATA; not(ζMAT_tradeoff_x_ok); DB_ERR_PROPERTY; not(ζMAT_tradeoff_y_ok); DB_ERR_PROPERTY; DB_OK)
+    #if ζMAT_tradeoff_count > 0
+        #for ζMAT_tradeoff_index = 1 : ζMAT_tradeoff_count
+            ζMAT_tradeoff_item = take(ζMAT_tradeoff_index; ζMAT_tradeoff_items)
+            ζMAT_tradeoff_x_status = MatPROPStatus(ζMAT_tradeoff_item; ζMAT_tradeoff_safe_x)
+            ζMAT_tradeoff_y_status = MatPROPStatus(ζMAT_tradeoff_item; ζMAT_tradeoff_safe_y)
+            ζMAT_tradeoff_x_values.ζMAT_tradeoff_index = if(ζMAT_tradeoff_x_status ≡ DB_OK; MatPROPRaw(ζMAT_tradeoff_item; ζMAT_tradeoff_safe_x); 0)
+            ζMAT_tradeoff_y_values.ζMAT_tradeoff_index = if(ζMAT_tradeoff_y_status ≡ DB_OK; MatPROPRaw(ζMAT_tradeoff_item; ζMAT_tradeoff_safe_y); 0)
+            ζMAT_tradeoff_status = switch(ζMAT_tradeoff_status ≠ DB_OK; ζMAT_tradeoff_status; ζMAT_tradeoff_x_status ≠ DB_OK; ζMAT_tradeoff_x_status; ζMAT_tradeoff_y_status ≠ DB_OK; ζMAT_tradeoff_y_status; DB_OK)
+        #loop
+    #end if
+    #show
+    #novar
+    #if ζMAT_tradeoff_status ≡ DB_OK
+        figure$(id$)
+        figureSize$(id$; 900; 500)
+        #val
+        '<script>
+        '(function(){
+        '  var p=window.TSPlots["id$"];
+        '  p.layout.title={text:"Material property trade-off",x:0.5,xanchor:"center"};
+        '  p.layout.xaxis.title={text:"
+        MatPropertyName$(ζMAT_tradeoff_x_property)
+        ' (
+        MatPropertyUnit$(ζMAT_tradeoff_x_property)
+        ')"};
+        '  p.layout.yaxis.title={text:"
+        MatPropertyName$(ζMAT_tradeoff_y_property)
+        ' (
+        MatPropertyUnit$(ζMAT_tradeoff_y_property)
+        ')"};
+        '  p.layout.showlegend=false;
+        '  p.data.push({
+        '    x:'clrunits(ζMAT_tradeoff_x_values)',y:'clrunits(ζMAT_tradeoff_y_values)',
+        '    text:[
+        #for ζMAT_tradeoff_label_index = 1 : ζMAT_tradeoff_count
+            #hide
+            ζMAT_tradeoff_label_item = take(ζMAT_tradeoff_label_index; ζMAT_tradeoff_items)
+            #show
+            '      "
+            MatName$(ζMAT_tradeoff_label_item)
+            '"
+            #if ζMAT_tradeoff_label_index < ζMAT_tradeoff_count
+                ',
+            #end if
+        #loop
+        '    ],
+        '    customdata:'clrunits(ζMAT_tradeoff_items)',
+        '    mode:"markers",type:"scatter",marker:{size:10,color:"#337ab7"},
+        '    hovertemplate:"%{text}<br>Material ID: %{customdata}<br>x: %{x}<br>y: %{y}<extra></extra>"
+        '  });
+        '})();
+        '</script>
+        #equ
+        RenderMatPlot$(id$)
+        '<div class="material-plot-note">Representative screening values only. Verify project-specific design data.</div>
+    #end if
+    #if ζMAT_tradeoff_status ≠ DB_OK
+        '<div class="ts-plot" style="height:160px;max-width:900px"><div class="ts-plot-status err">
+        DBStatus$(ζMAT_tradeoff_status)
+        '</div></div>
+    #end if
+    #equ
+    #varsub
+#end def
+
 #def ShowMatComparison$(items$; properties$)
     #hide
     ζMAT_comparison_items = items$
@@ -1670,6 +1853,9 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
 	    '</table>
 #end def
 #show
+#else
+'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> EngineeringMaterials requires Plotting API 3.2 or newer. Load a compatible DratCore.cpd before this library.</div>
+#end if
 #else
 '<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> EngineeringMaterials requires DataWrapper API 0.3.2 or newer. Load a compatible DratCore.cpd before this library.</div>
 #end if

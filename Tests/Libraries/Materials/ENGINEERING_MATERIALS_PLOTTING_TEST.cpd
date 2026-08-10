@@ -1,0 +1,15 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Materials/EngineeringMaterials.cpd
+
+"Engineering Materials Plotting Test
+
+plot_items = [MARAGING_STEEL_18NI_250; TOOL_STEEL_A2_HARDENED; TOOL_STEEL_D2_HARDENED; TOOL_STEEL_H13_HARDENED; STAINLESS_17_4PH_H900]
+
+#novar
+ShowMatPropertyComparisonPlot$(materialYieldPlotTest; plot_items; MAT_P_YIELD_STRENGTH)
+ShowMatPropertyTradeoffPlot$(materialTradeoffPlotTest; plot_items; MAT_P_DENSITY; MAT_P_YIELD_STRENGTH)
+#equ
+
+plot_value_tests = and(MatPROPRaw(take(1; plot_items); MAT_P_YIELD_STRENGTH) ≡ 1700; MatPROPRaw(take(5; plot_items); MAT_P_DENSITY) ≡ 7780)
+plot_request_tests = and(len(plot_items) ≡ 5; MatCandidateStatus(MAT_CAT_FERROUS_METAL; [MAT_P_DENSITY; MAT_P_YIELD_STRENGTH]) ≡ DB_OK)
+all_tests = and(plot_value_tests; plot_request_tests)
