@@ -5,6 +5,20 @@
 
 'Representative screening values only. Verify project-specific design data.
 
+"Dataset Discovery
+
+ShowMatDatasetSummary$
+
+"Supported Property Coverage
+
+ShowMatProperties$
+
+"Glass Materials
+
+ShowMatCategory$(MAT_CAT_GLASS)
+
+"Representative Lookups
+
 rho_A36 = MatRho(STEEL_ASTM_A36)
 E_A36 = MatE(A36)
 yield_A36 = MatYield(STEEL_ASTM_A36)

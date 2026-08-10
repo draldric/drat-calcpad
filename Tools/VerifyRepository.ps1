@@ -269,7 +269,7 @@ function Test-CalcPadWorksheets {
     New-Item -ItemType Directory -Path $script:calcPadOutputRoot | Out-Null
 
     $worksheetFiles = [System.Collections.Generic.List[object]]::new()
-    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests\Core') -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests') -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
         $worksheetFiles.Add([pscustomobject]@{ Kind = 'test'; File = $file })
     }
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Examples') -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {

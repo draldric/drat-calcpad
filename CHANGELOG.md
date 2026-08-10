@@ -8,6 +8,9 @@ The project follows semantic versioning for the generated Core API.
 ### Added
 
 - Structured project documentation for Core APIs, status codes, architecture, library authoring, versioning, contribution, and releases.
+- Engineering Materials discovery APIs for category filtering, property availability, coverage counts, and predefined catalog tables.
+- Explicit screening-value classification plus material, property, provenance, and dataset-integrity statuses.
+- Library-specific regression verification under `Tests/Libraries/`.
 
 ## 1.6.0 - 2026-08-09
 
