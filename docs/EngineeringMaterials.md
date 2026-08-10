@@ -128,7 +128,32 @@ The predefined reporting macros are:
 - `ShowMatPROP$(item; property)` for one retrieved property, its classification, revision, and source.
 - `ShowMatRanking$(ranking_result; property; limit)` for a ranked candidate table.
 - `ShowMatComparison$(items; properties)` for a side-by-side property comparison.
+- `ShowMatPropertyComparisonPlot$(id; items; property)` for a horizontal single-property comparison.
+- `ShowMatPropertyTradeoffPlot$(id; items; x_property; y_property)` for an x-y trade-off scatter plot.
 
 `ShowMatCatalog$` renders all 126 records and is intended for catalog review or dedicated reference sheets.
 Use `ShowMatCategory$` in ordinary calculations when a shorter selection table is more useful.
 Assign item and property vectors to variables before passing them to reporting macros; inline vector semicolons can be interpreted as macro argument separators by CalcPad.
+
+## Property comparison plots
+
+Use the same explicit item vector for the table and plots so the reported shortlist remains auditable:
+
+```text
+plot_items = first(MatRankedItems(ranking); 5)
+
+#novar
+ShowMatPropertyComparisonPlot$(yieldComparison; plot_items; MAT_P_YIELD_STRENGTH)
+ShowMatPropertyTradeoffPlot$(densityYieldTradeoff; plot_items; MAT_P_DENSITY; MAT_P_YIELD_STRENGTH)
+#equ
+```
+
+Each plot ID must be unique within the rendered worksheet.
+The comparison plot uses documented raw dataset units and states those units on its axis.
+The trade-off plot requires every selected material to contain both requested properties.
+Plot requests fail visibly for empty item vectors, unknown material or property IDs, and missing property values; they do not silently drop incomplete records.
+
+Plots load Plotly from the network through Core, so an online connection is required when the worksheet renders.
+Engineering Materials 1.4 requires Plotting API 3.2 or newer in the loaded Core bundle.
+Hover labels include the material name and stable material ID.
+As with the tables and ranking helpers, plots compare screening values and do not select a design material automatically.

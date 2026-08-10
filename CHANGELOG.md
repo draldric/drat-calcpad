@@ -15,6 +15,7 @@ The project follows semantic versioning for the generated Core API.
 - Ascending and descending property ranking with structured status, material ID, and raw-value results.
 - Unit-aware minimum, maximum, and bounded material filters.
 - Predefined ranked-candidate and side-by-side material-comparison tables.
+- Single-property bar charts and two-property trade-off plots for explicit material shortlists.
 
 ## 1.6.0 - 2026-08-09
 
