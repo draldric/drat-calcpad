@@ -1,0 +1,13 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Steel/AiscHssSections.cpd
+
+"AISC HSS Structural Sections Test
+
+catalog_tests = and(AiscHssItemCount ≡ 714; AiscHssPropertyCount ≡ 16; n_rows(AiscHssData) ≡ 714; n_cols(AiscHssData) ≡ 17; AiscHssDatasetStatus ≡ DB_OK)
+alias_tests = and(HSS12X8X3_8 ≡ AISC_HSS12X8X3_8; HSS12P750X0P375 ≡ AISC_HSS12P750X0P375; AiscHssHasItem(HSS12X8X3_8); not(AiscHssHasItem(999999)))
+rectangular_property_tests = and(AiscHssWeight(HSS12X8X3_8) ≡ 47.9lb/ft; AiscHssArea(HSS12X8X3_8) ≡ 13.2in^2; AiscHssProperty(HSS12X8X3_8; AISC_HSS_P_HT) ≡ 12in; AiscHssProperty(HSS12X8X3_8; AISC_HSS_P_B) ≡ 8in; AiscHssProperty(HSS12X8X3_8; AISC_HSS_P_SX) ≡ 43.7in^3; AiscHssProperty(HSS12X8X3_8; AISC_HSS_P_SY) ≡ 35.1in^3; AiscHssPropertyStatus(HSS12X8X3_8; AISC_HSS_P_OD) ≡ DB_ERR_MISSING)
+round_property_tests = and(AiscHssProperty(HSS12P750X0P375; AISC_HSS_P_OD) ≡ 12.8in; AiscHssProperty(HSS12P750X0P375; AISC_HSS_P_TDES) ≡ 0.349in; AiscHssProperty(HSS12P750X0P375; AISC_HSS_P_IX) ≡ 262in^4; AiscHssProperty(HSS12P750X0P375; AISC_HSS_P_SX) ≡ 41in^3; AiscHssProperty(HSS12P750X0P375; AISC_HSS_P_C) ≡ 82.1in^3; AiscHssPropertyStatus(HSS12P750X0P375; AISC_HSS_P_HT) ≡ DB_ERR_MISSING)
+status_tests = and(AiscHssPropertyStatus(HSS10X10X1_2; AISC_HSS_P_WEIGHT) ≡ DB_OK; AiscHssPropertyStatus(HSS10X10X1_2; 999) ≡ DB_ERR_PROPERTY; AiscHssPropertyStatus(999999; AISC_HSS_P_WEIGHT) ≡ DB_ERR_NAME)
+selection_tests = and(DBHasID(AiscHssItemsAtLeast(AISC_HSS_P_SX; 40in^3); HSS12X8X3_8); DBHasID(AiscHssItemsAtLeast(AISC_HSS_P_SX; 40in^3); HSS12P750X0P375); len(AiscHssItemsAtLeast(999; 1)) ≡ 0)
+
+all_tests = and(catalog_tests; alias_tests; rectangular_property_tests; round_property_tests; status_tests; selection_tests)

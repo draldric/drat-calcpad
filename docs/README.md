@@ -5,6 +5,7 @@ Use these guides according to the work you are doing:
 - [Quick start](QuickStart.md) explains how to create and verify an engineering worksheet.
 - [Architecture](Architecture.md) describes the generated Core, direct library loading, and trusted calculation flow.
 - [Core API reference](CoreApi.md) lists the supported constants, functions, and reporting macros.
+- [Structural Sections library](StructuralSections.md) documents AISC W-shape lookup, screening, and reporting helpers.
 - [Status-code reference](StatusCodes.md) defines check, validation, and database outcomes.
 - [Library-authoring guide](LibraryAuthoring.md) defines dependency guards, data contracts, and source reporting.
 - [Versioning policy](Versioning.md) explains Core, component, library, and API versions.

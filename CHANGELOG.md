@@ -22,6 +22,8 @@ The project follows semantic versioning for the generated Core API.
 - Unit-aware minimum, maximum, and bounded material filters.
 - Predefined ranked-candidate and side-by-side material-comparison tables.
 - Single-property bar charts and two-property trade-off plots for explicit material shortlists.
+- AISC v16 W-shape structural-sections library with 289 embedded geometric-property records, unit-aware lookup, aliases, screening, provenance tables, demo, and regression coverage.
+- AISC v16 HSS library with 714 square, rectangular, and round section records, including HSS-specific dimensions, lookup, reporting, and regression coverage.
 
 ## 1.6.0 - 2026-08-09
 

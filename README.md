@@ -8,6 +8,7 @@ Modular framework for reusable engineering calculations.
 - [Architecture](docs/Architecture.md)
 - [Core API reference](docs/CoreApi.md)
 - [Engineering Materials library](docs/EngineeringMaterials.md)
+- [Structural Sections library](docs/StructuralSections.md)
 - [Status-code reference](docs/StatusCodes.md)
 - [Library-authoring guide](docs/LibraryAuthoring.md)
 - [Versioning policy](docs/Versioning.md)

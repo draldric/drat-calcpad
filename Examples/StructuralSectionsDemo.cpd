@@ -1,0 +1,37 @@
+#include ../Core/DratCore.cpd
+#include ../Libraries/Steel/StructuralSections.cpd
+#include ../Libraries/Steel/AiscHssSections.cpd
+"AISC W-Shape Structural Sections Demo
+
+'This library contains tabulated geometric properties only. It does not select a member or establish design capacity.
+
+"Dataset
+
+ShowAiscWDatasetSummary$
+
+"Selected Section
+#hide
+selected_section = W14X90
+#show
+
+ShowAiscWRecord$(selected_section)
+
+ShowAiscWProperties$(selected_section)
+
+"Screening Selection
+#hide
+minimum_Sx = 140in^3
+candidate_sections = AiscWItemsAtLeast(AISC_W_P_SX; minimum_Sx)
+candidate_count = len(candidate_sections)
+#show
+
+'<p>'candidate_count' sections have Sx at least 'minimum_Sx'. Review the selected geometry and apply the governing design standard separately.</p>
+
+"HSS Selected Section
+#hide
+selected_hss = HSS12X8X3_8
+#show
+
+ShowAiscHssRecord$(selected_hss)
+
+ShowAiscHssProperties$(selected_hss)
