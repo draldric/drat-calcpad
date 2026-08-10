@@ -4,12 +4,18 @@
 '<!-- Common engineering materials library. Representative screening data; not design allowables. -->
 
 #def EngineeringMaterialsLibraryName$ = Common Engineering Materials Library
-#def EngineeringMaterialsLibraryRevision$ = 1.2.0
-#def EngineeringMaterialsLibraryDate$ = 2026-08-09
-#def EngineeringMaterialsLibraryScope$ = 126 common materials and 18 nominal room-temperature screening properties with category, availability, classification, and provenance discovery.
+#def EngineeringMaterialsLibraryRevision$ = 1.3.0
+#def EngineeringMaterialsLibraryDate$ = 2026-08-10
+#def EngineeringMaterialsLibraryScope$ = 126 common materials and 18 nominal room-temperature screening properties with discovery, selection, comparison, classification, and provenance reporting.
 
 #show
 '<style>table.data.material-record td:nth-child(2),table.data.material-record td:nth-child(2) p,table.data.material-property td:nth-child(2),table.data.material-property td:nth-child(2) p,table.data.material-dataset-summary td:nth-child(2),table.data.material-dataset-summary td:nth-child(2) p{text-align:right;}</style>
+'<style>table.material-ranking,table.material-comparison,table.material-property{width:calc(100% - 2em)!important;max-width:calc(100% - 2em);}</style>
+'<style>table.material-ranking,table.material-comparison{table-layout:fixed;}table.material-ranking{font-size:9pt;}table.material-comparison{font-size:8pt;}</style>
+'<style>table.material-ranking th,table.material-ranking td,table.material-comparison th,table.material-comparison td{padding:2pt;overflow-wrap:anywhere;word-break:break-word;}table.material-ranking p,table.material-comparison p{margin:0;text-align:inherit;font-size:inherit;}</style>
+'<style>table.material-ranking th:nth-child(1){width:6%;}table.material-ranking th:nth-child(2){width:10%;}table.material-ranking th:nth-child(3){width:24%;}table.material-ranking th:nth-child(4){width:17%;}table.material-ranking th:nth-child(5){width:18%;}table.material-ranking th:nth-child(6){width:15%;}</style>
+'<style>table.material-comparison th:nth-child(1){width:8%;}table.material-comparison th:nth-child(2){width:18%;}table.material-comparison th:nth-child(3){width:15%;}</style>
+'<style>table.material-property{table-layout:fixed;}table.material-property td:first-child{width:25%;}table.material-property td:nth-child(2),table.material-property td:nth-child(2) p{overflow-wrap:anywhere;word-break:break-word;white-space:normal;}table.material-property td:nth-child(2) p{margin:0;text-align:right;}</style>
 #hide
 
 STEEL_ASTM_A36 = 1001
@@ -438,6 +444,7 @@ ASPHALT = ASPHALT_CONCRETE
 
 EngineeringMaterialItemIDs = [1001; 1002; 1003; 1004; 1005; 1006; 1007; 1008; 1009; 1010; 1011; 1012; 1013; 1014; 1101; 1102; 1103; 1104; 1105; 1106; 1107; 1108; 1109; 1110; 1201; 1202; 1203; 2001; 2002; 2003; 2004; 2005; 2006; 2007; 2008; 2009; 2101; 2102; 2103; 2104; 2105; 2106; 2201; 2202; 2301; 2302; 2401; 2402; 2403; 2404; 2405; 2501; 2502; 2503; 3001; 3002; 3003; 3004; 3005; 3006; 3007; 3008; 3009; 3010; 3011; 3012; 3013; 3014; 3015; 3016; 3017; 3018; 3019; 3020; 3021; 3022; 3023; 3024; 3025; 3101; 3102; 3103; 3104; 3105; 3106; 3107; 4001; 4002; 4003; 4101; 4102; 4103; 4104; 4105; 4106; 4107; 4108; 4109; 4110; 4111; 4112; 4113; 5001; 5002; 5003; 5004; 5005; 5101; 5102; 5103; 5104; 5105; 5106; 5107; 5108; 5109; 6001; 6002; 6003; 6004; 6005; 6006; 6007; 6008; 6009; 6010]
 
+MAT_CAT_ALL = 0
 MAT_CAT_FERROUS_METAL = 1
 MAT_CAT_NONFERROUS_METAL = 2
 MAT_CAT_POLYMER = 3
@@ -521,6 +528,9 @@ MAT_CLASS_DESIGN_ALLOWABLE = 4
 EngineeringMaterialClassificationIDs = [1; 2; 3; 4]
 EngineeringMaterialDefaultClassification = MAT_CLASS_SCREENING
 
+MAT_RANK_ASCENDING = 1
+MAT_RANK_DESCENDING = 2
+
 MAT_SRC_1 = 1
 MAT_SRC_2 = 2
 MAT_SRC_3 = 3
@@ -544,9 +554,18 @@ MatHasCategory(category) = DBHasID(EngineeringMaterialCategoryIDs; category)
 MatClassificationKnown(classification) = DBHasID(EngineeringMaterialClassificationIDs; classification)
 MatValuesUnique(values) = if(len(values) ≤ 1; 1; count(first(sort(values); len(values) - 1) - last(sort(values); len(values) - 1); 0; 1) ≡ 0)
 MatIntegerValues(values) = norm_1(values - round(values)) ≤ 10^-12
+MatCategoryFilterKnown(category) = or(category ≡ MAT_CAT_ALL; MatHasCategory(category))
+MatPropertySetKnown(properties) = _
+$block{
+    has_properties = len(properties) > 0;
+    safe_properties = if(has_properties; properties; [0]);
+    known = and(has_properties; min(safe_properties) ≥ 1; max(safe_properties) ≤ EngineeringMaterialPropertyCount; MatIntegerValues(safe_properties));
+    known;
+}
+
 MatCategoryStatus(item) = switch(not(MatHasItem(item)); DB_ERR_NAME; DBTableStatus(EngineeringMaterialCatalog; item; 2) ≠ DB_OK; DB_ERR_MISSING; not(MatHasCategory(DBTableRaw(EngineeringMaterialCatalog; item; 2))); DB_ERR_MISSING; DB_OK)
 MatCategory(item) = if(MatCategoryStatus(item) ≡ DB_OK; DBTableRaw(EngineeringMaterialCatalog; item; 2); 0/0)
-MatItemsByCategory(category) = vlookup(EngineeringMaterialCatalog; category; 2; 1)
+MatItemsByCategory(category) = if(category ≡ MAT_CAT_ALL; EngineeringMaterialItemIDs; vlookup(EngineeringMaterialCatalog; category; 2; 1))
 MatCategoryCount(category) = len(MatItemsByCategory(category))
 MatSourceID(item) = DBTableRaw(EngineeringMaterialMetadata; item; 2)
 MatDataRevision(item) = DBTableRaw(EngineeringMaterialMetadata; item; 3)
@@ -578,6 +597,25 @@ $block{
 MatPropertyAvailableCount(property) = len(MatItemsWithProperty(property))
 MatPropertyCompleteness(property) = if(MatHasProperty(property); MatPropertyAvailableCount(property)/EngineeringMaterialItemCount; 0/0)
 
+MatCandidateMask(category; required_properties) = _
+$block{
+    category_ok = MatCategoryFilterKnown(category);
+    properties_ok = MatPropertySetKnown(required_properties);
+    safe_properties = if(properties_ok; required_properties; [MAT_P_DENSITY]);
+    property_data = extract_cols(EngineeringMaterialData; safe_properties + 1);
+    availability_matrix = property_data ≠ DB_MISSING;
+    availability_counts = availability_matrix*fill(resize([0]; len(safe_properties)); 1);
+    all_categories = fill(resize([0]; EngineeringMaterialItemCount); 1);
+    category_mask = if(category ≡ MAT_CAT_ALL; all_categories; EngineeringMaterialCategoryByItem ≡ category);
+    invalid_mask = fill(resize([0]; EngineeringMaterialItemCount); 0);
+    candidate_mask = if(and(category_ok; properties_ok); category_mask*(availability_counts ≡ len(safe_properties)); invalid_mask);
+    candidate_mask;
+}
+
+MatCandidateItems(category; required_properties) = lookup_eq(MatCandidateMask(category; required_properties); EngineeringMaterialItemIDs; 1)
+MatCandidateCount(category; required_properties) = len(MatCandidateItems(category; required_properties))
+MatCandidateStatus(category; required_properties) = switch(not(MatCategoryFilterKnown(category)); DB_ERR_NAME; not(MatPropertySetKnown(required_properties)); DB_ERR_PROPERTY; MatCandidateCount(category; required_properties) ≡ 0; DB_ERR_MISSING; DB_OK)
+
 MatPROPStatus(item; property) = _
 $block{
     item_ok = MatHasItem(item); 
@@ -601,6 +639,78 @@ $block{
     raw = if(DBIsFatal(status); 0/0; MatPROPRaw(item; property)); 
     value = if(DBIsFatal(status); 0/0; MatApplyUnits(property; raw)); 
     value; 
+}
+
+MatRankingDirectionKnown(direction) = or(direction ≡ MAT_RANK_ASCENDING; direction ≡ MAT_RANK_DESCENDING)
+MatRankingStatus(category; required_properties; ranking_property; direction) = _
+$block{
+    ranking_property_ok = MatHasProperty(ranking_property);
+    safe_ranking_property = if(ranking_property_ok; ranking_property; MAT_P_DENSITY);
+    selection_properties = join(required_properties; [safe_ranking_property]);
+    candidate_status = MatCandidateStatus(category; selection_properties);
+    status = switch(not(MatCategoryFilterKnown(category)); DB_ERR_NAME; not(MatPropertySetKnown(required_properties)); DB_ERR_PROPERTY; not(ranking_property_ok); DB_ERR_PROPERTY; not(MatRankingDirectionKnown(direction)); DB_ERR_BAD_METHOD; candidate_status ≠ DB_OK; candidate_status; DB_OK);
+    status;
+}
+
+MatRankCandidates(category; required_properties; ranking_property; direction) = _
+$block{
+    ranking_property_ok = MatHasProperty(ranking_property);
+    safe_ranking_property = if(ranking_property_ok; ranking_property; MAT_P_DENSITY);
+    selection_properties = join(required_properties; [safe_ranking_property]);
+    candidate_mask = MatCandidateMask(category; selection_properties);
+    candidate_indexes = find_eq(candidate_mask; 1; 1);
+    candidate_count = len(candidate_indexes);
+    safe_indexes = if(candidate_count > 0; candidate_indexes; [1]);
+    unsorted_data = extract_rows(extract_cols(EngineeringMaterialData; [1; safe_ranking_property + 1]); safe_indexes);
+    ranked_data = switch(direction ≡ MAT_RANK_ASCENDING; sort_rows(unsorted_data; 2); direction ≡ MAT_RANK_DESCENDING; rsort_rows(unsorted_data; 2); unsorted_data);
+    ok_statuses = fill(resize([0]; n_rows(ranked_data)); DB_OK);
+    valid_result = augment(ok_statuses; ranked_data);
+    status = MatRankingStatus(category; required_properties; ranking_property; direction);
+    result = if(status ≡ DB_OK; valid_result; [status; 0; DB_MISSING]);
+    result;
+}
+
+MatRankByProperty(category; property; direction) = MatRankCandidates(category; [property]; property; direction)
+MatRankingResultStatus(ranking_result) = take(1; col(ranking_result; 1))
+MatRankingCount(ranking_result) = if(MatRankingResultStatus(ranking_result) ≡ DB_OK; n_rows(ranking_result); 0)
+MatRankedItems(ranking_result) = if(MatRankingResultStatus(ranking_result) ≡ DB_OK; col(ranking_result; 2); find_eq([0]; 1; 1))
+MatRankedRawValues(ranking_result) = if(MatRankingResultStatus(ranking_result) ≡ DB_OK; col(ranking_result; 3); find_eq([0]; 1; 1))
+
+MatItemsAtLeast(category; property; minimum) = _
+$block{
+    ranking_result = MatRankByProperty(category; property; MAT_RANK_ASCENDING);
+    status = MatRankingResultStatus(ranking_result);
+    safe_property = if(MatHasProperty(property); property; MAT_P_DENSITY);
+    ranked_items = MatRankedItems(ranking_result);
+    ranked_values = MatApplyUnits(safe_property; MatRankedRawValues(ranking_result));
+    empty_items = find_eq([0]; 1; 1);
+    selected_items = if(status ≡ DB_OK; lookup_ge(ranked_values; ranked_items; minimum); empty_items);
+    selected_items;
+}
+
+MatItemsAtMost(category; property; maximum) = _
+$block{
+    ranking_result = MatRankByProperty(category; property; MAT_RANK_ASCENDING);
+    status = MatRankingResultStatus(ranking_result);
+    safe_property = if(MatHasProperty(property); property; MAT_P_DENSITY);
+    ranked_items = MatRankedItems(ranking_result);
+    ranked_values = MatApplyUnits(safe_property; MatRankedRawValues(ranking_result));
+    empty_items = find_eq([0]; 1; 1);
+    selected_items = if(status ≡ DB_OK; lookup_le(ranked_values; ranked_items; maximum); empty_items);
+    selected_items;
+}
+
+MatItemsBetween(category; property; minimum; maximum) = _
+$block{
+    ranking_result = MatRankByProperty(category; property; MAT_RANK_ASCENDING);
+    status = MatRankingResultStatus(ranking_result);
+    safe_property = if(MatHasProperty(property); property; MAT_P_DENSITY);
+    ranked_items = MatRankedItems(ranking_result);
+    ranked_values = MatApplyUnits(safe_property; MatRankedRawValues(ranking_result));
+    range_mask = (ranked_values ≥ minimum)*(ranked_values ≤ maximum);
+    empty_items = find_eq([0]; 1; 1);
+    selected_items = if(and(status ≡ DB_OK; minimum ≤ maximum); lookup_eq(range_mask; ranked_items; 1); empty_items);
+    selected_items;
 }
 
 MatPropertyAvailable(item; property) = MatPROPStatus(item; property) ≡ DB_OK
@@ -653,6 +763,9 @@ MatHV(item) = MatPROP(item; MAT_P_HARDNESS_VICKERS)
 MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
 
 #def MatCategoryName$(category$)
+    #if category$ ≡ MAT_CAT_ALL
+        'All material categories
+    #end if
     #if category$ ≡ MAT_CAT_FERROUS_METAL
         'Ferrous metals
     #end if
@@ -680,8 +793,20 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
     #if category$ ≡ MAT_CAT_CONSTRUCTION
         'Construction materials
     #end if
-    #if not(MatHasCategory(category$))
+    #if and(category$ ≠ MAT_CAT_ALL; not(MatHasCategory(category$)))
         '<span class="err">Unknown material category ID</span>
+    #end if
+#end def
+
+#def MatRankingDirectionName$(direction$)
+    #if direction$ ≡ MAT_RANK_ASCENDING
+        'Ascending
+    #end if
+    #if direction$ ≡ MAT_RANK_DESCENDING
+        'Descending
+    #end if
+    #if not(MatRankingDirectionKnown(direction$))
+        '<span class="err">Unknown ranking direction</span>
     #end if
 #end def
 
@@ -1354,6 +1479,117 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
         '</td></tr>
     #loop
     '</tbody>
+    '</table>
+    #varsub
+#end def
+
+#def ShowMatComparison$(items$; properties$)
+    #hide
+    ζMAT_comparison_items = items$
+    ζMAT_comparison_properties = properties$
+    ζMAT_comparison_item_count = len(ζMAT_comparison_items)
+    ζMAT_comparison_property_count = len(ζMAT_comparison_properties)
+    ζMAT_comparison_request_ok = and(ζMAT_comparison_item_count > 0; MatPropertySetKnown(ζMAT_comparison_properties))
+    #show
+    #novar
+    '<table class="bordered data material-comparison" style="width:95%">
+    '<thead>
+    '<tr><th>Material ID</th><th>Material</th><th>Category</th>
+    #if ζMAT_comparison_request_ok
+        #for ζMAT_comparison_property_index = 1 : ζMAT_comparison_property_count
+            #hide
+            ζMAT_comparison_property = take(ζMAT_comparison_property_index; ζMAT_comparison_properties)
+            #show
+            '<th>
+            MatPropertyName$(ζMAT_comparison_property)
+            '<br><span class="note">
+            MatPropertyUnit$(ζMAT_comparison_property)
+            '</span></th>
+        #loop
+    #end if
+    '</tr>
+    '</thead>
+    '<tbody>
+    #if ζMAT_comparison_request_ok
+        #for ζMAT_comparison_item_index = 1 : ζMAT_comparison_item_count
+            #hide
+            ζMAT_comparison_item = take(ζMAT_comparison_item_index; ζMAT_comparison_items)
+            ζMAT_comparison_item_ok = MatHasItem(ζMAT_comparison_item)
+            ζMAT_comparison_category = if(ζMAT_comparison_item_ok; MatCategory(ζMAT_comparison_item); -1)
+            #show
+            '<tr><td style="text-align:right">'ζMAT_comparison_item'</td><td style="text-align:left">
+            MatName$(ζMAT_comparison_item)
+            '</td><td style="text-align:left">
+            MatCategoryName$(ζMAT_comparison_category)
+            '</td>
+            #for ζMAT_comparison_value_index = 1 : ζMAT_comparison_property_count
+                #hide
+                ζMAT_comparison_value_property = take(ζMAT_comparison_value_index; ζMAT_comparison_properties)
+                ζMAT_comparison_value_status = MatPROPStatus(ζMAT_comparison_item; ζMAT_comparison_value_property)
+                ζMAT_comparison_value = MatPROP(ζMAT_comparison_item; ζMAT_comparison_value_property)
+                #show
+                #if ζMAT_comparison_value_status ≡ DB_OK
+                    '<td>'ζMAT_comparison_value'</td>
+                #end if
+                #if ζMAT_comparison_value_status ≠ DB_OK
+                    '<td>
+                    DBStatus$(ζMAT_comparison_value_status)
+                    '</td>
+                #end if
+            #loop
+            '</tr>
+        #loop
+    #end if
+    #if not(ζMAT_comparison_request_ok)
+        '<tr><td colspan="3" class="status-cell"><span class="err">Material comparison requires at least one item and valid property IDs.</span></td></tr>
+    #end if
+    '</tbody>
+    '</table>
+    #varsub
+#end def
+
+#def ShowMatRanking$(ranking_result$; property$; limit$)
+    #hide
+    ζMAT_ranking_result = ranking_result$
+    ζMAT_ranking_property = property$
+    ζMAT_ranking_status = MatRankingResultStatus(ζMAT_ranking_result)
+    ζMAT_ranking_count = MatRankingCount(ζMAT_ranking_result)
+    ζMAT_ranking_limit = min(ζMAT_ranking_count; max(0; round(limit$)))
+    #show
+    #novar
+    '<table class="bordered data material-ranking" style="width:95%">
+    '<thead>
+    '<tr><th>Rank</th><th>Material ID</th><th>Material</th><th>Category</th><th>
+    MatPropertyName$(ζMAT_ranking_property)
+    '<br><span class="note">
+    MatPropertyUnit$(ζMAT_ranking_property)
+    '</span></th><th>Classification</th></tr>
+    '</thead>
+    '<tbody>
+    #if and(ζMAT_ranking_status ≡ DB_OK; ζMAT_ranking_limit > 0)
+        #for ζMAT_ranking_index = 1 : ζMAT_ranking_limit
+            #hide
+            ζMAT_ranked_item = take(ζMAT_ranking_index; col(ζMAT_ranking_result; 2))
+            ζMAT_ranked_category = MatCategory(ζMAT_ranked_item)
+            ζMAT_ranked_value = MatPROP(ζMAT_ranked_item; ζMAT_ranking_property)
+            ζMAT_ranked_classification = MatClassification(ζMAT_ranked_item; ζMAT_ranking_property)
+            #show
+            '<tr><td style="text-align:right">'ζMAT_ranking_index'</td><td style="text-align:right">'ζMAT_ranked_item'</td><td style="text-align:left">
+            MatName$(ζMAT_ranked_item)
+            '</td><td style="text-align:left">
+            MatCategoryName$(ζMAT_ranked_category)
+            '</td><td>'ζMAT_ranked_value'</td><td style="text-align:left">
+            MatClassificationName$(ζMAT_ranked_classification)
+            '</td></tr>
+        #loop
+    #end if
+    #if ζMAT_ranking_status ≠ DB_OK
+        '<tr><td colspan="6" class="status-cell">
+        DBStatus$(ζMAT_ranking_status)
+        '</td></tr>
+    #end if
+    '</tbody>
+    '<tfoot><tr><th colspan="5">Displayed candidates</th><td>'ζMAT_ranking_limit' of 'ζMAT_ranking_count'</td></tr></tfoot>
     '</table>
     #varsub
 #end def

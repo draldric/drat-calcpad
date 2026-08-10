@@ -17,6 +17,30 @@ ShowMatProperties$
 
 ShowMatCategory$(MAT_CAT_GLASS)
 
+"Material Selection and Ranking
+
+#hide
+required_steel_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGTH; MAT_P_TENSILE_STRENGTH]
+ferrous_candidates = MatCandidateItems(MAT_CAT_FERROUS_METAL; required_steel_properties)
+ferrous_yield_ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; required_steel_properties; MAT_P_YIELD_STRENGTH; MAT_RANK_DESCENDING)
+high_yield_ferrous = MatItemsAtLeast(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1000MPa)
+comparison_items = first(MatRankedItems(ferrous_yield_ranking); 5)
+comparison_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGTH; MAT_P_TENSILE_STRENGTH]
+#show
+
+ferrous_candidate_count = len(ferrous_candidates)
+high_yield_candidate_count = len(high_yield_ferrous)
+
+#novar
+ShowMatRanking$(ferrous_yield_ranking; MAT_P_YIELD_STRENGTH; 10)
+#equ
+
+"Side-by-Side Candidate Comparison
+
+#novar
+ShowMatComparison$(comparison_items; comparison_properties)
+#equ
+
 "Representative Lookups
 
 rho_A36 = MatRho(STEEL_ASTM_A36)

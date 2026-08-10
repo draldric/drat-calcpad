@@ -106,6 +106,23 @@ ShowMatPROP$(material; MAT_P_YIELD_STRENGTH)
 The current Engineering Materials values are nominal room-temperature screening data.
 Confirm that a value is suitable for the governing design basis before treating it as a specified minimum or design allowable.
 Use `MatItemsByCategory` to browse one material family and `MatItemsWithProperty` to filter records by data availability.
+For a multi-property shortlist, rank, and comparison table:
+
+```text
+#hide
+required_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGTH]
+candidate_ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; required_properties; MAT_P_YIELD_STRENGTH; MAT_RANK_DESCENDING)
+comparison_items = first(MatRankedItems(candidate_ranking); 5)
+comparison_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGTH]
+#show
+
+#novar
+ShowMatRanking$(candidate_ranking; MAT_P_YIELD_STRENGTH; 10)
+ShowMatComparison$(comparison_items; comparison_properties)
+#equ
+```
+
+The ranking is a screening aid, not a design recommendation or substituted design allowable.
 See the [Engineering Materials library reference](EngineeringMaterials.md) for category IDs, classification semantics, provenance checks, and reporting tables.
 
 ## Verify the work

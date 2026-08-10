@@ -31,6 +31,46 @@ The public discovery functions are:
 Unknown category and property filters return empty vectors.
 Use the corresponding status functions when an unknown ID must be distinguished from an empty result.
 
+## Candidate selection and ranking
+
+Build candidate lists from a category and the properties that must be populated:
+
+```text
+required_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGTH]
+steel_candidates = MatCandidateItems(MAT_CAT_FERROUS_METAL; required_properties)
+candidate_status = MatCandidateStatus(MAT_CAT_FERROUS_METAL; required_properties)
+```
+
+Use `MAT_CAT_ALL` when the search should span every category.
+`MatCandidateCount` returns the number of matching records, while `MatCandidateStatus` distinguishes a valid result from an unknown category, invalid property set, or a valid search with no populated candidates.
+Every candidate must have a populated value for every requested property.
+
+Rank candidates by one populated property with `MatRankCandidates` or use `MatRankByProperty` when no additional required-property filter is needed:
+
+```text
+ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; required_properties; MAT_P_YIELD_STRENGTH; MAT_RANK_DESCENDING)
+ranking_status = MatRankingResultStatus(ranking)
+ranked_items = MatRankedItems(ranking)
+ranked_raw_values = MatRankedRawValues(ranking)
+```
+
+The ranking result contains one `[status; material_id; raw_property_value]` row per candidate.
+The raw property value uses the dataset's documented unit and is intended for sorting and programmatic access; use `MatPROP` or the reporting macros for unit-aware displayed values.
+An invalid ranking request returns one status row, so check `MatRankingResultStatus` before consuming its item or value columns.
+
+The supported directions are `MAT_RANK_ASCENDING` and `MAT_RANK_DESCENDING`.
+Use `MatItemsAtLeast`, `MatItemsAtMost`, and `MatItemsBetween` for unit-aware property thresholds:
+
+```text
+high_yield_steel = MatItemsAtLeast(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1000MPa)
+service_range = MatItemsBetween(MAT_CAT_ALL; MAT_P_MAX_SERVICE_TEMPERATURE; 100°C; 250°C)
+```
+
+Thresholds must be dimensionally compatible with the selected property.
+These helpers return empty vectors for invalid requests or an empty result; use the ranking and property status helpers when the reason must be reported separately.
+Selection and ranking are transparent screening operations only.
+The library does not calculate a hidden weighted score or identify a universally best material; project-specific constraints, governing standards, environment, fabrication, availability, and verified design values still control final selection.
+
 ## Categories
 
 The initial category registry contains:
@@ -86,6 +126,9 @@ The predefined reporting macros are:
 - `ShowMatProperties$` for property coverage and classification.
 - `ShowMatRecord$(item)` for one selected material record.
 - `ShowMatPROP$(item; property)` for one retrieved property, its classification, revision, and source.
+- `ShowMatRanking$(ranking_result; property; limit)` for a ranked candidate table.
+- `ShowMatComparison$(items; properties)` for a side-by-side property comparison.
 
 `ShowMatCatalog$` renders all 126 records and is intended for catalog review or dedicated reference sheets.
 Use `ShowMatCategory$` in ordinary calculations when a shorter selection table is more useful.
+Assign item and property vectors to variables before passing them to reporting macros; inline vector semicolons can be interpreted as macro argument separators by CalcPad.
