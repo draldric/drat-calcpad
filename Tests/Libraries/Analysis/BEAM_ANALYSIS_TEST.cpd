@@ -133,4 +133,54 @@ cantilever_modular_tests = and(
     BeamAnalyzeStatus(BEAM_CANTILEVER; modular_span; cantilever_loads; cantilever_positions; cantilever_zero_starts; cantilever_zero_ends; cantilever_zero_values; simple_udl_modulus; simple_udl_inertia) ≡ DB_OK;
     abs(BeamReactionMomentLoads(BEAM_CANTILEVER; modular_span; cantilever_loads; cantilever_positions; cantilever_zero_starts; cantilever_zero_ends; cantilever_zero_values; simple_udl_modulus; simple_udl_inertia) - 40kN*m) < 1N*m)
 
-all_tests = and(catalog_tests; simple_udl_tests; simple_point_tests; cantilever_tests; check_tests; modular_tests; multi_tests; cantilever_modular_tests)
+axial_loads = [10kN; -4kN]
+axial_positions = [2m; 5m]
+axial_starts = [0m]
+axial_ends = [6m]
+axial_values = [0N/m]
+axial_samples = [0m; 3m; 6m]
+axial_series = BeamAxialSampleSeries(6m; axial_loads; axial_positions; axial_starts; axial_ends; axial_values; axial_samples)
+station_series = BeamStations(6m; 4)
+axial_tests = and(
+    BeamAxialStatus(6m; axial_loads; axial_positions; axial_starts; axial_ends; axial_values) ≡ DB_OK;
+    abs(axial_series.1 - 6kN) < 1N;
+    abs(axial_series.2 + 4kN) < 1N;
+    abs(axial_series.3) < 1N;
+    abs(station_series.2 - 2m) < 1mm;
+    abs(station_series.4 - 6m) < 1mm)
+
+#hide
+api_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+api_beam = BeamWithUDL(api_beam; 2kN/m)
+api_beam = BeamWithAxialPointLoads(api_beam; [10kN; -4kN]; [2m; 5m])
+api_beam = BeamWithDiagramMoments(api_beam; [3m]; [6kN*m])
+api_beam = BeamWithSampleCount(api_beam; 7)
+
+api_multi = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+api_multi = BeamWithPointLoads(api_multi; multi_point_loads; multi_point_positions)
+api_multi = BeamWithDistributedLoads(api_multi; multi_udl_starts; multi_udl_ends; multi_udl_values)
+
+api_invalid = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+api_invalid = BeamWithDiagramMoments(api_invalid; [7m]; [1kN*m])
+
+api_bad_samples = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+api_bad_samples = BeamWithSampleCount(api_bad_samples; 1)
+#show
+
+model_api_tests = and(
+    BeamModelStatus(api_beam) ≡ DB_OK;
+    abs(BeamShear(api_beam; 0m) - 6kN) < 1N;
+    abs(BeamMoment(api_beam; 3m) - 9kN*m) < 1N*m;
+    abs(BeamDeflection(api_beam; 3m) - BeamMaxDeflection(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)) < 1*10^-9m;
+    abs(BeamAxial(api_beam; 3m) + 4kN) < 1N;
+    abs(BeamLeftReaction(api_beam) - 6kN) < 1N;
+    abs(BeamRightReaction(api_beam) - 6kN) < 1N;
+    abs(BeamPeakMoment(api_beam) - 9kN*m) < 1N*m;
+    len(BeamSamplePositions(api_beam)) ≡ 7;
+    len(BeamModelPointLoads(api_multi)) ≡ 2;
+    BeamModelStatus(api_multi) ≡ DB_OK;
+    abs(BeamMoment(api_multi; 3m) - 18.5kN*m) < 1N*m;
+    BeamModelStatus(api_invalid) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(api_bad_samples) ≡ DB_ERR_BAD_RANGE)
+
+all_tests = and(catalog_tests; simple_udl_tests; simple_point_tests; cantilever_tests; check_tests; modular_tests; multi_tests; cantilever_modular_tests; axial_tests; model_api_tests)
