@@ -1,0 +1,69 @@
+#md on
+#include ../Core/DratCore.cpd
+#include ../Libraries/Analysis/BeamAnalysis.cpd
+
+#hide
+demo_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+demo_beam = BeamWithPointLoads(demo_beam; [10kN; 4kN]; [2m; 4m])
+demo_beam = BeamWithDistributedLoads(demo_beam; [0m; 3m]; [3m; 6m]; [1kN/m; 1kN/m])
+demo_beam = BeamWithAxialPointLoads(demo_beam; [8kN; -3kN]; [1m; 5m])
+demo_beam = BeamWithDiagramMoments(demo_beam; [3m; 5m]; [6kN*m; -4kN*m])
+demo_beam = BeamWithSampleCount(demo_beam; 61)
+
+query_position = 3m
+section_modulus = 600cm^3
+shear_area = 2400mm^2
+allowable_stress = 250MPa
+allowable_deflection = 50mm
+#show
+
+'# Static Beam Analysis Demo
+
+'This worksheet demonstrates the concise beam-model API for a prismatic, linear-elastic beam.
+'It does not select a design standard, combine factored loads, or establish member resistance.
+
+'## Beam model
+
+'The model is defined once and reused by every calculation, report, and diagram.
+
+ShowBeamModel$(demo_beam)
+
+'## Analysis results
+
+'#### Response at the query position
+
+ShowBeamResponseAt$(demo_beam; query_position)
+
+'#### Support reactions
+
+ShowBeamReactions$(demo_beam)
+
+'#### Sampled extrema
+
+ShowBeamExtrema$(demo_beam)
+
+'## Engineering diagrams
+
+'#### Free-body diagram
+
+ShowBeamFBD$(beam_fbd; demo_beam)
+
+'#### Shear-force diagram
+
+ShowBeamShearPlot$(beam_shear; demo_beam)
+
+'#### Bending-moment diagram
+
+ShowBeamMomentPlot$(beam_moment; demo_beam)
+
+'#### Deflection diagram
+
+ShowBeamDeflectionPlot$(beam_deflection; demo_beam)
+
+'The purple applied-moment markers are schematic-only in this release and are not included in the response equations.
+
+'## Illustrative screening
+
+ShowBeamScreening$(demo_beam; section_modulus; shear_area; allowable_stress; allowable_deflection)
+
+'The screening results are calculation aids only; project-specific resistance, serviceability, and governing-code checks remain the responsibility of the engineer.
