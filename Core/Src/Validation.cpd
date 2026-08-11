@@ -635,6 +635,7 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     '</tfoot>
     '</table>
     #equ
+    #varsub
 #end def
 
 #def EndValidationResults$

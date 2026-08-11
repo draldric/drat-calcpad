@@ -1,0 +1,85 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = UNIFIED REVIEW WORKFLOW DEMONSTRATION
+#def Title$ = DOCUMENT REVIEW SUMMARY
+#def Purpose$ = DEMONSTRATE CONSOLIDATED VALIDATION, ENGINEERING-CHECK, AND REPORTING-REGISTRY REVIEW ITEMS.
+#def Scope$ = SHOW LINKED REVIEW ITEMS AND READY-FOR-CHECK AND READY-FOR-ISSUE DECISIONS USING INTENTIONAL DEMONSTRATION ISSUES.
+#def Calculation$ = EXAMPLE-REVIEW-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+#hide
+REF_STANDARD = 1
+CRITERION_CAPACITY = 1
+INPUT_DEMAND = 1
+INPUT_CAPACITY = 2
+INPUT_WARNING_THRESHOLD = 3
+CHECK_CAPACITY = 1
+#show
+
+BeginRevisions$
+AddRevision$(0; Initial unified-review demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
+"Design Basis
+
+BeginReferences$
+AddReference$(REF_STANDARD; Demonstration standard; Capacity requirements; 1; Clause 1; Valid source record.)
+EndReferences$
+
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_CAPACITY; Capacity criterion; Demand must not exceed capacity.; 99; Clause 1; The unknown source link is intentional.)
+EndDesignCriteria$
+
+"Saved Inputs
+
+demand = 110kN
+capacity = 100kN
+warning_threshold = 0.95
+
+"Input Validation
+
+#hide
+demand_validation = ValidationNonnegativeResult(demand)
+capacity_validation = ValidationPositiveResult(capacity)
+warning_validation = [VAL_WARN; warning_threshold; VAL_RULE_RANGE; 0; 1]
+#show
+
+BeginValidationSummary$
+AddValidationResult$(INPUT_DEMAND; Applied demand; demand_validation)
+AddValidationResult$(INPUT_CAPACITY; Available capacity; capacity_validation)
+AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
+EndValidationResults$
+
+#hide
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
+
+"Engineering Checks
+
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_CAPACITY; Capacity check; demand; capacity; warning_threshold; Demand must not exceed capacity.; inputs_valid)
+EndCheckRegistryWithSummary$
+
+"Review and Issue Decision
+
+ShowCalculationStatusFromRegistries$
+ShowDocumentReviewSummary$
+
+"Conclusions
+
+'The example intentionally contains one validation warning, one failed engineering check, and one reporting-registry error.
+'The consolidated issue table links each item back to its originating row and blocks issue until the demonstrated problems are resolved.

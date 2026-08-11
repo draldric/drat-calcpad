@@ -147,7 +147,6 @@ AddValidationResult$(INPUT_RELIABILITY_FACTOR; Reliability factor; reliability_v
 AddValidationResult$(INPUT_DESIGN_FOS; Design factor of safety; design_validation)
 AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
 EndValidationResults$
-ShowValidationIssues$
 
 #hide
 input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
@@ -162,7 +161,6 @@ FoS_required = n_material*n_stress*n_geometry*n_failure*n_reliability
 BeginCheckRegistry$
 AddLowerCheck$(CHECK_MINIMUM_FOS; Minimum factor of safety; FoS_required; FoS_design; warning_threshold; Design FoS ≥ required FoS; inputs_valid)
 EndCheckRegistryWithSummary$
-ShowCheckIssues$
 
 #hide
 overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
@@ -170,6 +168,7 @@ calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; In
 #show
 
 ShowCalculationStatusFromRegistries$
+ShowDocumentReviewSummary$
 
 BeginConclusions$
 #novar

@@ -51,7 +51,8 @@ This contract avoids relying on ambiguous nested-include path behavior and makes
 8. `CheckRegistry.cpd`
 9. `CalculationStatus.cpd`
 10. `Reporting.cpd`
-11. `Plotting.cpd`
+11. `ReviewSummary.cpd`
+12. `Plotting.cpd`
 
 The order is part of the Core contract because later modules use constants and macros defined earlier.
 
@@ -69,13 +70,15 @@ The standard worksheet flow is:
 5. Register each engineering check once with its stable ID, method, warning threshold, acceptance criterion, and input-validity gate.
 6. Derive status vectors, issue counts, overall status, and governing utilization from the check registry.
 7. Derive the document-level calculation status directly from the global validation-result and check registries.
-8. Present results, source records, checks, status, and conclusions.
+8. Combine calculation status and reporting integrity into the document-review state.
+9. Present results, source records, checks, the linked review summary, and conclusions.
 
 The reporting registries separately preserve the identities and source relationships for references, design criteria, assumptions, and limitations.
 Their human-readable text is rendered by macros because CalcPad calculation matrices are numeric and unit-valued rather than general string containers.
 
 The validation-result and check-result registries are deliberately reused for both calculation decisions and reporting.
 This prevents displayed values, criteria, statuses, and governing summaries from drifting away from the rules that were evaluated.
+The final review summary uses all three registry families and distinguishes a calculation that is ready for checking from one that is clean enough for issue.
 
 ## Data libraries
 

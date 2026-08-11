@@ -18,6 +18,19 @@ Use the associated predicate or rendering macro instead of embedding numeric lit
 Invalid inputs produce `CALC_INCOMPLETE` even when their gated engineering checks return `CHK_ERROR`.
 This keeps an unfinished worksheet distinct from a valid calculation that fails its acceptance criteria.
 
+## Document review status
+
+| Constant | Value | Meaning |
+| --- | ---: | --- |
+| `REVIEW_READY` | 0 | Calculation passes, reporting is valid, and the document is ready for check and issue |
+| `REVIEW_ATTENTION` | 10 | Calculation is complete with warnings and is ready for check but not issue |
+| `REVIEW_BLOCKED` | 20 | Calculation fails or is incomplete |
+| `REVIEW_ERROR` | 30 | Calculation or reporting-registry integrity is invalid |
+
+`ReviewStatus` combines calculation status with reporting status.
+`ReviewReadyForCheck` accepts `REVIEW_READY` and `REVIEW_ATTENTION`; `ReviewReadyForIssue` accepts only `REVIEW_READY`.
+`ShowDocumentReviewSummary$` renders the state, readiness flags, issue counts, and links back to stored issue rows.
+
 ## Engineering checks
 
 | Constant | Value | Meaning |
@@ -91,6 +104,19 @@ Any registry error contributes an effective `CHK_ERROR`, so it propagates to the
 
 `ValidationRegistryErrorCount` and `ValidationRegistryErrorsOK` summarize attempted registrations.
 Any registration error contributes an effective `VAL_ERR_BAD_RESULT` and prevents the document from being treated as a complete calculation.
+
+## Reporting registry integrity
+
+| Constant | Value | Meaning |
+| --- | ---: | --- |
+| `RPT_OK` | 0 | Reporting entry was registered successfully |
+| `RPT_ERR_BAD_REGISTRY` | 10 | Existing reporting registry is malformed |
+| `RPT_ERR_BAD_ID` | 20 | Entry ID is not a positive integer |
+| `RPT_ERR_DUPLICATE_ID` | 30 | Entry ID is duplicated within its reporting section |
+| `RPT_ERR_UNKNOWN_REFERENCE` | 40 | Linked source reference is not registered |
+
+`ReportRegistryErrors` stores `[entry_type; id; status; sequence]` for every attempted reference, criterion, assumption, or limitation registration.
+`ReportErrorRegistryCount` counts failed attempts, and `ReportRegistriesStatus` combines attempt failures with the four reporting-registry shapes.
 
 ## Database and property lookup
 

@@ -112,12 +112,14 @@ CHECK_DEMAND = 1
 BeginCheckRegistry$
 AddUpperCheck$(CHECK_DEMAND; Demand check; demand; capacity; warning_threshold; Demand ≤ capacity; inputs_valid)
 EndCheckRegistryWithSummary$
-ShowCheckIssues$
 
 ShowCalculationStatusFromRegistries$
+ShowDocumentReviewSummary$
 ```
 
 Invalid inputs must produce `CHK_ERROR`; they must not appear as passing engineering checks.
+The document review summary consolidates validation, check, and reporting issues and links each stored issue back to its source row.
+`Ready for Check` permits an otherwise complete calculation with warnings, while `Ready for Issue` requires a clean `REVIEW_READY` result.
 
 ## Use the materials library
 

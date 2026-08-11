@@ -1,0 +1,48 @@
+#include ../../Core/DratCore.cpd
+
+"Unified Document Review Summary Test
+
+status_tests = and(
+    ReviewStatus(CALC_PASS; RPT_OK) ≡ REVIEW_READY;
+    ReviewStatus(CALC_WARN; RPT_OK) ≡ REVIEW_ATTENTION;
+    ReviewStatus(CALC_FAIL; RPT_OK) ≡ REVIEW_BLOCKED;
+    ReviewStatus(CALC_INCOMPLETE; RPT_OK) ≡ REVIEW_BLOCKED;
+    ReviewStatus(CALC_ERROR; RPT_OK) ≡ REVIEW_ERROR;
+    ReviewStatus(CALC_PASS; RPT_ERR_DUPLICATE_ID) ≡ REVIEW_ERROR;
+    ReviewStatus(99; RPT_OK) ≡ REVIEW_ERROR)
+
+readiness_tests = and(
+    ReviewReadyForCheck(REVIEW_READY);
+    ReviewReadyForCheck(REVIEW_ATTENTION);
+    not(ReviewReadyForCheck(REVIEW_BLOCKED));
+    ReviewReadyForIssue(REVIEW_READY);
+    not(ReviewReadyForIssue(REVIEW_ATTENTION));
+    not(ReviewReadyForIssue(REVIEW_ERROR)))
+
+BeginReferences$
+AddReference$(1; Review test standard; Demonstration source; 1; Clause 1; Valid reference.)
+EndReferences$
+
+BeginDesignCriteria$
+AddDesignCriterion$(1; Invalid linked criterion; Demonstrate a reporting-registry issue.; 99; Clause 1; The unknown reference is intentional.)
+EndDesignCriteria$
+
+review_warning_result = [VAL_WARN; 0.95; VAL_RULE_RANGE; 0; 1]
+
+BeginValidationSummary$
+AddValidationResult$(1; Review warning input; review_warning_result)
+EndValidationResults$
+
+BeginCheckRegistry$
+AddUpperCheck$(1; Review failing check; 110; 100; CHK_DEFAULT_WARNING; Demand must not exceed capacity.; 1)
+EndCheckRegistryWithSummary$
+
+ShowDocumentReviewSummary$
+
+macro_calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+macro_reporting_status = ReportRegistriesStatus(ReportReferences; ReportDesignCriteria; ReportAssumptions; ReportLimitations; ReportRegistryErrors)
+macro_review_status = ReviewStatus(macro_calculation_status; macro_reporting_status)
+macro_issue_count = ReviewTotalIssueCount(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors; ReportRegistryErrors)
+macro_tests = and(macro_calculation_status ≡ CALC_FAIL; macro_reporting_status ≡ RPT_ERR_UNKNOWN_REFERENCE; macro_review_status ≡ REVIEW_ERROR; macro_issue_count ≡ 3)
+
+all_tests = and(status_tests; readiness_tests; macro_tests)

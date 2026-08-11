@@ -53,6 +53,9 @@ Use `BeginCheckRegistry$`, `AddUpperCheck$`, `AddLowerCheck$`, or `AddCustomChec
 `CalculationStatus.cpd` combines the validation and engineering-check registries into a document-level `CALC_PASS`, `CALC_WARN`, `CALC_FAIL`, `CALC_INCOMPLETE`, or `CALC_ERROR` result.
 Use `ShowCalculationStatusFromRegistries$` for the standard calculation banner and counts derived directly from both global registries.
 
+`ReviewSummary.cpd` combines calculation status with reporting-registry integrity into a final document-review state.
+Use `ShowDocumentReviewSummary$` near the end of a worksheet to show validation, engineering-check, and reporting issues in one linked table and to distinguish readiness for checking from readiness for issue.
+
 `Reporting.cpd` provides structured registries for references, design criteria, assumptions, and limitations.
 Each entry has a positive integer ID; linked entries validate their source reference, duplicate IDs render inline errors, and `ShowReportingSummary$` reports the registered counts and aggregate registry status.
 CalcPad text remains macro content, while the numeric registries preserve the auditable identities and relationships used for validation.
@@ -96,6 +99,7 @@ Required organization, client, project, calculation, and preparation metadata us
 `Examples/ReportingRegistriesDemo.cpd` demonstrates structured references, linked design criteria, assumptions, limitations, registry queries, and aggregate reporting status without requiring a discipline-specific calculation.
 `Examples/ValidationRegistryDemo.cpd` demonstrates stable input IDs, automatic aggregation, issue links, and validation-registry queries.
 `Examples/CheckRegistryDemo.cpd` demonstrates upper-limit, lower-limit, and custom checks, governing selection, the issue summary, and calculation-status integration.
+`Examples/UnifiedReviewSummaryDemo.cpd` demonstrates the consolidated review state, readiness decisions, issue counts, and links back to the exact validation, check, and reporting rows.
 `Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.
 Use `MatItemsByCategory`, `MatAvailablePropertyIDs`, and `MatItemsWithProperty` to discover suitable records without duplicating catalog data in a worksheet.

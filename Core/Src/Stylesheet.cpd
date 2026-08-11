@@ -1,5 +1,5 @@
 #hide
-'<!-- Shared worksheet stylesheet. Version 1.7.0. -->
+'<!-- Shared worksheet stylesheet. Version 1.8.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -64,5 +64,15 @@
 '<style>.validation-registry-link{font-weight:bold;white-space:nowrap;}</style>
 '<style>.validation-issue-summary td:first-child{text-align:left;}</style>
 '<style>.validation-issue-summary td:nth-child(2){text-align:right;}</style>
+'<style>.report-entry-link{font-weight:bold;white-space:nowrap;}</style>
+'<style>.document-review-summary{border:2px solid #444;background:#f5f5f5;padding:0.75em 1em;margin:1.5em 2em;break-inside:avoid;page-break-inside:avoid;}</style>
+'<style>.document-review-heading{display:flex;justify-content:space-between;align-items:center;gap:1em;font-size:12pt;text-transform:uppercase;}</style>
+'<style>.review-status-label{display:inline-block;padding:0.2em 0.6em;border:2px solid currentColor;font-weight:bold;white-space:nowrap;}</style>
+'<style>.review-status-ready{color:#176b2c;background:#e8f5e9;}</style>
+'<style>.review-status-attention{color:#795500;background:#fff4c2;}</style>
+'<style>.review-status-blocked,.review-status-error{color:#9b1c1c;background:#fdeaea;}</style>
+'<style>.document-review-counts,.document-review-issues{width:100%;margin:0.75em 0 0 0;}</style>
+'<style>.document-review-counts th,.document-review-counts td{text-align:center;}</style>
+'<style>.document-review-issues td:first-child,.document-review-issues td:nth-child(2){text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner,.document-review-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>

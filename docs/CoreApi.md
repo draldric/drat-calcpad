@@ -12,9 +12,9 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `40000` | Complete generated-Core API |
+| `DRAT_CORE_API` | `40100` | Complete generated-Core API |
 | `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
-| `DRAT_STYLESHEET_API` | `10700` | Shared rendered styles |
+| `DRAT_STYLESHEET_API` | `10800` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
 | `DRAT_DATA_WRAPPER_API` | `302` | Numeric property and curve wrapper |
 | `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
@@ -22,7 +22,8 @@ Macro names end with `$`.
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
 | `DRAT_VALIDATION_API` | `20000` | Structured input validation and result registry |
 | `DRAT_CALCULATION_STATUS_API` | `20000` | Document-level calculation status |
-| `DRAT_REPORTING_API` | `10000` | Structured report registries |
+| `DRAT_REPORTING_API` | `20000` | Structured report registries |
+| `DRAT_REVIEW_SUMMARY_API` | `10000` | Unified document-review summary |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
 `DBWrapperName$` and `DBWrapperVersion$` identify the bundled DataWrapper implementation.
@@ -74,7 +75,7 @@ The generated Core initializes these worksheet registries:
 | `ReportDesignCriteria` | Criterion ID and required reference ID |
 | `ReportAssumptions` | Assumption ID and optional reference ID |
 | `ReportLimitations` | Limitation ID and optional reference ID |
-| `ReportRegistryErrors` | Status returned for every attempted registration |
+| `ReportRegistryErrors` | Entry type, entry ID, status, and sequence for every attempted registration |
 
 `RPT_NO_REFERENCE` is permitted for assumptions and limitations.
 Design criteria require a previously registered reference.
@@ -113,8 +114,9 @@ The public calculation helpers include:
 - `ReportRegistryAddStatus`, `ReportRegistryAdd`, `ReportRegistryEntryExists`, and `ReportRegistryCount` for one-column reference registries;
 - `ReportLinkedRegistryAddStatus`, `ReportLinkedRegistryAdd`, `ReportLinkedRegistryReference`, and `ReportLinkedRegistryCount` for linked registries;
 - `ReportReferenceKnown` for optional and required source-reference checks;
-- `ReportErrorRegistryCount` and `ReportRegistriesStatus` for aggregate reporting integrity; and
-- `ReportStatus$` and `ShowReportingSummary$` for status rendering.
+- `ReportErrorRegistryAttemptCount`, `ReportErrorRegistryCount`, and `ReportRegistriesStatus` for aggregate reporting integrity;
+- `ReportErrorRegistryTypeAt`, `ReportErrorRegistryIDAt`, `ReportErrorRegistryStatusAt`, and `ReportErrorRegistrySequenceAt` for attempted-registration details; and
+- `ReportStatus$`, `ReportEntryLink$`, and `ShowReportingSummary$` for status and linked-entry rendering.
 
 An invalid registration is not added.
 Its attempted row is still rendered with a prominent inline registry error so the source worksheet remains easy to diagnose.
@@ -140,6 +142,23 @@ Use `ShowCalculationStatusFromRegistries$` for the standard document banner deri
 `AddCalculationStatusConclusion$` adds the same status to an open conclusions block.
 `CalculationCanBeIssued` returns true for pass and warning statuses; the checker must still decide whether each warning is acceptable before issue.
 `CalculationValidationStatusesOK`, `CalculationInputsComplete`, and `CalculationChecksComplete` expose the completeness checks used by the aggregate.
+
+## Unified document review
+
+`ReviewStatus(calculation_status; reporting_status)` combines the document calculation status with reporting-registry integrity.
+Its precedence is registry or calculation error, blocked calculation, warning requiring review, then ready:
+
+| Constant | Meaning |
+| --- | --- |
+| `REVIEW_READY` | Calculation passes and reporting registries are valid |
+| `REVIEW_ATTENTION` | Calculation is complete but contains warnings requiring checker review |
+| `REVIEW_BLOCKED` | Calculation fails or is incomplete |
+| `REVIEW_ERROR` | Calculation or reporting registry integrity is invalid |
+
+`ReviewValidationIssueCount`, `ReviewCheckIssueCount`, `ReviewReportingIssueCount`, and `ReviewTotalIssueCount` provide auditable issue counts.
+`ReviewReadyForCheck` accepts ready and attention states; `ReviewReadyForIssue` accepts only the ready state.
+`ShowDocumentReviewSummary$` derives all inputs from the global registries, renders both readiness decisions, and links each stored issue back to its source row.
+See [`Examples/UnifiedReviewSummaryDemo.cpd`](../Examples/UnifiedReviewSummaryDemo.cpd) and [`Tests/Core/REVIEW_SUMMARY_TEST.cpd`](../Tests/Core/REVIEW_SUMMARY_TEST.cpd).
 
 ## Engineering checks
 

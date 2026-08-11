@@ -1,0 +1,147 @@
+#hide
+'<!-- Unified document review summary. Version 1.0.0. -->
+
+REVIEW_READY = 0
+REVIEW_ATTENTION = 10
+REVIEW_BLOCKED = 20
+REVIEW_ERROR = 30
+
+ReviewStatusKnown(status) = or(status ≡ REVIEW_READY; status ≡ REVIEW_ATTENTION; status ≡ REVIEW_BLOCKED; status ≡ REVIEW_ERROR)
+ReviewValidationIssueCount(validation_registry; validation_errors) = ValidationResultRegistryIssueCount(validation_registry; validation_errors)
+ReviewCheckIssueCount(check_registry; check_errors) = CheckResultRegistryIssueCount(check_registry; check_errors)
+ReviewReportingIssueCount(reporting_errors) = ReportErrorRegistryCount(reporting_errors)
+ReviewTotalIssueCount(validation_registry; validation_errors; check_registry; check_errors; reporting_errors) = ReviewValidationIssueCount(validation_registry; validation_errors) + ReviewCheckIssueCount(check_registry; check_errors) + ReviewReportingIssueCount(reporting_errors)
+
+ReviewStatus(calculation_status; reporting_status) = switch(
+    not(CalculationStatusKnown(calculation_status)); REVIEW_ERROR;
+    reporting_status ≠ RPT_OK; REVIEW_ERROR;
+    calculation_status ≡ CALC_ERROR; REVIEW_ERROR;
+    or(calculation_status ≡ CALC_FAIL; calculation_status ≡ CALC_INCOMPLETE); REVIEW_BLOCKED;
+    calculation_status ≡ CALC_WARN; REVIEW_ATTENTION;
+    calculation_status ≡ CALC_PASS; REVIEW_READY;
+    REVIEW_ERROR)
+
+ReviewReadyForCheck(status) = or(status ≡ REVIEW_READY; status ≡ REVIEW_ATTENTION)
+ReviewReadyForIssue(status) = status ≡ REVIEW_READY
+
+#def ReviewStatus$(status$)
+    #if status$ ≡ REVIEW_READY
+        '<span class="review-status-label review-status-ready">READY</span>
+    #end if
+    #if status$ ≡ REVIEW_ATTENTION
+        '<span class="review-status-label review-status-attention">REVIEW REQUIRED</span>
+    #end if
+    #if status$ ≡ REVIEW_BLOCKED
+        '<span class="review-status-label review-status-blocked">BLOCKED</span>
+    #end if
+    #if status$ ≡ REVIEW_ERROR
+        '<span class="review-status-label review-status-error">REVIEW ERROR</span>
+    #end if
+    #if not(ReviewStatusKnown(status$))
+        '<span class="review-status-label review-status-error">UNKNOWN STATUS</span>
+    #end if
+#end def
+
+#def ReviewReadiness$(ready$)
+    #if ready$
+        '<span class="ok">YES</span>
+    #else
+        '<span class="err">NO</span>
+    #end if
+#end def
+
+#def ShowDocumentReviewSummary$
+    #hide
+    ζREVIEW_calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζREVIEW_reporting_status = ReportRegistriesStatus(ReportReferences; ReportDesignCriteria; ReportAssumptions; ReportLimitations; ReportRegistryErrors)
+    ζREVIEW_status = ReviewStatus(ζREVIEW_calculation_status; ζREVIEW_reporting_status)
+    ζREVIEW_validation_issues = ReviewValidationIssueCount(InputValidationRegistry; InputValidationRegistryErrors)
+    ζREVIEW_check_issues = ReviewCheckIssueCount(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζREVIEW_reporting_issues = ReviewReportingIssueCount(ReportRegistryErrors)
+    ζREVIEW_total_issues = ζREVIEW_validation_issues + ζREVIEW_check_issues + ζREVIEW_reporting_issues
+    ζREVIEW_validation_count = ValidationResultRegistryCount(InputValidationRegistry)
+    ζREVIEW_check_count = CheckResultRegistryCount(EngineeringCheckRegistry)
+    ζREVIEW_reporting_attempts = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
+    #show
+    '<h4>Document Review Summary</h4>
+    '<section class="document-review-summary">
+    '<div class="document-review-heading"><strong>Overall review state</strong>
+    ReviewStatus$(ζREVIEW_status)
+    '</div>
+    '<table class="bordered reporting-summary document-review-counts">
+    '<thead><tr><th>Calculation</th><th>Validation Issues</th><th>Check Issues</th><th>Reporting Errors</th><th>Ready for Check</th><th>Ready for Issue</th></tr></thead>
+    '<tbody><tr><td class="status-cell">
+    CalculationStatus$(ζREVIEW_calculation_status)
+    '</td>
+    #val
+    '<td>'ζREVIEW_validation_issues'</td><td>'ζREVIEW_check_issues'</td><td>'ζREVIEW_reporting_issues'</td>
+    #equ
+    '<td class="status-cell">
+    ReviewReadiness$(ReviewReadyForCheck(ζREVIEW_status))
+    '</td><td class="status-cell">
+    ReviewReadiness$(ReviewReadyForIssue(ζREVIEW_status))
+    '</td></tr></tbody>
+    '</table>
+    #if ζREVIEW_total_issues ≡ 0
+        '<p class="ok">No validation, engineering-check, or reporting issues were identified.</p>
+    #else
+        '<table class="bordered reporting-summary document-review-issues">
+        '<thead><tr><th>Source</th><th>Item</th><th>Status</th></tr></thead>
+        '<tbody>
+        #if ζREVIEW_validation_count > 0
+            #for ζREVIEW_validation_index = 1 : ζREVIEW_validation_count
+                #hide
+                ζREVIEW_validation_status = ValidationResultRegistryStatusAt(InputValidationRegistry; ζREVIEW_validation_index)
+                #show
+                #if ζREVIEW_validation_status ≠ VAL_OK
+                    '<tr><td>Input validation</td><td>
+                    ValidationRegistryLink$(ValidationResultRegistryIDAt(InputValidationRegistry; ζREVIEW_validation_index))
+                    '</td><td class="status-cell">
+                    ValidationStatus$(ζREVIEW_validation_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(ValidationRegistryErrorsOK(InputValidationRegistryErrors))
+            '<tr><td>Input validation</td><td>Validation registry</td><td class="status-cell"><span class="err">REGISTRATION ERROR</span></td></tr>
+        #end if
+        #if ζREVIEW_check_count > 0
+            #for ζREVIEW_check_index = 1 : ζREVIEW_check_count
+                #hide
+                ζREVIEW_check_status = CheckResultRegistryStatusAt(EngineeringCheckRegistry; ζREVIEW_check_index)
+                #show
+                #if ζREVIEW_check_status ≠ CHK_PASS
+                    '<tr><td>Engineering check</td><td>
+                    CheckRegistryLink$(CheckResultRegistryIDAt(EngineeringCheckRegistry; ζREVIEW_check_index))
+                    '</td><td class="status-cell">
+                    CheckStatus$(ζREVIEW_check_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(CheckRegistryErrorsOK(EngineeringCheckRegistryErrors))
+            '<tr><td>Engineering check</td><td>Check registry</td><td class="status-cell"><span class="err">REGISTRATION ERROR</span></td></tr>
+        #end if
+        #if ζREVIEW_reporting_attempts > 0
+            #for ζREVIEW_reporting_index = 1 : ζREVIEW_reporting_attempts
+                #hide
+                ζREVIEW_reporting_entry_status = ReportErrorRegistryStatusAt(ReportRegistryErrors; ζREVIEW_reporting_index)
+                #show
+                #if ζREVIEW_reporting_entry_status ≠ RPT_OK
+                    '<tr><td>Reporting registry</td><td>
+                    ReportEntryLink$(ReportErrorRegistryTypeAt(ReportRegistryErrors; ζREVIEW_reporting_index); ReportErrorRegistryIDAt(ReportRegistryErrors; ζREVIEW_reporting_index); ReportErrorRegistrySequenceAt(ReportRegistryErrors; ζREVIEW_reporting_index))
+                    '</td><td class="status-cell">
+                    ReportStatus$(ζREVIEW_reporting_entry_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(ReportErrorRegistryShapeOK(ReportRegistryErrors))
+            '<tr><td>Reporting registry</td><td>Reporting registry</td><td class="status-cell"><span class="err">INVALID REGISTRY</span></td></tr>
+        #end if
+        '</tbody>
+        '</table>
+    #end if
+    '</section>
+#end def
+#show
