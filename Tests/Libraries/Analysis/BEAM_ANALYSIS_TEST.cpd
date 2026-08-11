@@ -56,6 +56,8 @@ simple_udl_tests = and(
     abs(BeamMomentAt(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia; 3m) - 9kN*m) < 1N*m;
     abs(BeamMaxShear(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia) - 6kN) < 1N;
     abs(BeamMaxMoment(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia) - 9kN*m) < 1N*m;
+    abs(BeamRotationAt(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia; 0m) - (2kN/m)*(6m)^3/(24*(200GPa)*(8*10^-6m^4))) < 1*10^-9;
+    abs(BeamRotationAt(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia; 3m)) < 1*10^-9;
     abs(BeamMaxDeflection(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia) - 5*(2kN/m)*(6m)^4/(384*(200GPa)*(8*10^-6m^4))) < 1*10^-9m)
 
 simple_point_tests = and(
@@ -69,6 +71,7 @@ simple_point_tests = and(
 cantilever_tests = and(
     abs(BeamShearAt(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia; 1m) - 10kN) < 1N;
     abs(BeamMomentAt(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia; 0m) - 40kN*m) < 1N*m;
+    abs(BeamRotationAt(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia; 6m) - 10kN*(4m)^2/(2*(200GPa)*(8*10^-6m^4))) < 1*10^-9;
     abs(BeamMaxMoment(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia) - 40kN*m) < 1N*m;
     abs(BeamMaxDeflection(cantilever_point_support; cantilever_point_type; cantilever_point_span; cantilever_point_load; cantilever_point_position; cantilever_point_distributed_load; cantilever_point_modulus; cantilever_point_inertia) - 10kN*(4m)^2*(3*6m - 4m)/(6*(200GPa)*(8*10^-6m^4))) < 1*10^-9m;
     abs(BeamMaxShear(cantilever_udl_support; cantilever_udl_type; cantilever_udl_span; cantilever_udl_point_load; cantilever_udl_point_position; cantilever_udl_distributed_load; cantilever_udl_modulus; cantilever_udl_inertia) - 12kN) < 1N;
@@ -102,6 +105,7 @@ modular_tests = and(
     abs(BeamShearAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 0m) - 6kN) < 1N;
     abs(BeamMomentAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 3m) - 9kN*m) < 1N*m;
     abs(BeamDeflectionAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 3m) - BeamMaxDeflection(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)) < 1*10^-9m;
+    abs(BeamRotationAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 3m)) < 1*10^-9;
     abs(BeamReactionLeftLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia) - 6kN) < 1N;
     abs(BeamReactionRightLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia) - 6kN) < 1N;
     abs(BeamMaxShearAtSamples(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; modular_samples) - 6kN) < 1N;
@@ -153,7 +157,7 @@ axial_tests = and(
 api_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
 api_beam = BeamWithUDL(api_beam; 2kN/m)
 api_beam = BeamWithAxialPointLoads(api_beam; [10kN; -4kN]; [2m; 5m])
-api_beam = BeamWithDiagramMoments(api_beam; [3m]; [6kN*m])
+api_beam = BeamWithMoments(api_beam; [3m]; [6kN*m])
 api_beam = BeamWithSampleCount(api_beam; 7)
 
 api_multi = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
@@ -165,17 +169,27 @@ api_invalid = BeamWithDiagramMoments(api_invalid; [7m]; [1kN*m])
 
 api_bad_samples = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
 api_bad_samples = BeamWithSampleCount(api_bad_samples; 1)
+
+simple_moment_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+simple_moment_beam = BeamWithMoment(simple_moment_beam; 2m; 12kN*m)
+simple_moment_beam = BeamWithSampleCount(simple_moment_beam; 7)
+
+cantilever_moment_beam = BeamModel(BEAM_CANTILEVER; 6m; 200GPa; 8*10^-6m^4)
+cantilever_moment_beam = BeamWithMoment(cantilever_moment_beam; 4m; 12kN*m)
+cantilever_moment_beam = BeamWithSampleCount(cantilever_moment_beam; 7)
 #show
 
 model_api_tests = and(
     BeamModelStatus(api_beam) ≡ DB_OK;
-    abs(BeamShear(api_beam; 0m) - 6kN) < 1N;
-    abs(BeamMoment(api_beam; 3m) - 9kN*m) < 1N*m;
+    abs(BeamShear(api_beam; 0m) - 7kN) < 1N;
+    abs(BeamMoment(api_beam; 3m) - 6kN*m) < 1N*m;
+    abs(BeamRotation(api_beam; 3m) + 0.001875) < 1*10^-9;
     abs(BeamDeflection(api_beam; 3m) - BeamMaxDeflection(simple_udl_support; simple_udl_type; simple_udl_span; simple_udl_point_load; simple_udl_point_position; simple_udl_distributed_load; simple_udl_modulus; simple_udl_inertia)) < 1*10^-9m;
     abs(BeamAxial(api_beam; 3m) + 4kN) < 1N;
-    abs(BeamLeftReaction(api_beam) - 6kN) < 1N;
-    abs(BeamRightReaction(api_beam) - 6kN) < 1N;
-    abs(BeamPeakMoment(api_beam) - 9kN*m) < 1N*m;
+    abs(BeamLeftReaction(api_beam) - 7kN) < 1N;
+    abs(BeamRightReaction(api_beam) - 5kN) < 1N;
+    abs(BeamPeakMoment(api_beam) - 12kN*m) < 1N*m;
+    len(BeamRotationSeries(api_beam)) ≡ 7;
     len(BeamSamplePositions(api_beam)) ≡ 7;
     len(BeamModelPointLoads(api_multi)) ≡ 2;
     BeamModelStatus(api_multi) ≡ DB_OK;
@@ -183,4 +197,25 @@ model_api_tests = and(
     BeamModelStatus(api_invalid) ≡ DB_ERR_BAD_RANGE;
     BeamModelStatus(api_bad_samples) ≡ DB_ERR_BAD_RANGE)
 
-all_tests = and(catalog_tests; simple_udl_tests; simple_point_tests; cantilever_tests; check_tests; modular_tests; multi_tests; cantilever_modular_tests; axial_tests; model_api_tests)
+moment_response_tests = and(
+    BeamModelStatus(simple_moment_beam) ≡ DB_OK;
+    abs(BeamLeftReaction(simple_moment_beam) - 2kN) < 1N;
+    abs(BeamRightReaction(simple_moment_beam) + 2kN) < 1N;
+    abs(BeamShear(simple_moment_beam; 1m) - 2kN) < 1N;
+    abs(BeamMoment(simple_moment_beam; 1m) - 2kN*m) < 1N*m;
+    abs(BeamMoment(simple_moment_beam; 2m) + 8kN*m) < 1N*m;
+    abs(BeamMomentLeftLimit(simple_moment_beam; 2m) - 4kN*m) < 1N*m;
+    abs(BeamRotation(simple_moment_beam; 0m) + 0.0025) < 1*10^-9;
+    abs(BeamRotation(simple_moment_beam; 2m) + 0.005) < 1*10^-9;
+    abs(BeamDeflection(simple_moment_beam; 2m) + 6.666666667mm) < 1*10^-6m;
+    abs(BeamPeakMoment(simple_moment_beam) - 8kN*m) < 1N*m;
+    BeamModelStatus(cantilever_moment_beam) ≡ DB_OK;
+    abs(BeamLeftReaction(cantilever_moment_beam)) < 1N;
+    abs(BeamFixedEndMoment(cantilever_moment_beam) + 12kN*m) < 1N*m;
+    abs(BeamMoment(cantilever_moment_beam; 0m) + 12kN*m) < 1N*m;
+    abs(BeamMoment(cantilever_moment_beam; 4m)) < 1N*m;
+    abs(BeamRotation(cantilever_moment_beam; 6m) + 0.03) < 1*10^-9;
+    abs(BeamDeflection(cantilever_moment_beam; 6m) + 120mm) < 1*10^-6m;
+    abs(BeamPeakMoment(cantilever_moment_beam) - 12kN*m) < 1N*m)
+
+all_tests = and(catalog_tests; simple_udl_tests; simple_point_tests; cantilever_tests; check_tests; modular_tests; multi_tests; cantilever_modular_tests; axial_tests; model_api_tests; moment_response_tests)

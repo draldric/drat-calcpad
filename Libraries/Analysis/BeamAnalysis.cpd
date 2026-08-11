@@ -2,12 +2,12 @@
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #if and(DRAT_CHECKS_API ≥ 10200; DRAT_CHECKS_API < 20000)
 #hide
-'<!-- Static beam-response, diagram, and screening library. Version 0.4.0. -->
+'<!-- Static beam-response, diagram, and screening library. Version 0.5.0. -->
 #def BeamAnalysisLibraryName$ = DRAT Static Beam Analysis Library
-#def BeamAnalysisLibraryRevision$ = 0.4.0
-#def BeamAnalysisLibraryDate$ = 2026-08-10
+#def BeamAnalysisLibraryRevision$ = 0.5.0
+#def BeamAnalysisLibraryDate$ = 2026-08-11
 #def BeamAnalysisLibrarySource$ = Modular closed-form Euler-Bernoulli beam equations and Plotting-wrapper diagram helpers for prismatic members.
-#def BeamAnalysisLibraryScope$ = Simply supported and cantilever beams with composable transverse and axial load families, sampled shear, moment, axial-force, displacement, and loading-schematic diagrams, including visual applied-moment markers. Linear elastic, small-deflection, static response only. This library does not provide code capacities, load combinations, lateral-torsional buckling, shear-deformation, plastic, dynamic, or stability analysis.
+#def BeamAnalysisLibraryScope$ = Simply supported and cantilever beams with composable transverse, axial, and concentrated-moment load families, sampled shear, moment, rotation, axial-force, displacement, and loading-schematic diagrams. Linear elastic, small-deflection, static response only. This library does not provide code capacities, load combinations, lateral-torsional buckling, shear-deformation, plastic, dynamic, or stability analysis.
 #show
 '<style>table.data.beam-case-summary td:nth-child(2),table.data.beam-case-summary td:nth-child(2) p,table.data.beam-response td:nth-child(2),table.data.beam-response td:nth-child(2) p,table.data.beam-load-summary td:nth-child(2),table.data.beam-load-summary td:nth-child(2) p,table.data.beam-load-response td:nth-child(2),table.data.beam-load-response td:nth-child(2) p,table.data.beam-load-reactions td:nth-child(2),table.data.beam-load-reactions td:nth-child(2) p,table.data.beam-load-extrema td:nth-child(2),table.data.beam-load-extrema td:nth-child(2) p{text-align:right!important;overflow-wrap:anywhere;word-break:break-word;}</style>
 #hide
@@ -21,6 +21,7 @@ BEAM_FULL_UDL = 2
 BEAM_RESPONSE_SHEAR = 1
 BEAM_RESPONSE_MOMENT = 2
 BEAM_RESPONSE_DEFLECTION = 3
+BEAM_RESPONSE_ROTATION = 4
 
 BeamSupportKnown(support) = or(support ≡ BEAM_SIMPLE_SUPPORTED; support ≡ BEAM_CANTILEVER)
 BeamLoadTypeKnown(load_type) = or(load_type ≡ BEAM_POINT_LOAD; load_type ≡ BEAM_FULL_UDL)
@@ -59,30 +60,42 @@ $block{
     simple_point_deflection_left = point_load*(span - point_position)*x*(span^2 - (span - point_position)^2 - x^2)/(6*span*modulus*inertia);
     simple_point_deflection_right = point_load*point_position*distance_to_free_end*(2*span*x - x^2 - point_position^2)/(6*span*modulus*inertia);
     simple_point_deflection = if(x ≤ point_position; simple_point_deflection_left; simple_point_deflection_right);
+    simple_point_rotation_left = point_load*(span - point_position)*(span^2 - (span - point_position)^2 - 3*x^2)/(6*span*modulus*inertia);
+    simple_point_rotation_right = point_load*point_position*(2*span^2 - 6*span*x + 3*x^2 + point_position^2)/(6*span*modulus*inertia);
+    simple_point_rotation = if(x ≤ point_position; simple_point_rotation_left; simple_point_rotation_right);
     simple_udl_shear = distributed_load*(span/2 - x);
     simple_udl_moment = distributed_load*x*(span - x)/2;
     simple_udl_deflection = distributed_load*x*(span^3 - 2*span*x^2 + x^3)/(24*modulus*inertia);
+    simple_udl_rotation = distributed_load*(span^3 - 6*span*x^2 + 4*x^3)/(24*modulus*inertia);
     cantilever_point_shear = if(x ≤ point_position; point_load; 0N);
     cantilever_point_moment = if(x ≤ point_position; point_load*(point_position - x); 0N*m);
     cantilever_point_deflection_left = point_load*x^2*(3*point_position - x)/(6*modulus*inertia);
     cantilever_point_deflection_right = point_load*point_position^2*(3*x - point_position)/(6*modulus*inertia);
     cantilever_point_deflection = if(x ≤ point_position; cantilever_point_deflection_left; cantilever_point_deflection_right);
+    cantilever_point_rotation_left = point_load*x*(2*point_position - x)/(2*modulus*inertia);
+    cantilever_point_rotation_right = point_load*point_position^2/(2*modulus*inertia);
+    cantilever_point_rotation = if(x ≤ point_position; cantilever_point_rotation_left; cantilever_point_rotation_right);
     cantilever_udl_shear = distributed_load*(span - x);
     cantilever_udl_moment = distributed_load*(span - x)^2/2;
     cantilever_udl_deflection = distributed_load*x^2*(6*span^2 - 4*span*x + x^2)/(24*modulus*inertia);
+    cantilever_udl_rotation = distributed_load*x*(3*span^2 - 3*span*x + x^2)/(6*modulus*inertia);
     response = switch(
         and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_SHEAR); simple_point_shear;
         and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_MOMENT); simple_point_moment;
         and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_DEFLECTION); simple_point_deflection;
+        and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_ROTATION); simple_point_rotation;
         and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_SHEAR); simple_udl_shear;
         and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_MOMENT); simple_udl_moment;
         and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_DEFLECTION); simple_udl_deflection;
+        and(support ≡ BEAM_SIMPLE_SUPPORTED; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_ROTATION); simple_udl_rotation;
         and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_SHEAR); cantilever_point_shear;
         and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_MOMENT); cantilever_point_moment;
         and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_DEFLECTION); cantilever_point_deflection;
+        and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_POINT_LOAD; response_type ≡ BEAM_RESPONSE_ROTATION); cantilever_point_rotation;
         and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_SHEAR); cantilever_udl_shear;
         and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_MOMENT); cantilever_udl_moment;
         and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_DEFLECTION); cantilever_udl_deflection;
+        and(support ≡ BEAM_CANTILEVER; load_type ≡ BEAM_FULL_UDL; response_type ≡ BEAM_RESPONSE_ROTATION); cantilever_udl_rotation;
         0/0);
     result = if(status ≡ DB_OK; response; 0/0);
     result;
@@ -91,6 +104,7 @@ $block{
 BeamShearAt(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x) = BeamResponse(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x; BEAM_RESPONSE_SHEAR)
 BeamMomentAt(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x) = BeamResponse(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x; BEAM_RESPONSE_MOMENT)
 BeamDeflectionAt(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x) = BeamResponse(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x; BEAM_RESPONSE_DEFLECTION)
+BeamRotationAt(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x) = BeamResponse(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia; x; BEAM_RESPONSE_ROTATION)
 
 BeamMaxShear(support; load_type; span; point_load; point_position; distributed_load; modulus; inertia) = _
 $block{
@@ -203,6 +217,10 @@ BeamSimplePointDeflectionTerm(point_load; point_position; span; modulus; inertia
     x ≤ point_position;
     point_load*(span - point_position)*x*(span^2 - (span - point_position)^2 - x^2)/(6*span*modulus*inertia);
     point_load*point_position*(span - x)*(2*span*x - x^2 - point_position^2)/(6*span*modulus*inertia))
+BeamSimplePointRotationTerm(point_load; point_position; span; modulus; inertia; x) = if(
+    x ≤ point_position;
+    point_load*(span - point_position)*(span^2 - (span - point_position)^2 - 3*x^2)/(6*span*modulus*inertia);
+    point_load*point_position*(2*span^2 - 6*span*x + 3*x^2 + point_position^2)/(6*span*modulus*inertia))
 
 BeamCantileverPointShearTerm(point_load; point_position; x) = if(x ≤ point_position; point_load; 0*point_load)
 BeamCantileverPointMomentTerm(point_load; point_position; x) = if(x ≤ point_position; point_load*(point_position - x); 0*point_load*point_position)
@@ -210,6 +228,10 @@ BeamCantileverPointDeflectionTerm(point_load; point_position; modulus; inertia; 
     x ≤ point_position;
     point_load*x^2*(3*point_position - x)/(6*modulus*inertia);
     point_load*point_position^2*(3*x - point_position)/(6*modulus*inertia))
+BeamCantileverPointRotationTerm(point_load; point_position; modulus; inertia; x) = if(
+    x ≤ point_position;
+    point_load*x*(2*point_position - x)/(2*modulus*inertia);
+    point_load*point_position^2/(2*modulus*inertia))
 
 BeamSimpleSegmentReactionTerm(udl; start; finish; span) = udl*(finish - start)*(span - (start + finish)/2)/span
 BeamSimpleSegmentShearTerm(udl; start; finish; span; x) = BeamSimpleSegmentReactionTerm(udl; start; finish; span) - udl*(max(x - start; 0*x) - max(x - finish; 0*x))
@@ -220,6 +242,12 @@ $block{
     correction = (reaction*span^3/6 - udl*((span - start)^4 - (span - finish)^4)/24)/span;
     (-reaction*x^3/6 + udl*(max(x - start; 0*x)^4 - max(x - finish; 0*x)^4)/24 + correction*x)/(modulus*inertia);
 }
+BeamSimpleSegmentRotationTerm(udl; start; finish; span; modulus; inertia; x) = _
+$block{
+    reaction = BeamSimpleSegmentReactionTerm(udl; start; finish; span);
+    correction = (reaction*span^3/6 - udl*((span - start)^4 - (span - finish)^4)/24)/span;
+    (-reaction*x^2/2 + udl*(max(x - start; 0*x)^3 - max(x - finish; 0*x)^3)/6 + correction)/(modulus*inertia);
+}
 
 BeamCantileverSegmentShearTerm(udl; start; finish; x) = udl*(max(finish - x; 0*x) - max(start - x; 0*x))
 BeamCantileverSegmentMomentTerm(udl; start; finish; x) = udl*(max(finish - x; 0*x)^2 - max(start - x; 0*x)^2)/2
@@ -227,6 +255,12 @@ BeamCantileverSegmentDeflectionTerm(udl; start; finish; modulus; inertia; x) = _
 $block{
     finish_term = if(x ≤ finish; udl*x^2*(6*finish^2 - 4*finish*x + x^2)/(24*modulus*inertia); udl*finish^3*(4*x - finish)/(24*modulus*inertia));
     start_term = if(x ≤ start; udl*x^2*(6*start^2 - 4*start*x + x^2)/(24*modulus*inertia); udl*start^3*(4*x - start)/(24*modulus*inertia));
+    finish_term - start_term;
+}
+BeamCantileverSegmentRotationTerm(udl; start; finish; modulus; inertia; x) = _
+$block{
+    finish_term = if(x ≤ finish; udl*x*(3*finish^2 - 3*finish*x + x^2)/(6*modulus*inertia); udl*finish^3/(6*modulus*inertia));
+    start_term = if(x ≤ start; udl*x*(3*start^2 - 3*start*x + x^2)/(6*modulus*inertia); udl*start^3/(6*modulus*inertia));
     finish_term - start_term;
 }
 
@@ -237,29 +271,36 @@ $block{
     point_shear_terms = vector(len(point_loads));
     point_moment_terms = vector(len(point_loads));
     point_deflection_terms = vector(len(point_loads));
+    point_rotation_terms = vector(len(point_loads));
     $Repeat{
         point_shear_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimplePointShearTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); span; x); BeamCantileverPointShearTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); x));
         point_moment_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimplePointMomentTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); span; x); BeamCantileverPointMomentTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); x));
         point_deflection_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimplePointDeflectionTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); span; modulus; inertia; x); BeamCantileverPointDeflectionTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); modulus; inertia; x));
+        point_rotation_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimplePointRotationTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); span; modulus; inertia; x); BeamCantileverPointRotationTerm(BeamForceElement(point_loads; i); BeamLengthElement(point_positions; i); modulus; inertia; x));
         @ i = 1 : len(point_loads)};
     point_shear = sum(point_shear_terms);
     point_moment = sum(point_moment_terms);
     point_deflection = sum(point_deflection_terms);
+    point_rotation = sum(point_rotation_terms);
     udl_shear_terms = vector(len(udl_values));
     udl_moment_terms = vector(len(udl_values));
     udl_deflection_terms = vector(len(udl_values));
+    udl_rotation_terms = vector(len(udl_values));
     $Repeat{
         udl_shear_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleSegmentShearTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); span; x); BeamCantileverSegmentShearTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); x));
         udl_moment_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleSegmentMomentTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); span; x); BeamCantileverSegmentMomentTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); x));
         udl_deflection_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleSegmentDeflectionTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); span; modulus; inertia; x); BeamCantileverSegmentDeflectionTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); modulus; inertia; x));
+        udl_rotation_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleSegmentRotationTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); span; modulus; inertia; x); BeamCantileverSegmentRotationTerm(BeamDistributedElement(udl_values; i); BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); modulus; inertia; x));
         @ i = 1 : len(udl_values)};
     udl_shear = sum(udl_shear_terms);
     udl_moment = sum(udl_moment_terms);
     udl_deflection = sum(udl_deflection_terms);
+    udl_rotation = sum(udl_rotation_terms);
     response_value = switch(
         response_type ≡ BEAM_RESPONSE_SHEAR; point_shear + udl_shear;
         response_type ≡ BEAM_RESPONSE_MOMENT; point_moment + udl_moment;
         response_type ≡ BEAM_RESPONSE_DEFLECTION; point_deflection + udl_deflection;
+        response_type ≡ BEAM_RESPONSE_ROTATION; point_rotation + udl_rotation;
         0/0);
     if(status ≡ DB_OK; response_value; 0/0);
 }
@@ -267,6 +308,7 @@ $block{
 BeamShearAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x) = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x; BEAM_RESPONSE_SHEAR)
 BeamMomentAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x) = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x; BEAM_RESPONSE_MOMENT)
 BeamDeflectionAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x) = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x; BEAM_RESPONSE_DEFLECTION)
+BeamRotationAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x) = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; x; BEAM_RESPONSE_ROTATION)
 
 BeamReactionLeftLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia) = _
 $block{
@@ -309,20 +351,23 @@ $block{
     shear_terms = 1N*vector(len(sample_positions));
     moment_terms = 1N*m*vector(len(sample_positions));
     deflection_terms = 1m*vector(len(sample_positions));
+    rotation_terms = vector(len(sample_positions));
     $Repeat{
         sample_status_terms.i = and(BeamFinite(BeamLengthElement(sample_positions; i)); BeamPositionOK(BeamLengthElement(sample_positions; i); span));
         shear_terms.i = abs(BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_SHEAR));
         moment_terms.i = abs(BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_MOMENT));
         deflection_terms.i = abs(BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_DEFLECTION));
+        rotation_terms.i = abs(BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_ROTATION));
         @ i = 1 : len(sample_positions)};
     sample_status = min(sample_status_terms);
-    max_response = if(response_type ≡ BEAM_RESPONSE_SHEAR; max(shear_terms); if(response_type ≡ BEAM_RESPONSE_MOMENT; max(moment_terms); max(deflection_terms)));
+    max_response = switch(response_type ≡ BEAM_RESPONSE_SHEAR; max(shear_terms); response_type ≡ BEAM_RESPONSE_MOMENT; max(moment_terms); response_type ≡ BEAM_RESPONSE_DEFLECTION; max(deflection_terms); max(rotation_terms));
     if(and(status ≡ DB_OK; sample_status); max_response; 0/0);
 }
 
 BeamMaxShearAtSamples(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamMaxResponseAtSamples(BEAM_RESPONSE_SHEAR; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
 BeamMaxMomentAtSamples(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamMaxResponseAtSamples(BEAM_RESPONSE_MOMENT; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
 BeamMaxDeflectionAtSamples(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamMaxResponseAtSamples(BEAM_RESPONSE_DEFLECTION; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
+BeamMaxRotationAtSamples(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamMaxResponseAtSamples(BEAM_RESPONSE_ROTATION; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
 
 'Return a unit-consistent vector for charting or caller-owned tables.
 BeamResponseSampleSeries(response_type; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = _
@@ -330,17 +375,20 @@ $block{
     shear_series = 1N*vector(len(sample_positions));
     moment_series = 1N*m*vector(len(sample_positions));
     deflection_series = 1m*vector(len(sample_positions));
+    rotation_series = vector(len(sample_positions));
     $Repeat{
         shear_series.i = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_SHEAR);
         moment_series.i = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_MOMENT);
         deflection_series.i = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_DEFLECTION);
+        rotation_series.i = BeamResponseAtLoads(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(sample_positions; i); BEAM_RESPONSE_ROTATION);
         @ i = 1 : len(sample_positions)};
-    if(response_type ≡ BEAM_RESPONSE_SHEAR; shear_series; if(response_type ≡ BEAM_RESPONSE_MOMENT; moment_series; deflection_series));
+    switch(response_type ≡ BEAM_RESPONSE_SHEAR; shear_series; response_type ≡ BEAM_RESPONSE_MOMENT; moment_series; response_type ≡ BEAM_RESPONSE_DEFLECTION; deflection_series; rotation_series);
 }
 
 BeamShearSampleSeries(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamResponseSampleSeries(BEAM_RESPONSE_SHEAR; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
 BeamMomentSampleSeries(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamResponseSampleSeries(BEAM_RESPONSE_MOMENT; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
 BeamDeflectionSampleSeries(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamResponseSampleSeries(BEAM_RESPONSE_DEFLECTION; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
+BeamRotationSampleSeries(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions) = BeamResponseSampleSeries(BEAM_RESPONSE_ROTATION; support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; sample_positions)
 
 BeamStations(span; count) = _
 $block{
@@ -379,6 +427,65 @@ $block{
         min(position_terms) < 1; DB_ERR_BAD_RANGE;
         DB_OK);
     status;
+}
+
+'Applied-moment convention: positive moments are counterclockwise. Rotation is
+'the derivative of positive-downward deflection with respect to x.
+BeamSimpleAppliedMomentShearTerm(applied_moment; span) = applied_moment/span
+BeamSimpleAppliedMomentMomentTerm(applied_moment; position; span; x) = applied_moment*x/span - if(x < position; 0*applied_moment; applied_moment)
+BeamSimpleAppliedMomentRotationTerm(applied_moment; position; span; modulus; inertia; x) = applied_moment*(-x^2/(2*span) + max(x - position; 0*x) + span/6 - (span - position)^2/(2*span))/(modulus*inertia)
+BeamSimpleAppliedMomentDeflectionTerm(applied_moment; position; span; modulus; inertia; x) = applied_moment*(-x^3/(6*span) + max(x - position; 0*x)^2/2 + x*(span/6 - (span - position)^2/(2*span)))/(modulus*inertia)
+
+BeamCantileverAppliedMomentShearTerm(applied_moment; span) = 0*applied_moment/span
+BeamCantileverAppliedMomentMomentTerm(applied_moment; position; x) = if(x < position; -applied_moment; 0*applied_moment)
+BeamCantileverAppliedMomentRotationTerm(applied_moment; position; modulus; inertia; x) = -applied_moment*min(x; position)/(modulus*inertia)
+BeamCantileverAppliedMomentDeflectionTerm(applied_moment; position; modulus; inertia; x) = if(x ≤ position; -applied_moment*x^2/(2*modulus*inertia); -applied_moment*position*(2*x - position)/(2*modulus*inertia))
+
+BeamAppliedMomentStatus(support; span; moment_positions; moment_values; modulus; inertia) = switch(
+    not(BeamSupportKnown(support)); DB_ERR_BAD_METHOD;
+    not(BeamPositive(modulus)); DB_ERR_BAD_RANGE;
+    not(BeamPositive(inertia)); DB_ERR_BAD_RANGE;
+    BeamMomentSetStatus(span; moment_positions; moment_values))
+
+BeamAppliedMomentResponse(support; span; moment_positions; moment_values; modulus; inertia; x; response_type) = _
+$block{
+    status = BeamAppliedMomentStatus(support; span; moment_positions; moment_values; modulus; inertia);
+    status = if(and(status ≡ DB_OK; BeamPositionOK(x; span)); status; if(status ≠ DB_OK; status; DB_ERR_BAD_RANGE));
+    shear_terms = 1N*vector(len(moment_values));
+    moment_terms = 1N*m*vector(len(moment_values));
+    rotation_terms = vector(len(moment_values));
+    deflection_terms = 1m*vector(len(moment_values));
+    $Repeat{
+        shear_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleAppliedMomentShearTerm(BeamMomentElement(moment_values; i); span); BeamCantileverAppliedMomentShearTerm(BeamMomentElement(moment_values; i); span));
+        moment_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleAppliedMomentMomentTerm(BeamMomentElement(moment_values; i); BeamLengthElement(moment_positions; i); span; x); BeamCantileverAppliedMomentMomentTerm(BeamMomentElement(moment_values; i); BeamLengthElement(moment_positions; i); x));
+        rotation_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleAppliedMomentRotationTerm(BeamMomentElement(moment_values; i); BeamLengthElement(moment_positions; i); span; modulus; inertia; x); BeamCantileverAppliedMomentRotationTerm(BeamMomentElement(moment_values; i); BeamLengthElement(moment_positions; i); modulus; inertia; x));
+        deflection_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamSimpleAppliedMomentDeflectionTerm(BeamMomentElement(moment_values; i); BeamLengthElement(moment_positions; i); span; modulus; inertia; x); BeamCantileverAppliedMomentDeflectionTerm(BeamMomentElement(moment_values; i); BeamLengthElement(moment_positions; i); modulus; inertia; x));
+        @ i = 1 : len(moment_values)};
+    response = switch(
+        response_type ≡ BEAM_RESPONSE_SHEAR; sum(shear_terms);
+        response_type ≡ BEAM_RESPONSE_MOMENT; sum(moment_terms);
+        response_type ≡ BEAM_RESPONSE_ROTATION; sum(rotation_terms);
+        response_type ≡ BEAM_RESPONSE_DEFLECTION; sum(deflection_terms);
+        0/0);
+    if(status ≡ DB_OK; response; 0/0);
+}
+
+BeamAppliedMomentLeftReaction(support; span; moment_positions; moment_values) = _
+$block{
+    status = BeamAppliedMomentStatus(support; span; moment_positions; moment_values; 1Pa; 1m^4);
+    reaction_terms = 1N*vector(len(moment_values));
+    $Repeat{reaction_terms.i = if(support ≡ BEAM_SIMPLE_SUPPORTED; BeamMomentElement(moment_values; i)/span; 0N) @ i = 1 : len(moment_values)};
+    if(status ≡ DB_OK; sum(reaction_terms); 0/0);
+}
+
+BeamAppliedMomentRightReaction(support; span; moment_positions; moment_values) = if(support ≡ BEAM_SIMPLE_SUPPORTED; -BeamAppliedMomentLeftReaction(support; span; moment_positions; moment_values); 0/0)
+
+BeamAppliedMomentFixedReaction(support; span; moment_positions; moment_values) = _
+$block{
+    status = BeamAppliedMomentStatus(support; span; moment_positions; moment_values; 1Pa; 1m^4);
+    moment_terms = 1N*m*vector(len(moment_values));
+    $Repeat{moment_terms.i = if(support ≡ BEAM_CANTILEVER; -BeamMomentElement(moment_values; i); 0N*m) @ i = 1 : len(moment_values)};
+    if(status ≡ DB_OK; sum(moment_terms); 0/0);
 }
 
 BeamModelInputStatus(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; axial_loads; axial_positions; axial_starts; axial_ends; axial_values; moment_positions; moment_values; modulus; inertia) = _
@@ -422,7 +529,7 @@ BeamDeflectionStatus(deflection; allowable_deflection; warning_threshold) = if(B
 'High-level mixed-unit vector record API.
 BEAM_MODEL_VERSION = 1
 BEAM_MODEL_HEADER_LENGTH = 6
-BEAM_MODEL_DEFAULT_SAMPLES = 61
+BEAM_MODEL_DEFAULT_SAMPLES = 121
 
 BeamRecordElement(model; index) = take(index; model)
 BeamRecordSlice(model; start; count) = first(last(model; len(model) - start + 1); count)
@@ -538,13 +645,15 @@ $block{
     BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); BeamModelAxialPointData(model); axial_udl_data; BeamModelMomentData(model));
 }
 
-'Applied moments are diagram-only until concentrated-moment response terms are implemented.
-BeamWithDiagramMoments(model; positions; moments) = _
+BeamWithMoments(model; positions; moments) = _
 $block{
     properties = BeamModelProperties(model);
     moment_data = BeamMomentData(positions; moments);
     BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); BeamModelAxialPointData(model); BeamModelAxialUDLData(model); moment_data);
 }
+
+BeamWithMoment(model; position; moment) = BeamWithMoments(model; [position]; [moment])
+BeamWithDiagramMoments(model; positions; moments) = BeamWithMoments(model; positions; moments)
 
 BeamWithSampleCount(model; count) = _
 $block{
@@ -553,21 +662,78 @@ $block{
 }
 
 BeamModelStatus(model) = switch(BeamModelVersion(model) ≠ BEAM_MODEL_VERSION; DB_ERR_BAD_METHOD; len(model) ≠ BeamModelExpectedLength(model); DB_ERR_BAD_RANGE; not(and(BeamFinite(BeamModelSampleCount(model)); BeamModelSampleCount(model) ≥ 2)); DB_ERR_BAD_RANGE; BeamModelInputStatus(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); BeamModelMomentPositions(model); BeamModelMomentValues(model); BeamModelModulus(model); BeamModelInertia(model)))
-BeamShear(model; x) = BeamShearAtLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); x)
-BeamMoment(model; x) = BeamMomentAtLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); x)
-BeamDeflection(model; x) = BeamDeflectionAtLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); x)
+BeamModelResponseStatus(model; x) = switch(BeamModelStatus(model) ≠ DB_OK; BeamModelStatus(model); not(BeamFinite(x)); DB_ERR_BAD_RANGE; DBRangeStatus(x; 0m; BeamModelSpan(model); DB_STRICT))
+BeamModelResponse(model; x; response_type) = _
+$block{
+    status = BeamModelResponseStatus(model; x);
+    transverse_response = BeamResponseAtLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); x; response_type);
+    applied_moment_response = BeamAppliedMomentResponse(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model); BeamModelModulus(model); BeamModelInertia(model); x; response_type);
+    if(status ≡ DB_OK; transverse_response + applied_moment_response; 0/0);
+}
+
+BeamShear(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_SHEAR)
+BeamMoment(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_MOMENT)
+BeamRotation(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_ROTATION)
+BeamDeflection(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_DEFLECTION)
 BeamAxial(model; x) = BeamAxialAtLoads(BeamModelSpan(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); x)
-BeamLeftReaction(model) = BeamReactionLeftLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model))
-BeamRightReaction(model) = BeamReactionRightLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model))
-BeamFixedEndMoment(model) = BeamReactionMomentLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model))
+BeamLeftReaction(model) = BeamReactionLeftLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamAppliedMomentLeftReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model))
+BeamRightReaction(model) = BeamReactionRightLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamAppliedMomentRightReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model))
+BeamFixedEndMoment(model) = BeamReactionMomentLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamAppliedMomentFixedReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model))
 BeamSamplePositions(model) = BeamStations(BeamModelSpan(model); BeamModelSampleCount(model))
-BeamShearSeries(model) = BeamShearSampleSeries(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); BeamSamplePositions(model))
-BeamMomentSeries(model) = BeamMomentSampleSeries(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); BeamSamplePositions(model))
-BeamDeflectionSeries(model) = BeamDeflectionSampleSeries(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); BeamSamplePositions(model))
+BeamModelResponseSeries(model; response_type) = _
+$block{
+    samples = BeamSamplePositions(model);
+    shear_series = 1N*vector(len(samples));
+    moment_series = 1N*m*vector(len(samples));
+    rotation_series = vector(len(samples));
+    deflection_series = 1m*vector(len(samples));
+    $Repeat{
+        shear_series.i = BeamShear(model; BeamLengthElement(samples; i));
+        moment_series.i = BeamMoment(model; BeamLengthElement(samples; i));
+        rotation_series.i = BeamRotation(model; BeamLengthElement(samples; i));
+        deflection_series.i = BeamDeflection(model; BeamLengthElement(samples; i));
+        @ i = 1 : len(samples)};
+    switch(response_type ≡ BEAM_RESPONSE_SHEAR; shear_series; response_type ≡ BEAM_RESPONSE_MOMENT; moment_series; response_type ≡ BEAM_RESPONSE_ROTATION; rotation_series; deflection_series);
+}
+
+BeamShearSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_SHEAR)
+BeamMomentSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_MOMENT)
+BeamRotationSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_ROTATION)
+BeamDeflectionSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_DEFLECTION)
 BeamAxialSeries(model) = BeamAxialSampleSeries(BeamModelSpan(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); BeamSamplePositions(model))
-BeamPeakShear(model) = BeamMaxShearAtSamples(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); BeamSamplePositions(model))
-BeamPeakMoment(model) = BeamMaxMomentAtSamples(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); BeamSamplePositions(model))
-BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model); BeamSamplePositions(model))
+
+BeamAppliedMomentsAtPosition(model; x) = _
+$block{
+    moment_terms = 1N*m*vector(len(BeamModelMomentValues(model)));
+    $Repeat{moment_terms.i = if(BeamLengthElement(BeamModelMomentPositions(model); i) ≡ x; BeamMomentElement(BeamModelMomentValues(model); i); 0N*m) @ i = 1 : len(BeamModelMomentValues(model))};
+    sum(moment_terms);
+}
+
+BeamMomentLeftLimit(model; x) = BeamMoment(model; x) + if(BeamModelSupport(model) ≡ BEAM_SIMPLE_SUPPORTED; BeamAppliedMomentsAtPosition(model; x); -BeamAppliedMomentsAtPosition(model; x))
+
+BeamModelMaxResponse(model; response_type) = _
+$block{
+    samples = BeamSamplePositions(model);
+    shear_terms = 1N*vector(len(samples));
+    moment_terms = 1N*m*vector(len(samples));
+    rotation_terms = vector(len(samples));
+    deflection_terms = 1m*vector(len(samples));
+    $Repeat{
+        shear_terms.i = abs(BeamShear(model; BeamLengthElement(samples; i)));
+        moment_terms.i = abs(BeamMoment(model; BeamLengthElement(samples; i)));
+        rotation_terms.i = abs(BeamRotation(model; BeamLengthElement(samples; i)));
+        deflection_terms.i = abs(BeamDeflection(model; BeamLengthElement(samples; i)));
+        @ i = 1 : len(samples)};
+    moment_left_terms = 1N*m*vector(len(BeamModelMomentValues(model)));
+    $Repeat{moment_left_terms.i = if(BeamLengthElement(BeamModelMomentPositions(model); i) > 0m; abs(BeamMomentLeftLimit(model; BeamLengthElement(BeamModelMomentPositions(model); i))); 0N*m) @ i = 1 : len(BeamModelMomentValues(model))};
+    moment_peak = max(max(moment_terms); max(moment_left_terms));
+    switch(response_type ≡ BEAM_RESPONSE_SHEAR; max(shear_terms); response_type ≡ BEAM_RESPONSE_MOMENT; moment_peak; response_type ≡ BEAM_RESPONSE_ROTATION; max(rotation_terms); max(deflection_terms));
+}
+
+BeamPeakShear(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_SHEAR)
+BeamPeakMoment(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_MOMENT)
+BeamPeakRotation(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_ROTATION)
+BeamPeakDeflection(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_DEFLECTION)
 
 #def BeamSupport$(support$)
     #if support$ ≡ BEAM_SIMPLE_SUPPORTED
@@ -625,6 +791,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     ζBEAM_response_status = BeamResponseStatus(support$; load_type$; span$; point_load$; point_position$; distributed_load$; modulus$; inertia$; x$)
     ζBEAM_shear = BeamShearAt(support$; load_type$; span$; point_load$; point_position$; distributed_load$; modulus$; inertia$; x$)
     ζBEAM_moment = BeamMomentAt(support$; load_type$; span$; point_load$; point_position$; distributed_load$; modulus$; inertia$; x$)
+    ζBEAM_rotation = BeamRotationAt(support$; load_type$; span$; point_load$; point_position$; distributed_load$; modulus$; inertia$; x$)
     ζBEAM_deflection = BeamDeflectionAt(support$; load_type$; span$; point_load$; point_position$; distributed_load$; modulus$; inertia$; x$)
     #show
     #novar
@@ -634,6 +801,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     '<tr><td>Position</td><td>'x$'</td></tr>
     '<tr><td>Shear</td><td>'ζBEAM_shear'</td></tr>
     '<tr><td>Moment</td><td>'ζBEAM_moment'</td></tr>
+    '<tr><td>Rotation</td><td>'ζBEAM_rotation'</td></tr>
     '<tr><td>Deflection</td><td>'ζBEAM_deflection'</td></tr>
     '<tr><td>Status</td><td>
     DBStatus$(ζBEAM_response_status)
@@ -677,6 +845,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     ζBEAM_load_response_status = BeamLoadSetStatus(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$)
     ζBEAM_load_shear = BeamShearAtLoads(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; x$)
     ζBEAM_load_moment = BeamMomentAtLoads(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; x$)
+    ζBEAM_load_rotation = BeamRotationAtLoads(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; x$)
     ζBEAM_load_deflection = BeamDeflectionAtLoads(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; x$)
     #show
     #novar
@@ -686,6 +855,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     '<tr><td>Position</td><td>'x$'</td></tr>
     '<tr><td>Shear</td><td>'ζBEAM_load_shear'</td></tr>
     '<tr><td>Moment</td><td>'ζBEAM_load_moment'</td></tr>
+    '<tr><td>Rotation</td><td>'ζBEAM_load_rotation'</td></tr>
     '<tr><td>Deflection</td><td>'ζBEAM_load_deflection'</td></tr>
     '<tr><td>Status</td><td>
     DBStatus$(ζBEAM_load_response_status)
@@ -721,6 +891,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     ζBEAM_extrema_count = len(sample_positions$)
     ζBEAM_extrema_shear = BeamMaxShearAtSamples(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; sample_positions$)
     ζBEAM_extrema_moment = BeamMaxMomentAtSamples(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; sample_positions$)
+    ζBEAM_extrema_rotation = BeamMaxRotationAtSamples(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; sample_positions$)
     ζBEAM_extrema_deflection = BeamMaxDeflectionAtSamples(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; sample_positions$)
     #show
     #novar
@@ -730,6 +901,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     '<tr><td>Sample positions</td><td>'ζBEAM_extrema_count'</td></tr>
     '<tr><td>Maximum sampled shear</td><td>'ζBEAM_extrema_shear'</td></tr>
     '<tr><td>Maximum sampled moment</td><td>'ζBEAM_extrema_moment'</td></tr>
+    '<tr><td>Maximum sampled rotation</td><td>'ζBEAM_extrema_rotation'</td></tr>
     '<tr><td>Maximum sampled deflection</td><td>'ζBEAM_extrema_deflection'</td></tr>
     '<tr><td>Status</td><td>
     DBStatus$(ζBEAM_extrema_status)
@@ -771,8 +943,8 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     '<tr><td>Distributed-load segments</td><td>'ζBEAM_model_udl_count'</td></tr>
     '<tr><td>Axial point loads</td><td>'ζBEAM_model_axial_point_count'</td></tr>
     '<tr><td>Axial distributed-load segments</td><td>'ζBEAM_model_axial_udl_count'</td></tr>
-    '<tr><td>Diagram-only applied moments</td><td>'ζBEAM_model_moment_count'</td></tr>
-    '<tr><td>Diagram samples</td><td>'ζBEAM_model_sample_count'</td></tr>
+    '<tr><td>Applied moments</td><td>'ζBEAM_model_moment_count'</td></tr>
+    '<tr><td>Response samples</td><td>'ζBEAM_model_sample_count'</td></tr>
     '<tr><td>Status</td><td>
     DBStatus$(ζBEAM_model_status)
     '</td></tr>
@@ -783,48 +955,76 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
 
 #def ShowBeamResponseAt$(model$; x$)
     #hide
-    ζBEAM_report_support = BeamModelSupport(model$)
-    ζBEAM_report_span = BeamModelSpan(model$)
-    ζBEAM_report_point_loads = BeamModelPointLoads(model$)
-    ζBEAM_report_point_positions = BeamModelPointPositions(model$)
-    ζBEAM_report_udl_starts = BeamModelUDLStarts(model$)
-    ζBEAM_report_udl_ends = BeamModelUDLEnds(model$)
-    ζBEAM_report_udl_values = BeamModelUDLValues(model$)
-    ζBEAM_report_modulus = BeamModelModulus(model$)
-    ζBEAM_report_inertia = BeamModelInertia(model$)
+    ζBEAM_report_status = BeamModelResponseStatus(model$; x$)
+    ζBEAM_report_shear = BeamShear(model$; x$)
+    ζBEAM_report_moment = BeamMoment(model$; x$)
+    ζBEAM_report_rotation = BeamRotation(model$; x$)
+    ζBEAM_report_deflection = BeamDeflection(model$; x$)
     #show
-    ShowBeamLoadResponse$(ζBEAM_report_support; ζBEAM_report_span; ζBEAM_report_point_loads; ζBEAM_report_point_positions; ζBEAM_report_udl_starts; ζBEAM_report_udl_ends; ζBEAM_report_udl_values; ζBEAM_report_modulus; ζBEAM_report_inertia; x$)
+    #novar
+    '<table class="bordered data beam-load-response">
+    '<thead><tr><th>Response at x</th><th>Value</th></tr></thead>
+    '<tbody>
+    '<tr><td>Position</td><td>'x$'</td></tr>
+    '<tr><td>Shear</td><td>'ζBEAM_report_shear'</td></tr>
+    '<tr><td>Moment</td><td>'ζBEAM_report_moment'</td></tr>
+    '<tr><td>Rotation</td><td>'ζBEAM_report_rotation'</td></tr>
+    '<tr><td>Deflection</td><td>'ζBEAM_report_deflection'</td></tr>
+    '<tr><td>Status</td><td>
+    DBStatus$(ζBEAM_report_status)
+    '</td></tr>
+    '</tbody>
+    '</table>
+    #equ
 #end def
 
 #def ShowBeamReactions$(model$)
     #hide
+    ζBEAM_report_status = BeamModelStatus(model$)
     ζBEAM_report_support = BeamModelSupport(model$)
-    ζBEAM_report_span = BeamModelSpan(model$)
-    ζBEAM_report_point_loads = BeamModelPointLoads(model$)
-    ζBEAM_report_point_positions = BeamModelPointPositions(model$)
-    ζBEAM_report_udl_starts = BeamModelUDLStarts(model$)
-    ζBEAM_report_udl_ends = BeamModelUDLEnds(model$)
-    ζBEAM_report_udl_values = BeamModelUDLValues(model$)
-    ζBEAM_report_modulus = BeamModelModulus(model$)
-    ζBEAM_report_inertia = BeamModelInertia(model$)
+    ζBEAM_report_left_reaction = BeamLeftReaction(model$)
+    ζBEAM_report_right_reaction = if(ζBEAM_report_support ≡ BEAM_SIMPLE_SUPPORTED; BeamRightReaction(model$); 0N)
+    ζBEAM_report_fixed_moment = if(ζBEAM_report_support ≡ BEAM_CANTILEVER; BeamFixedEndMoment(model$); 0N*m)
     #show
-    ShowBeamLoadReactions$(ζBEAM_report_support; ζBEAM_report_span; ζBEAM_report_point_loads; ζBEAM_report_point_positions; ζBEAM_report_udl_starts; ζBEAM_report_udl_ends; ζBEAM_report_udl_values; ζBEAM_report_modulus; ζBEAM_report_inertia)
+    #novar
+    '<table class="bordered data beam-load-reactions">
+    '<thead><tr><th>Reaction</th><th>Value</th></tr></thead>
+    '<tbody>
+    '<tr><td>Left/support reaction</td><td>'ζBEAM_report_left_reaction'</td></tr>
+    '<tr><td>Right/free-end vertical reaction</td><td>'ζBEAM_report_right_reaction'</td></tr>
+    '<tr><td>Fixed-end reaction moment</td><td>'ζBEAM_report_fixed_moment'</td></tr>
+    '<tr><td>Status</td><td>
+    DBStatus$(ζBEAM_report_status)
+    '</td></tr>
+    '</tbody>
+    '</table>
+    #equ
 #end def
 
 #def ShowBeamExtrema$(model$)
     #hide
-    ζBEAM_report_support = BeamModelSupport(model$)
-    ζBEAM_report_span = BeamModelSpan(model$)
-    ζBEAM_report_point_loads = BeamModelPointLoads(model$)
-    ζBEAM_report_point_positions = BeamModelPointPositions(model$)
-    ζBEAM_report_udl_starts = BeamModelUDLStarts(model$)
-    ζBEAM_report_udl_ends = BeamModelUDLEnds(model$)
-    ζBEAM_report_udl_values = BeamModelUDLValues(model$)
-    ζBEAM_report_modulus = BeamModelModulus(model$)
-    ζBEAM_report_inertia = BeamModelInertia(model$)
-    ζBEAM_report_samples = BeamSamplePositions(model$)
+    ζBEAM_report_status = BeamModelStatus(model$)
+    ζBEAM_report_sample_count = len(BeamSamplePositions(model$))
+    ζBEAM_report_peak_shear = BeamPeakShear(model$)
+    ζBEAM_report_peak_moment = BeamPeakMoment(model$)
+    ζBEAM_report_peak_rotation = BeamPeakRotation(model$)
+    ζBEAM_report_peak_deflection = BeamPeakDeflection(model$)
     #show
-    ShowBeamLoadExtrema$(ζBEAM_report_support; ζBEAM_report_span; ζBEAM_report_point_loads; ζBEAM_report_point_positions; ζBEAM_report_udl_starts; ζBEAM_report_udl_ends; ζBEAM_report_udl_values; ζBEAM_report_modulus; ζBEAM_report_inertia; ζBEAM_report_samples)
+    #novar
+    '<table class="bordered data beam-load-extrema">
+    '<thead><tr><th>Sampled extrema</th><th>Value</th></tr></thead>
+    '<tbody>
+    '<tr><td>Sample positions</td><td>'ζBEAM_report_sample_count'</td></tr>
+    '<tr><td>Maximum sampled shear</td><td>'ζBEAM_report_peak_shear'</td></tr>
+    '<tr><td>Maximum sampled moment</td><td>'ζBEAM_report_peak_moment'</td></tr>
+    '<tr><td>Maximum sampled rotation</td><td>'ζBEAM_report_peak_rotation'</td></tr>
+    '<tr><td>Maximum sampled deflection</td><td>'ζBEAM_report_peak_deflection'</td></tr>
+    '<tr><td>Status</td><td>
+    DBStatus$(ζBEAM_report_status)
+    '</td></tr>
+    '</tbody>
+    '</table>
+    #equ
 #end def
 
 #def ShowBeamScreening$(model$; section_modulus$; shear_area$; allowable_stress$; allowable_deflection$)
@@ -1066,6 +1266,19 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     render$(id$; Displacement diagram; Position along beam; Displacement)
 #end def
 
+#def ShowBeamRotationDiagram$(id$; support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; sample_positions$)
+    #hide
+    ζBEAM_plot_rotation = BeamRotationSampleSeries(support$; span$; point_loads$; point_positions$; udl_starts$; udl_ends$; udl_values$; modulus$; inertia$; sample_positions$)
+    ζBEAM_plot_x = BeamNumericSeries(sample_positions$)
+    ζBEAM_plot_y = BeamNumericSeries(ζBEAM_plot_rotation)
+    #show
+    figure$(id$)
+    plot$(id$; ζBEAM_plot_x; ζBEAM_plot_y; #9467bd; Rotation)
+    hline$(id$; 0; #777777; Zero)
+    hoverUnified$(id$)
+    render$(id$; Rotation diagram; Position along beam; Rotation)
+#end def
+
 #def ShowBeamFBD$(id$; model$)
     #md off
     #hide
@@ -1090,36 +1303,60 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
 #def ShowBeamShearPlot$(id$; model$)
     #md off
     #hide
-    ζBEAM_shear_plot_support = BeamModelSupport(model$)
-    ζBEAM_shear_plot_span = BeamModelSpan(model$)
-    ζBEAM_shear_plot_point_loads = BeamModelPointLoads(model$)
-    ζBEAM_shear_plot_point_positions = BeamModelPointPositions(model$)
-    ζBEAM_shear_plot_udl_starts = BeamModelUDLStarts(model$)
-    ζBEAM_shear_plot_udl_ends = BeamModelUDLEnds(model$)
-    ζBEAM_shear_plot_udl_values = BeamModelUDLValues(model$)
-    ζBEAM_shear_plot_modulus = BeamModelModulus(model$)
-    ζBEAM_shear_plot_inertia = BeamModelInertia(model$)
     ζBEAM_shear_plot_samples = BeamSamplePositions(model$)
+    ζBEAM_shear_plot_response = BeamShearSeries(model$)
+    ζBEAM_shear_plot_x = BeamNumericSeries(ζBEAM_shear_plot_samples)
+    ζBEAM_shear_plot_y = BeamNumericSeries(ζBEAM_shear_plot_response)
     #show
-    ShowBeamShearDiagram$(id$; ζBEAM_shear_plot_support; ζBEAM_shear_plot_span; ζBEAM_shear_plot_point_loads; ζBEAM_shear_plot_point_positions; ζBEAM_shear_plot_udl_starts; ζBEAM_shear_plot_udl_ends; ζBEAM_shear_plot_udl_values; ζBEAM_shear_plot_modulus; ζBEAM_shear_plot_inertia; ζBEAM_shear_plot_samples)
+    figure$(id$)
+    plot$(id$; ζBEAM_shear_plot_x; ζBEAM_shear_plot_y; #d9534f; Shear)
+    hline$(id$; 0; #777777; Zero)
+    hoverUnified$(id$)
+    render$(id$; Shear-force diagram; Position along beam; Shear)
     #md on
 #end def
 
 #def ShowBeamMomentPlot$(id$; model$)
     #md off
     #hide
-    ζBEAM_moment_plot_support = BeamModelSupport(model$)
-    ζBEAM_moment_plot_span = BeamModelSpan(model$)
-    ζBEAM_moment_plot_point_loads = BeamModelPointLoads(model$)
-    ζBEAM_moment_plot_point_positions = BeamModelPointPositions(model$)
-    ζBEAM_moment_plot_udl_starts = BeamModelUDLStarts(model$)
-    ζBEAM_moment_plot_udl_ends = BeamModelUDLEnds(model$)
-    ζBEAM_moment_plot_udl_values = BeamModelUDLValues(model$)
-    ζBEAM_moment_plot_modulus = BeamModelModulus(model$)
-    ζBEAM_moment_plot_inertia = BeamModelInertia(model$)
     ζBEAM_moment_plot_samples = BeamSamplePositions(model$)
+    ζBEAM_moment_plot_response = BeamMomentSeries(model$)
+    ζBEAM_moment_plot_x = BeamNumericSeries(ζBEAM_moment_plot_samples)
+    ζBEAM_moment_plot_y = BeamNumericSeries(ζBEAM_moment_plot_response)
     #show
-    ShowBeamMomentDiagram$(id$; ζBEAM_moment_plot_support; ζBEAM_moment_plot_span; ζBEAM_moment_plot_point_loads; ζBEAM_moment_plot_point_positions; ζBEAM_moment_plot_udl_starts; ζBEAM_moment_plot_udl_ends; ζBEAM_moment_plot_udl_values; ζBEAM_moment_plot_modulus; ζBEAM_moment_plot_inertia; ζBEAM_moment_plot_samples)
+    figure$(id$)
+    plot$(id$; ζBEAM_moment_plot_x; ζBEAM_moment_plot_y; #337ab7; Bending moment)
+    #for ζBEAM_moment_jump_index = 1 : len(BeamModelMomentValues(model$))
+        #hide
+        ζBEAM_moment_jump_x = clrunits(BeamLengthElement(BeamModelMomentPositions(model$); ζBEAM_moment_jump_index))
+        ζBEAM_moment_jump_left = clrunits(BeamMomentLeftLimit(model$; BeamLengthElement(BeamModelMomentPositions(model$); ζBEAM_moment_jump_index)))
+        ζBEAM_moment_jump_right = clrunits(BeamMoment(model$; BeamLengthElement(BeamModelMomentPositions(model$); ζBEAM_moment_jump_index)))
+        #show
+        #if BeamMomentElement(BeamModelMomentValues(model$); ζBEAM_moment_jump_index) ≠ 0N*m
+            #val
+            '<script>window.TSPlots["id$"].data.push({x:['ζBEAM_moment_jump_x','ζBEAM_moment_jump_x'],y:['ζBEAM_moment_jump_left','ζBEAM_moment_jump_right'],mode:"lines",type:"scatter",line:{color:"#337ab7",width:2},name:"Applied-moment jump",showlegend:false});</script>
+            #equ
+        #end if
+    #loop
+    hline$(id$; 0; #777777; Zero)
+    hoverUnified$(id$)
+    render$(id$; Bending-moment diagram; Position along beam; Moment)
+    #md on
+#end def
+
+#def ShowBeamRotationPlot$(id$; model$)
+    #md off
+    #hide
+    ζBEAM_rotation_plot_samples = BeamSamplePositions(model$)
+    ζBEAM_rotation_plot_response = BeamRotationSeries(model$)
+    ζBEAM_rotation_plot_x = BeamNumericSeries(ζBEAM_rotation_plot_samples)
+    ζBEAM_rotation_plot_y = BeamNumericSeries(ζBEAM_rotation_plot_response)
+    #show
+    figure$(id$)
+    plot$(id$; ζBEAM_rotation_plot_x; ζBEAM_rotation_plot_y; #9467bd; Rotation)
+    hline$(id$; 0; #777777; Zero)
+    hoverUnified$(id$)
+    render$(id$; Rotation diagram; Position along beam; Rotation)
     #md on
 #end def
 
@@ -1141,18 +1378,16 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
 #def ShowBeamDeflectionPlot$(id$; model$)
     #md off
     #hide
-    ζBEAM_deflection_plot_support = BeamModelSupport(model$)
-    ζBEAM_deflection_plot_span = BeamModelSpan(model$)
-    ζBEAM_deflection_plot_point_loads = BeamModelPointLoads(model$)
-    ζBEAM_deflection_plot_point_positions = BeamModelPointPositions(model$)
-    ζBEAM_deflection_plot_udl_starts = BeamModelUDLStarts(model$)
-    ζBEAM_deflection_plot_udl_ends = BeamModelUDLEnds(model$)
-    ζBEAM_deflection_plot_udl_values = BeamModelUDLValues(model$)
-    ζBEAM_deflection_plot_modulus = BeamModelModulus(model$)
-    ζBEAM_deflection_plot_inertia = BeamModelInertia(model$)
     ζBEAM_deflection_plot_samples = BeamSamplePositions(model$)
+    ζBEAM_deflection_plot_response = BeamDeflectionSeries(model$)
+    ζBEAM_deflection_plot_x = BeamNumericSeries(ζBEAM_deflection_plot_samples)
+    ζBEAM_deflection_plot_y = BeamNumericSeries(ζBEAM_deflection_plot_response)
     #show
-    ShowBeamDeflectionDiagram$(id$; ζBEAM_deflection_plot_support; ζBEAM_deflection_plot_span; ζBEAM_deflection_plot_point_loads; ζBEAM_deflection_plot_point_positions; ζBEAM_deflection_plot_udl_starts; ζBEAM_deflection_plot_udl_ends; ζBEAM_deflection_plot_udl_values; ζBEAM_deflection_plot_modulus; ζBEAM_deflection_plot_inertia; ζBEAM_deflection_plot_samples)
+    figure$(id$)
+    plot$(id$; ζBEAM_deflection_plot_x; ζBEAM_deflection_plot_y; #f0ad4e; Deflection)
+    hline$(id$; 0; #777777; Zero)
+    hoverUnified$(id$)
+    render$(id$; Displacement diagram; Position along beam; Displacement)
     #md on
 #end def
 
@@ -1160,6 +1395,7 @@ BeamPeakDeflection(model) = BeamMaxDeflectionAtSamples(BeamModelSupport(model); 
     ShowBeamFBD$(id$_loading; model$)
     ShowBeamShearPlot$(id$_shear; model$)
     ShowBeamMomentPlot$(id$_moment; model$)
+    ShowBeamRotationPlot$(id$_rotation; model$)
     ShowBeamAxialPlot$(id$_axial; model$)
     ShowBeamDeflectionPlot$(id$_deflection; model$)
 #end def
