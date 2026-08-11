@@ -1,5 +1,6 @@
 #hide
 '<!-- DRAT Plotting Wrapper 3.2.0. Online Plotly build. -->
+'<!-- Plot macros emit JavaScript into the rendered worksheet and share configuration through window.TSPlots; plot IDs must therefore be unique within one document. -->
 #show
 '<style>
 '.ts-plot{

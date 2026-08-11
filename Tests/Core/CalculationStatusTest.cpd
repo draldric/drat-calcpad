@@ -2,6 +2,8 @@
 
 #include ../../Core/DratCore.cpd
 
+'<!-- TEST PURPOSE: Verify calculation-status classification, predicates, completion rules, and registry-derived status. -->
+
 empty_statuses = find_eq([0]; 1; 1)
 
 calculation_pass = CalculationStatus([VAL_OK; VAL_OK]; [CHK_PASS; CHK_PASS])

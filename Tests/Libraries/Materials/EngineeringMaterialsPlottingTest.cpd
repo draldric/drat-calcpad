@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Materials/EngineeringMaterials.cpd
 
+'<!-- TEST PURPOSE: Verify material plotting requests and property values used by comparison and trade-off charts. -->
+
 "Engineering Materials Plotting Test
 
 plot_items = [MARAGING_STEEL_18NI_250; TOOL_STEEL_A2_HARDENED; TOOL_STEEL_D2_HARDENED; TOOL_STEEL_H13_HARDENED; STAINLESS_17_4PH_H900]

@@ -84,5 +84,5 @@ The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
 They read the official AISC workbook and expect exactly 289 W-shape and 714 HSS records respectively; a changed source layout or record count stops generation.
 The source workbook itself is not committed.
 
-Run `Tests/Libraries/Steel/STRUCTURAL_SECTIONS_TEST.cpd`, `Tests/Libraries/Steel/AISC_HSS_SECTIONS_TEST.cpd`, and `Tests/Libraries/Steel/AISC_CHANNEL_SECTIONS_TEST.cpd` in CalcPad CE and confirm `all_tests` is true.
+Run `Tests/Libraries/Steel/StructuralSectionsTest.cpd`, `Tests/Libraries/Steel/AiscHssSectionsTest.cpd`, and `Tests/Libraries/Steel/AiscChannelSectionsTest.cpd` in CalcPad CE and confirm `all_tests` is true.
 The regression tests lock record count, data-table dimensions, aliases, representative AISC values, lookup statuses, and unit-aware `Sx` screening queries.

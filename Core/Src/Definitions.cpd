@@ -1,22 +1,22 @@
 #hide
 '<!-- Worksheet formatting definitions. Version 2.0.0. -->
 
-'<!-----------------------------|PDF FORMATTING|------------------------------!>
+'<!-- Print and spacing helpers. -->
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
 #def tab$ = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 
-'<!--------------------------------|MESSAGES|---------------------------------!>
+'<!-- Inline report-message styles. -->
 #def err$(msg$) = '<span class="err">msg$</span>
 #def ok$(msg$) = '<span class="ok">msg$</span>
 #def desc$(msg$) = '<span class="note">msg$</span>
 #def ref$(msg$) = '<span class="ref">msg$</span>
 
-'<!----------------------------|MATHCAD UTILITIES|----------------------------!>
+'<!-- Compatibility utilities for imported worksheet patterns. -->
 #def cmt$(c$) = '<!--'c$'-->'
 #def shide$ = '<!--'
 #def ehide$ = '-->'
 
-'<!------------------------------------||-------------------------------------!>
+'<!-- Render one of two text paragraphs from a CalcPad condition. -->
 #def if$(cond$; true$; false$)
     #if cond$
         '<p>'true$'</p>
@@ -25,7 +25,7 @@
     #end if
 #end def
 
-'<!--------------------------|WORKSHEET FORMATTING|---------------------------!>
+'<!-- Standard document-control and engineering-report structure. -->
 #def CreateHeader$
     '<div class="document-header">
     '<div class="document-identity">

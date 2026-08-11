@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Steel/AiscChannelSections.cpd
 
+'<!-- TEST PURPOSE: Verify standard and miscellaneous channel catalogs, aliases, properties, statuses, and selection helpers. -->
+
 "AISC Channel Structural Sections Test
 
 catalog_tests = and(AiscChannelItemCount ≡ 72; AiscChannelPropertyCount ≡ 18; n_rows(AiscChannelData) ≡ 72; n_cols(AiscChannelData) ≡ 19; AiscChannelDatasetStatus ≡ DB_OK)

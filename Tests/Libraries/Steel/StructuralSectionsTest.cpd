@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Steel/StructuralSections.cpd
 
+'<!-- TEST PURPOSE: Verify the AISC W-section catalog, aliases, reference values, property lookups, and selection helpers. -->
+
 "AISC W-Shape Structural Sections Test
 
 catalog_tests = and(AiscWItemCount ≡ 289; AiscWPropertyCount ≡ 16; n_rows(AiscWData) ≡ 289; n_cols(AiscWData) ≡ 17; AiscWDatasetStatus ≡ DB_OK)

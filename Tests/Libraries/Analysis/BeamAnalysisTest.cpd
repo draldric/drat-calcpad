@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Analysis/BeamAnalysis.cpd
 
+'<!-- TEST PURPOSE: Verify beam models, supported load cases, reactions, response functions, extrema, diagrams, and screening helpers. -->
+
 "Static Beam Analysis Library Test
 
 simple_udl_support = BEAM_SIMPLE_SUPPORTED

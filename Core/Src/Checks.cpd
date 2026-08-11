@@ -7,6 +7,7 @@ CHK_FAIL = 20
 CHK_ERROR = 30
 
 CHK_DEFAULT_WARNING = 0.9
+'<!-- This guard rejects NaN and overflow-like results while remaining far beyond practical engineering utilizations. -->
 CHK_FINITE_LIMIT = 1*10^300
 
 CheckStatusKnown(status) = or(status ≡ CHK_PASS; status ≡ CHK_WARN; status ≡ CHK_FAIL; status ≡ CHK_ERROR)

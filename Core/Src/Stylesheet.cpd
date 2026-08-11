@@ -6,6 +6,7 @@
 '<style>h1,h2,h3,h4,h5,h6{text-transform:uppercase;font-family:courier new;}</style>
 '<style>h1{font-size:16pt;}</style>
 '<style>h2{font-size:12pt;}</style>
+'<!-- H3 is reserved for numbered major sections and starts a new printed page; H4 and H5 remain numbered subsections on the current page. -->
 '<style>h3{font-size:16pt;counter-reset:h4counter;counter-increment:h3counter;border-bottom:1.5px solid #999;padding-bottom:5px;margin-bottom:15px;}</style>
 '<style>h4{font-size:14pt;counter-reset:h5counter;counter-increment:h4counter;}</style>
 '<style>h5{font-size:12pt;counter-reset:h6counter;counter-increment:h5counter;}</style>

@@ -37,6 +37,12 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
+- Core is versioned as 4.1.1 with release-hardening standards for tests, examples, templates, and maintainability comments.
+- DataWrapper 0.3.3 identifies itself as the DRAT Data Wrapper instead of retaining stale template metadata.
+- Examples use one focused purpose, explicit scope, standard document control, revision history, and conclusions.
+- Tests use PascalCase names and state the maintained behavior or browser diagnostic they protect.
+- Specialized templates are categorized under `Templates/`, leaving one general calculation template at the top level.
+- Removed unused duplicate integrity predicates and the obsolete manual validation-row macro before the first public release.
 - Core is versioned as 4.1.0 with the unified review-summary API and exact links to failed reporting-registration attempts.
 - Reporting registration attempts now store entry type, ID, status, and sequence so document-review errors can link to their exact source rows.
 - Core was versioned as 4.0.0 because validation reporting registers results by stable input ID and no longer requires caller-maintained result matrices.

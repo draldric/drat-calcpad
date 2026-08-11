@@ -1,8 +1,8 @@
 #hide
-'<!-- Generic numeric property-wrapper core. Version 0.3.2. -->
+'<!-- Generic numeric property-wrapper core. Version 0.3.3. -->
 
-#def DBWrapperName$ = Apple
-#def DBWrapperVersion$ = 0.3.2
+#def DBWrapperName$ = DRAT Data Wrapper
+#def DBWrapperVersion$ = 0.3.3
 
 DB_OK = 0
 DB_ERR_NAME = 10
@@ -27,7 +27,9 @@ DB_STRICT = 0
 DB_CLAMP = 1
 DB_EXTRAPOLATE = 2
 
+'<!-- DB_MISSING is a reserved finite scalar so mixed-unit numeric tables can carry explicit missing data without relying on undefined values. -->
 DB_MISSING = -9.87654321*10^307
+'<!-- Property IDs must remain below this factor so DBKey produces a unique item-property key. -->
 DB_PROPERTY_FACTOR = 1000
 
 DBKey(item; property) = item*DB_PROPERTY_FACTOR + property
@@ -38,6 +40,7 @@ DBIsWarning(status) = status ≥ DB_WARN_CLAMP_LOW
 DBMethodOK(method) = or(method ≡ DB_NEAREST; method ≡ DB_LINEAR)
 DBPolicyOK(bounds_policy) = or(bounds_policy ≡ DB_STRICT; bounds_policy ≡ DB_CLAMP; bounds_policy ≡ DB_EXTRAPOLATE)
 
+'<!-- Clamp the lookup column before vlookup because CalcPad may evaluate function arguments even when a later status rejects the request. -->
 DBTableStatus(table; item; property_column) = _
 $block{
     safe_column = min(max(round(property_column); 1); n_cols(table)); 

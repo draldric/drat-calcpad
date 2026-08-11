@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Steel/AiscHssSections.cpd
 
+'<!-- TEST PURPOSE: Verify rectangular and round HSS catalogs, aliases, properties, statuses, and selection helpers. -->
+
 "AISC HSS Structural Sections Test
 
 catalog_tests = and(AiscHssItemCount ≡ 714; AiscHssPropertyCount ≡ 16; n_rows(AiscHssData) ≡ 714; n_cols(AiscHssData) ≡ 17; AiscHssDatasetStatus ≡ DB_OK)

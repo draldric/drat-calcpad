@@ -2,6 +2,30 @@
 #include ../Core/DratCore.cpd
 #include ../Libraries/Analysis/BeamAnalysis.cpd
 
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = BEAM ANALYSIS WORKFLOW DEMONSTRATION
+#def Title$ = STATIC BEAM ANALYSIS
+#def Purpose$ = DEMONSTRATE THE CONCISE BEAM-MODEL API, RESPONSE QUERIES, ENGINEERING DIAGRAMS, AND ILLUSTRATIVE SCREENING OUTPUTS.
+#def Scope$ = ANALYZE ONE PRISMATIC LINEAR-ELASTIC BEAM MODEL WITH POINT, DISTRIBUTED, AXIAL, AND APPLIED-MOMENT LOADS. DESIGN-CODE RESISTANCE AND LOAD COMBINATIONS ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-BEAM-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial focused beam-analysis demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
 #hide
 demo_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
 demo_beam = BeamWithPointLoads(demo_beam; [10kN; 4kN]; [2m; 4m])
@@ -17,11 +41,6 @@ shear_area = 2400mm^2
 allowable_stress = 250MPa
 allowable_deflection = 50mm
 #show
-
-'# Static Beam Analysis Demo
-
-'This worksheet demonstrates the concise beam-model API for a prismatic, linear-elastic beam.
-'It does not select a design standard, combine factored loads, or establish member resistance.
 
 '## Beam model
 
@@ -72,5 +91,7 @@ ShowBeamDeflectionPlot$(beam_deflection; demo_beam)
 '## Illustrative screening
 
 ShowBeamScreening$(demo_beam; section_modulus; shear_area; allowable_stress; allowable_deflection)
+
+'## Conclusions
 
 'The screening results are calculation aids only; project-specific resistance, serviceability, and governing-code checks remain the responsibility of the engineer.

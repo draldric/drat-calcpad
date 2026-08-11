@@ -112,4 +112,8 @@ ReportStatus$(demo_reporting_status)
 
 'A duplicate ID, invalid ID, or unknown required reference is not added to its registry.
 'The attempted row remains visible with an inline reporting error, and ShowReportingSummary&dollar; counts the failed registration.
-'Those deliberate failure cases are exercised in Tests/Core/REPORTING_TEST.cpd so this demonstration remains a valid example document.
+'Those deliberate failure cases are exercised in Tests/Core/ReportingTest.cpd so this demonstration remains a valid example document.
+
+"Conclusions
+
+'The registry relationships keep the source basis of criteria, assumptions, and limitations visible and allow invalid or duplicated registrations to block document issue.

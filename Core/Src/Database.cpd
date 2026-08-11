@@ -3,6 +3,7 @@
 
 DBColumnOK(table; column) = and(column ≡ round(column); column ≥ 1; column ≤ n_cols(table))
 
+'<!-- Clamp before vlookup so an invalid requested column returns a status instead of causing an eager-evaluation error. -->
 DBLookupExists(table; key; key_column) = _
 $block{
     safe_key_column = min(max(round(key_column); 1); n_cols(table));

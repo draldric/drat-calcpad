@@ -1,5 +1,7 @@
 #include ../../Core/DratCore.cpd
 
+'<!-- TEST PURPOSE: Verify unified review status, readiness decisions, issue counts, and summary macro execution. -->
+
 "Unified Document Review Summary Test
 
 status_tests = and(
