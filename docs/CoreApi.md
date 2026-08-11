@@ -12,15 +12,16 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `10700` | Complete generated-Core API |
-| `DRAT_DEFINITIONS_API` | `10201` | Worksheet reporting definitions |
-| `DRAT_STYLESHEET_API` | `10400` | Shared rendered styles |
+| `DRAT_CORE_API` | `20000` | Complete generated-Core API |
+| `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
+| `DRAT_STYLESHEET_API` | `10500` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
 | `DRAT_DATA_WRAPPER_API` | `302` | Numeric property and curve wrapper |
 | `DRAT_CHECKS_API` | `10200` | Engineering checks and summaries |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
 | `DRAT_VALIDATION_API` | `10400` | Structured input validation |
 | `DRAT_CALCULATION_STATUS_API` | `10000` | Document-level calculation status |
+| `DRAT_REPORTING_API` | `10000` | Structured report registries |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
 `DBWrapperName$` and `DBWrapperVersion$` identify the bundled DataWrapper implementation.
@@ -51,14 +52,71 @@ The worksheet must first define the `$` macros used by the header, including `Or
 
 | Begin | Row/item | End | Result |
 | --- | --- | --- | --- |
-| `BeginReferences$` | `AddReference$(reference)` | `EndReferences$` | Numbered reference list |
 | `BeginRevisions$` | `AddRevision$(revision; description; author; date)` | `EndRevisions$` | Revision-history table |
-| `BeginInitialConditions$` | `AddInitialCondition$(condition)` | `EndInitialConditions$` | Design-basis list |
 | `BeginListSection$(heading)` | `AddListItem$(item)` | `EndListSection$` | H4 subsection list |
 | `BeginVariables$` | `AddVariable$(symbol; description; units)` | `EndVariables$` | Rendered variable table |
 | `BeginConclusions$` | `AddConclusion$(label; value)` | `EndConclusions$` | Conclusions block |
 
 `AddValidationConclusion$(label; status)` and `AddCheckConclusion$(label; status)` add rendered statuses to an open conclusions block.
+
+## Reporting registries
+
+CalcPad calculation matrices do not store arbitrary report text.
+The reporting API therefore stores numeric identities and reference relationships in calculation registries while its macros render the associated text when an entry is registered.
+This provides enforceable duplicate-ID and source-reference checks without hiding report content in an external data layer.
+
+The generated Core initializes these worksheet registries:
+
+| Registry | Stored calculation fields |
+| --- | --- |
+| `ReportReferences` | Reference ID |
+| `ReportDesignCriteria` | Criterion ID and required reference ID |
+| `ReportAssumptions` | Assumption ID and optional reference ID |
+| `ReportLimitations` | Limitation ID and optional reference ID |
+| `ReportRegistryErrors` | Status returned for every attempted registration |
+
+`RPT_NO_REFERENCE` is permitted for assumptions and limitations.
+Design criteria require a previously registered reference.
+All ordinary entry IDs must be positive integers and unique within their typed registry.
+Rendered reference IDs are document links, so a criterion, assumption, or limitation can be followed directly to its registered source row.
+
+Use the standard report flow:
+
+```text
+REF_STANDARD = 1
+CRITERION_STRENGTH = 1
+ASSUMPTION_STATIC = 1
+LIMITATION_TEMPERATURE = 1
+
+BeginReferences$
+AddReference$(REF_STANDARD; CSA S16; Design of steel structures; 2024; Clause 13; Governing resistance standard.)
+EndReferences$
+
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_STRENGTH; Member resistance; Demand must not exceed resistance.; REF_STANDARD; Clause 13; Use the applicable resistance equation.)
+EndDesignCriteria$
+
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_STATIC; Loading; Loads are static.; Dynamic effects are outside the defined scope.; RPT_NO_REFERENCE)
+EndAssumptions$
+
+BeginLimitations$
+AddLimitation$(LIMITATION_TEMPERATURE; Room-temperature properties only.; Elevated-temperature behavior is excluded.; Reassess for elevated temperature.; RPT_NO_REFERENCE)
+EndLimitations$
+
+ShowReportingSummary$
+```
+
+The public calculation helpers include:
+
+- `ReportRegistryAddStatus`, `ReportRegistryAdd`, `ReportRegistryEntryExists`, and `ReportRegistryCount` for one-column reference registries;
+- `ReportLinkedRegistryAddStatus`, `ReportLinkedRegistryAdd`, `ReportLinkedRegistryReference`, and `ReportLinkedRegistryCount` for linked registries;
+- `ReportReferenceKnown` for optional and required source-reference checks;
+- `ReportErrorRegistryCount` and `ReportRegistriesStatus` for aggregate reporting integrity; and
+- `ReportStatus$` and `ShowReportingSummary$` for status rendering.
+
+An invalid registration is not added.
+Its attempted row is still rendered with a prominent inline registry error so the source worksheet remains easy to diagnose.
 
 ## Calculation status
 

@@ -7,6 +7,8 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Structured registries for references, design criteria, assumptions, and limitations with unique IDs, validated source links, inline errors, standardized tables, and an aggregate reporting summary.
+- Focused reporting-registry regression coverage and a registry-based engineering calculation template.
 - Versioned distribution-directory and ZIP creation with a machine-readable compatibility and SHA-256 manifest.
 - Managed per-user installation and update tooling with retained versions and a stable `Current` path.
 - Portable-project generation with direct relative Core and optional Materials includes.
@@ -26,6 +28,10 @@ The project follows semantic versioning for the generated Core API.
 - AISC v16 HSS library with 714 square, rectangular, and round section records, including HSS-specific dimensions, lookup, reporting, and regression coverage.
 - AISC v16 C and MC channel library with 72 asymmetric-section records, including centroid and shear-center properties, lookup, reporting, and regression coverage.
 - AISC v16 single-angle library with 137 L-section records, principal-axis properties, lookup, screening, reporting, and regression coverage; double angles are excluded.
+
+### Changed
+
+- Core is versioned as 2.0.0 because the former free-form reference and initial-condition macros were replaced by the structured registry workflow before the first public release.
 
 ## 1.6.0 - 2026-08-09
 

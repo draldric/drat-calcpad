@@ -49,7 +49,8 @@ This contract avoids relying on ambiguous nested-include path behavior and makes
 6. `Database.cpd`
 7. `Validation.cpd`
 8. `CalculationStatus.cpd`
-9. `Plotting.cpd`
+9. `Reporting.cpd`
+10. `Plotting.cpd`
 
 The order is part of the Core contract because later modules use constants and macros defined earlier.
 
@@ -68,6 +69,9 @@ The standard worksheet flow is:
 6. Aggregate check counts, overall status, and governing utilization.
 7. Aggregate the document-level calculation status.
 8. Present results, source records, checks, status, and conclusions.
+
+The reporting registries separately preserve the identities and source relationships for references, design criteria, assumptions, and limitations.
+Their human-readable text is rendered by macros because CalcPad calculation matrices are numeric and unit-valued rather than general string containers.
 
 The validation records and engineering-status vectors are deliberately reused for both calculation decisions and reporting.
 This prevents displayed criteria from drifting away from the rules that were evaluated.

@@ -22,31 +22,38 @@ CreateTitle$
 CreatePurpose$
 CreateScope$
 
+#hide
+REF_GOVERNING_STANDARD = 1
+REF_INPUT_SOURCE = 2
+CRITERION_PRIMARY = 1
+ASSUMPTION_PRIMARY = 1
+LIMITATION_PRIMARY = 1
+#show
+
 BeginRevisions$
 AddRevision$(0; Initial calculation; PREPARER NAME; YYYY-MM-DD)
 EndRevisions$
 
 BeginReferences$
-AddReference$(List the governing code, standard, drawing, or source.)
+AddReference$(REF_GOVERNING_STANDARD; GOVERNING STANDARD; STANDARD TITLE; EDITION / REVISION; APPLICABLE CLAUSE; Describe how the reference governs the calculation.)
+AddReference$(REF_INPUT_SOURCE; DRAWING / SPECIFICATION / DATASET; INPUT SOURCE TITLE; REVISION / DATE; APPLICABLE LOCATION; Identify the origin of calculation inputs.)
 EndReferences$
 
 "Design Basis and Assumptions
 
-BeginListSection$(Design Criteria)
-AddListItem$(State the governing requirements and acceptance criteria.)
-EndListSection$
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_PRIMARY; PRIMARY DESIGN CRITERION; STATE THE REQUIRED LIMIT OR ACCEPTANCE CONDITION.; REF_GOVERNING_STANDARD; APPLICABLE CLAUSE; Explain how the criterion is applied.)
+EndDesignCriteria$
 
-BeginListSection$(Input Sources)
-AddListItem$(Identify drawings, specifications, measurements, databases, or other input sources.)
-EndListSection$
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_PRIMARY; ANALYSIS / GEOMETRY / LOADING / MATERIAL; STATE THE ENGINEERING ASSUMPTION.; State the evidence or engineering basis.; REF_INPUT_SOURCE)
+EndAssumptions$
 
-BeginListSection$(Assumptions)
-AddListItem$(State each engineering assumption and its justification.)
-EndListSection$
+BeginLimitations$
+AddLimitation$(LIMITATION_PRIMARY; STATE THE BOUND, EXCLUSION, OR CONDITION OF USE.; Explain the consequence if the limitation is exceeded.; State the review, verification, or additional analysis required.; RPT_NO_REFERENCE)
+EndLimitations$
 
-BeginListSection$(Applicability and Limitations)
-AddListItem$(Document important bounds, exclusions, and conditions of use.)
-EndListSection$
+ShowReportingSummary$
 
 "Inputs
 

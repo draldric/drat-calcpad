@@ -1,5 +1,5 @@
 #hide
-'<!-- Worksheet formatting definitions. Version 1.2.1. -->
+'<!-- Worksheet formatting definitions. Version 2.0.0. -->
 
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -62,17 +62,6 @@
     '<p>Scope$</p>
     '</section>
 #end def
-#def BeginReferences$
-    '<hr/>
-    '## References
-    '<ol>
-#end def
-#def AddReference$(R$)
-    '<li>R$</li>
-#end def
-#def EndReferences$
-    '</ol>
-#end def
 #def BeginRevisions$
     '## Revision History
     '<table class="bordered data revision-history" style="width:95%">
@@ -87,16 +76,6 @@
 #def EndRevisions$
     '</tbody>
     '</table>
-#end def
-#def BeginInitialConditions$
-    '### Design Basis and Assumptions
-    '<ul>
-#end def
-#def AddInitialCondition$(IC$)
-    '<li>IC$</li>
-#end def
-#def EndInitialConditions$
-    '</ul>
 #end def
 #def BeginListSection$(heading$)
     '#### heading$

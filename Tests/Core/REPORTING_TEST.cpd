@@ -1,0 +1,79 @@
+#include ../../Core/DratCore.cpd
+
+"Structured Reporting Registry Test
+
+test_references = ReportRegistryEmpty
+test_references = ReportRegistryAdd(test_references; 101)
+test_references = ReportRegistryAdd(test_references; 102)
+
+test_criteria = ReportLinkedRegistryEmpty
+test_criteria = ReportLinkedRegistryAdd(test_criteria; 201; 101; test_references; 1)
+
+test_assumptions = ReportLinkedRegistryEmpty
+test_assumptions = ReportLinkedRegistryAdd(test_assumptions; 301; RPT_NO_REFERENCE; test_references; 0)
+
+test_limitations = ReportLinkedRegistryEmpty
+test_limitations = ReportLinkedRegistryAdd(test_limitations; 401; 102; test_references; 0)
+
+shape_tests = and(
+    ReportRegistryShapeOK(ReportRegistryEmpty);
+    ReportLinkedRegistryShapeOK(ReportLinkedRegistryEmpty);
+    not(ReportRegistryShapeOK(join_rows([0; 0])));
+    not(ReportLinkedRegistryShapeOK([0]));
+    ReportIDOK(1);
+    not(ReportIDOK(0));
+    not(ReportIDOK(1.5)))
+
+reference_tests = and(
+    ReportRegistryCount(test_references) ≡ 2;
+    ReportRegistryEntryExists(test_references; 101);
+    ReportReferenceKnown(test_references; 102);
+    ReportReferenceKnown(test_references; RPT_NO_REFERENCE);
+    not(ReportReferenceKnown(test_references; 999));
+    ReportRegistryAddStatus(test_references; 103) ≡ RPT_OK;
+    ReportRegistryAddStatus(test_references; 101) ≡ RPT_ERR_DUPLICATE_ID;
+    ReportRegistryAddStatus(test_references; 0) ≡ RPT_ERR_BAD_ID)
+
+linked_tests = and(
+    ReportLinkedRegistryCount(test_criteria) ≡ 1;
+    ReportLinkedRegistryCount(test_assumptions) ≡ 1;
+    ReportLinkedRegistryCount(test_limitations) ≡ 1;
+    ReportLinkedRegistryReference(test_criteria; 201) ≡ 101;
+    ReportLinkedRegistryReference(test_assumptions; 301) ≡ RPT_NO_REFERENCE;
+    ReportLinkedRegistryAddStatus(test_criteria; 202; 102; test_references; 1) ≡ RPT_OK;
+    ReportLinkedRegistryAddStatus(test_criteria; 201; 102; test_references; 1) ≡ RPT_ERR_DUPLICATE_ID;
+    ReportLinkedRegistryAddStatus(test_criteria; 202; 999; test_references; 1) ≡ RPT_ERR_UNKNOWN_REFERENCE;
+    ReportLinkedRegistryAddStatus(test_criteria; 202; RPT_NO_REFERENCE; test_references; 1) ≡ RPT_ERR_UNKNOWN_REFERENCE;
+    ReportLinkedRegistryAddStatus(test_assumptions; 302; RPT_NO_REFERENCE; test_references; 0) ≡ RPT_OK)
+
+summary_tests = and(
+    ReportRegistriesCount(test_references; test_criteria; test_assumptions; test_limitations) ≡ 5;
+    ReportErrorRegistryCount([RPT_OK; RPT_OK]) ≡ 0;
+    ReportErrorRegistryCount([RPT_OK; RPT_ERR_BAD_ID; RPT_OK]) ≡ 1;
+    ReportRegistriesStatus(test_references; test_criteria; test_assumptions; test_limitations; [RPT_OK]) ≡ RPT_OK;
+    ReportRegistriesStatus(test_references; test_criteria; test_assumptions; test_limitations; [RPT_OK; RPT_ERR_DUPLICATE_ID]) ≡ RPT_ERR_DUPLICATE_ID)
+
+all_tests = and(shape_tests; reference_tests; linked_tests; summary_tests)
+
+'The following tables exercise the public reporting macros and reference links.
+
+BeginReferences$
+AddReference$(101; CSA S16; Design of steel structures; 2024; Clause 13; Governing resistance reference.)
+AddReference$(102; Project drawing; General arrangement; Rev 0; Detail 1; Geometry source.)
+EndReferences$
+
+"Design Basis and Assumptions
+
+BeginDesignCriteria$
+AddDesignCriterion$(201; Flexural resistance; Demand must not exceed resistance.; 101; Clause 13; Use the applicable resistance equation.)
+EndDesignCriteria$
+
+BeginAssumptions$
+AddAssumption$(301; Geometry; Member is prismatic.; Geometry is constant over the analyzed length.; 102)
+EndAssumptions$
+
+BeginLimitations$
+AddLimitation$(401; Static loading only.; Dynamic amplification is excluded.; Perform a dynamic assessment when required.; RPT_NO_REFERENCE)
+EndLimitations$
+
+ShowReportingSummary$

@@ -1,18 +1,22 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 10700
-DRAT_DEFINITIONS_API = 10201
-DRAT_STYLESHEET_API = 10400
+DRAT_CORE_API = 20000
+DRAT_DEFINITIONS_API = 20000
+DRAT_STYLESHEET_API = 10500
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
 DRAT_CHECKS_API = 10200
 DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 10400
 DRAT_CALCULATION_STATUS_API = 10000
+DRAT_REPORTING_API = 10000
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 1.7.0
+#def DRATCoreVersion$ = 2.0.0
+#show
+#hide
+'<!-- Shared worksheet stylesheet. Version 1.5.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -55,6 +59,12 @@ DRAT_CALCULATION_STATUS_API = 10000
 '<style>.reporting-summary{width:95%;table-layout:auto;}</style>
 '<style>.reporting-summary th,.reporting-summary td{vertical-align:top;}</style>
 '<style>.reporting-summary .status-cell{white-space:nowrap;text-align:center;}</style>
+'<style>.reporting-registry{width:95%;table-layout:auto;}</style>
+'<style>.reporting-registry th,.reporting-registry td{text-align:left;vertical-align:top;}</style>
+'<style>.reporting-registry .registry-id,.reporting-registry-summary td{text-align:center;white-space:nowrap;}</style>
+'<style>.reporting-registry .registry-reference-link{font-weight:bold;}</style>
+'<style>.reporting-registry .registry-error td{background:#fff2f2;color:#b30000;}</style>
+'<style>.reporting-registry tfoot th,.reporting-registry tfoot td{background:#f5f5f5;font-weight:bold;}</style>
 '<style>.check-summary .check-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
 '<style>.check-summary .check-counts td{text-align:center;}</style>
@@ -62,7 +72,7 @@ DRAT_CALCULATION_STATUS_API = 10000
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
 '<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
-'<!-- Worksheet formatting definitions. Version 1.2.1. -->
+'<!-- Worksheet formatting definitions. Version 2.0.0. -->
 
 '<!-----------------------------|PDF FORMATTING|------------------------------!>
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -125,17 +135,6 @@ DRAT_CALCULATION_STATUS_API = 10000
     '<p>Scope$</p>
     '</section>
 #end def
-#def BeginReferences$
-    '<hr/>
-    '## References
-    '<ol>
-#end def
-#def AddReference$(R$)
-    '<li>R$</li>
-#end def
-#def EndReferences$
-    '</ol>
-#end def
 #def BeginRevisions$
     '## Revision History
     '<table class="bordered data revision-history" style="width:95%">
@@ -150,16 +149,6 @@ DRAT_CALCULATION_STATUS_API = 10000
 #def EndRevisions$
     '</tbody>
     '</table>
-#end def
-#def BeginInitialConditions$
-    '### Design Basis and Assumptions
-    '<ul>
-#end def
-#def AddInitialCondition$(IC$)
-    '<li>IC$</li>
-#end def
-#def EndInitialConditions$
-    '</ul>
 #end def
 #def BeginListSection$(heading$)
     '#### heading$
@@ -1164,6 +1153,241 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
     '<p><strong>label$:</strong>
     CalculationStatus$(status$)
     '</p>
+#end def
+#show
+#hide
+'<!-- Structured engineering-report registries. Version 1.0.0. -->
+
+RPT_OK = 0
+RPT_ERR_BAD_REGISTRY = 10
+RPT_ERR_BAD_ID = 20
+RPT_ERR_DUPLICATE_ID = 30
+RPT_ERR_UNKNOWN_REFERENCE = 40
+
+RPT_EMPTY = 0
+RPT_NO_REFERENCE = 0
+
+ReportRegistryEmpty = [RPT_EMPTY]
+ReportLinkedRegistryEmpty = join_rows([RPT_EMPTY; RPT_NO_REFERENCE])
+
+ReportRegistryShapeOK(registry) = and(n_cols(registry) ≡ 1; n_rows(registry) ≥ 1; take(1; col(registry; 1)) ≡ RPT_EMPTY)
+ReportLinkedRegistryShapeOK(registry) = and(n_cols(registry) ≡ 2; n_rows(registry) ≥ 1; take(1; col(registry; 1)) ≡ RPT_EMPTY; take(1; col(registry; min(n_cols(registry); 2))) ≡ RPT_NO_REFERENCE)
+ReportIDOK(id) = and(ValidationIsInteger(id); id > 0)
+ReportReferenceIDOK(reference_id) = and(ValidationIsInteger(reference_id); reference_id ≥ RPT_NO_REFERENCE)
+ReportRegistryEntryExists(registry; id) = if(ReportRegistryShapeOK(registry); count(col(registry; 1); id; 1) > 0; 0)
+ReportRegistryCount(registry) = if(ReportRegistryShapeOK(registry); n_rows(registry) - 1; 0)
+ReportLinkedRegistryCount(registry) = if(ReportLinkedRegistryShapeOK(registry); n_rows(registry) - 1; 0)
+ReportReferenceKnown(references; reference_id) = or(reference_id ≡ RPT_NO_REFERENCE; ReportRegistryEntryExists(references; reference_id))
+
+ReportRegistryAddStatus(registry; id) = switch(
+    not(ReportRegistryShapeOK(registry)); RPT_ERR_BAD_REGISTRY;
+    not(ReportIDOK(id)); RPT_ERR_BAD_ID;
+    ReportRegistryEntryExists(registry; id); RPT_ERR_DUPLICATE_ID;
+    RPT_OK)
+
+ReportRegistryAdd(registry; id) = if(ReportRegistryAddStatus(registry; id) ≡ RPT_OK; join(registry; id); registry)
+
+ReportLinkedRegistryAddStatus(registry; id; reference_id; references; reference_required) = switch(
+    not(ReportLinkedRegistryShapeOK(registry)); RPT_ERR_BAD_REGISTRY;
+    not(ReportRegistryShapeOK(references)); RPT_ERR_BAD_REGISTRY;
+    not(ReportIDOK(id)); RPT_ERR_BAD_ID;
+    ReportRegistryEntryExists(col(registry; 1); id); RPT_ERR_DUPLICATE_ID;
+    not(ReportReferenceIDOK(reference_id)); RPT_ERR_UNKNOWN_REFERENCE;
+    and(reference_required; reference_id ≡ RPT_NO_REFERENCE); RPT_ERR_UNKNOWN_REFERENCE;
+    not(ReportReferenceKnown(references; reference_id)); RPT_ERR_UNKNOWN_REFERENCE;
+    RPT_OK)
+
+ReportLinkedRegistryAdd(registry; id; reference_id; references; reference_required) = if(ReportLinkedRegistryAddStatus(registry; id; reference_id; references; reference_required) ≡ RPT_OK; stack(registry; join_rows([id; reference_id])); registry)
+ReportLinkedRegistryReference(registry; id) = if(ReportLinkedRegistryShapeOK(registry); DBLookupOr(registry; id; 1; 2; RPT_NO_REFERENCE); RPT_NO_REFERENCE)
+
+ReportErrorRegistryCount(errors) = len(errors) - count(errors; RPT_OK; 1)
+ReportErrorRegistryStatus(errors) = if(ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(errors))
+ReportRegistriesCount(references; criteria; assumptions; limitations) = ReportRegistryCount(references) + ReportLinkedRegistryCount(criteria) + ReportLinkedRegistryCount(assumptions) + ReportLinkedRegistryCount(limitations)
+ReportRegistriesStatus(references; criteria; assumptions; limitations; errors) = switch(
+    not(ReportRegistryShapeOK(references)); RPT_ERR_BAD_REGISTRY;
+    not(ReportLinkedRegistryShapeOK(criteria)); RPT_ERR_BAD_REGISTRY;
+    not(ReportLinkedRegistryShapeOK(assumptions)); RPT_ERR_BAD_REGISTRY;
+    not(ReportLinkedRegistryShapeOK(limitations)); RPT_ERR_BAD_REGISTRY;
+    ReportErrorRegistryStatus(errors) ≠ RPT_OK; ReportErrorRegistryStatus(errors);
+    RPT_OK)
+
+ReportReferences = ReportRegistryEmpty
+ReportDesignCriteria = ReportLinkedRegistryEmpty
+ReportAssumptions = ReportLinkedRegistryEmpty
+ReportLimitations = ReportLinkedRegistryEmpty
+ReportRegistryErrors = [RPT_OK]
+
+#def ReportStatus$(status$)
+    #if status$ ≡ RPT_OK
+        '<span class="ok">VALID</span>
+    #end if
+    #if status$ ≡ RPT_ERR_BAD_REGISTRY
+        '<span class="err">INVALID REGISTRY</span>
+    #end if
+    #if status$ ≡ RPT_ERR_BAD_ID
+        '<span class="err">INVALID ID</span>
+    #end if
+    #if status$ ≡ RPT_ERR_DUPLICATE_ID
+        '<span class="err">DUPLICATE ID</span>
+    #end if
+    #if status$ ≡ RPT_ERR_UNKNOWN_REFERENCE
+        '<span class="err">UNKNOWN REFERENCE</span>
+    #end if
+    #if not(or(status$ ≡ RPT_OK; status$ ≡ RPT_ERR_BAD_REGISTRY; status$ ≡ RPT_ERR_BAD_ID; status$ ≡ RPT_ERR_DUPLICATE_ID; status$ ≡ RPT_ERR_UNKNOWN_REFERENCE))
+        '<span class="err">UNKNOWN REPORTING STATUS</span>
+    #end if
+#end def
+
+#def ReportReferenceID$(reference_id$)
+    #if reference_id$ ≡ RPT_NO_REFERENCE
+        '<span class="note">None</span>
+    #else
+        '<a class="registry-reference-link" href="#report-reference-reference_id$">reference_id$</a>
+    #end if
+#end def
+
+#def BeginReferences$
+    '<h2>References</h2>
+    '<table class="bordered reporting-summary reporting-registry reference-registry">
+    '<thead><tr><th>ID</th><th>Document</th><th>Title</th><th>Edition / Revision</th><th>Clause</th><th>Notes</th></tr></thead>
+    '<tbody>
+#end def
+
+#def AddReference$(id$; document$; title$; edition$; clause$; notes$)
+    #hide
+    ζRPT_reference_status = ReportRegistryAddStatus(ReportReferences; id$)
+    ReportReferences = ReportRegistryAdd(ReportReferences; id$)
+    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_reference_status)
+    #show
+    #if ζRPT_reference_status ≡ RPT_OK
+        '<tr id="report-reference-id$">
+    #else
+        '<tr>
+    #end if
+    '<td class="registry-id">id$</td><td>document$</td><td>title$</td><td>edition$</td><td>clause$</td><td>notes$</td></tr>
+    #if ζRPT_reference_status ≠ RPT_OK
+        '<tr class="registry-error"><td></td><td colspan="5"><strong>Reference registry error:</strong>
+        ReportStatus$(ζRPT_reference_status)
+        '</td></tr>
+    #end if
+#end def
+
+#def EndReferences$
+    '</tbody>
+    #val
+    '<tfoot><tr><th>Registered references</th><td colspan="5">'ReportRegistryCount(ReportReferences)'</td></tr></tfoot>
+    #equ
+    '</table>
+#end def
+
+#def BeginDesignCriteria$
+    '<h4>Design Criteria</h4>
+    '<table class="bordered reporting-summary reporting-registry criteria-registry">
+    '<thead><tr><th>ID</th><th>Criterion</th><th>Requirement</th><th>Reference</th><th>Clause</th><th>Notes</th></tr></thead>
+    '<tbody>
+#end def
+
+#def AddDesignCriterion$(id$; criterion$; requirement$; reference_id$; clause$; notes$)
+    #hide
+    ζRPT_criterion_status = ReportLinkedRegistryAddStatus(ReportDesignCriteria; id$; reference_id$; ReportReferences; 1)
+    ReportDesignCriteria = ReportLinkedRegistryAdd(ReportDesignCriteria; id$; reference_id$; ReportReferences; 1)
+    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_criterion_status)
+    #show
+    '<tr><td class="registry-id">id$</td><td>criterion$</td><td>requirement$</td><td class="registry-id">
+    ReportReferenceID$(reference_id$)
+    '</td><td>clause$</td><td>notes$</td></tr>
+    #if ζRPT_criterion_status ≠ RPT_OK
+        '<tr class="registry-error"><td></td><td colspan="5"><strong>Design-criteria registry error:</strong>
+        ReportStatus$(ζRPT_criterion_status)
+        '</td></tr>
+    #end if
+#end def
+
+#def EndDesignCriteria$
+    '</tbody>
+    #val
+    '<tfoot><tr><th>Registered criteria</th><td colspan="5">'ReportLinkedRegistryCount(ReportDesignCriteria)'</td></tr></tfoot>
+    #equ
+    '</table>
+#end def
+
+#def BeginAssumptions$
+    '<h4>Assumptions</h4>
+    '<table class="bordered reporting-summary reporting-registry assumption-registry">
+    '<thead><tr><th>ID</th><th>Category</th><th>Assumption</th><th>Basis / Justification</th><th>Reference</th></tr></thead>
+    '<tbody>
+#end def
+
+#def AddAssumption$(id$; category$; assumption$; basis$; reference_id$)
+    #hide
+    ζRPT_assumption_status = ReportLinkedRegistryAddStatus(ReportAssumptions; id$; reference_id$; ReportReferences; 0)
+    ReportAssumptions = ReportLinkedRegistryAdd(ReportAssumptions; id$; reference_id$; ReportReferences; 0)
+    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_assumption_status)
+    #show
+    '<tr><td class="registry-id">id$</td><td>category$</td><td>assumption$</td><td>basis$</td><td class="registry-id">
+    ReportReferenceID$(reference_id$)
+    '</td></tr>
+    #if ζRPT_assumption_status ≠ RPT_OK
+        '<tr class="registry-error"><td></td><td colspan="4"><strong>Assumption registry error:</strong>
+        ReportStatus$(ζRPT_assumption_status)
+        '</td></tr>
+    #end if
+#end def
+
+#def EndAssumptions$
+    '</tbody>
+    #val
+    '<tfoot><tr><th>Registered assumptions</th><td colspan="4">'ReportLinkedRegistryCount(ReportAssumptions)'</td></tr></tfoot>
+    #equ
+    '</table>
+#end def
+
+#def BeginLimitations$
+    '<h4>Applicability and Limitations</h4>
+    '<table class="bordered reporting-summary reporting-registry limitation-registry">
+    '<thead><tr><th>ID</th><th>Limitation</th><th>Consequence</th><th>Required Follow-up</th><th>Reference</th></tr></thead>
+    '<tbody>
+#end def
+
+#def AddLimitation$(id$; limitation$; consequence$; follow_up$; reference_id$)
+    #hide
+    ζRPT_limitation_status = ReportLinkedRegistryAddStatus(ReportLimitations; id$; reference_id$; ReportReferences; 0)
+    ReportLimitations = ReportLinkedRegistryAdd(ReportLimitations; id$; reference_id$; ReportReferences; 0)
+    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_limitation_status)
+    #show
+    '<tr><td class="registry-id">id$</td><td>limitation$</td><td>consequence$</td><td>follow_up$</td><td class="registry-id">
+    ReportReferenceID$(reference_id$)
+    '</td></tr>
+    #if ζRPT_limitation_status ≠ RPT_OK
+        '<tr class="registry-error"><td></td><td colspan="4"><strong>Limitation registry error:</strong>
+        ReportStatus$(ζRPT_limitation_status)
+        '</td></tr>
+    #end if
+#end def
+
+#def EndLimitations$
+    '</tbody>
+    #val
+    '<tfoot><tr><th>Registered limitations</th><td colspan="4">'ReportLinkedRegistryCount(ReportLimitations)'</td></tr></tfoot>
+    #equ
+    '</table>
+#end def
+
+#def ShowReportingSummary$
+    #hide
+    ζRPT_overall_status = ReportRegistriesStatus(ReportReferences; ReportDesignCriteria; ReportAssumptions; ReportLimitations; ReportRegistryErrors)
+    #show
+    '<section class="reporting-registry-summary">
+    '<h4>Reporting Registry Summary</h4>
+    '<table class="bordered reporting-summary reporting-registry">
+    '<thead><tr><th>References</th><th>Design Criteria</th><th>Assumptions</th><th>Limitations</th><th>Errors</th><th>Status</th></tr></thead>
+    #val
+    '<tbody><tr><td>'ReportRegistryCount(ReportReferences)'</td><td>'ReportLinkedRegistryCount(ReportDesignCriteria)'</td><td>'ReportLinkedRegistryCount(ReportAssumptions)'</td><td>'ReportLinkedRegistryCount(ReportLimitations)'</td><td>'ReportErrorRegistryCount(ReportRegistryErrors)'</td><td class="status-cell">
+    #equ
+    ReportStatus$(ζRPT_overall_status)
+    '</td></tr></tbody>
+    '</table>
+    '</section>
 #end def
 #show
 #hide

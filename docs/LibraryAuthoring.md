@@ -15,7 +15,7 @@ The consuming worksheet must load every dependency directly and in order:
 Wrap the entire library body in Core and component API guards:
 
 ```text
-#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 20000)
+#if and(DRAT_CORE_API ≥ 20000; DRAT_CORE_API < 30000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #hide
 

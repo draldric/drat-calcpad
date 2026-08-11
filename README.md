@@ -53,6 +53,10 @@ Use `EndCheckSummaryWithResult$` with matching status and utilization vectors to
 `CalculationStatus.cpd` combines the validation and engineering-check vectors into a document-level `CALC_PASS`, `CALC_WARN`, `CALC_FAIL`, `CALC_INCOMPLETE`, or `CALC_ERROR` result.
 Use `ShowCalculationStatus$` for the standard calculation banner and counts.
 
+`Reporting.cpd` provides structured registries for references, design criteria, assumptions, and limitations.
+Each entry has a positive integer ID; linked entries validate their source reference, duplicate IDs render inline errors, and `ShowReportingSummary$` reports the registered counts and aggregate registry status.
+CalcPad text remains macro content, while the numeric registries preserve the auditable identities and relationships used for validation.
+
 `Validation.cpd` validates defined values, the complete positive/negative/zero sign family, inclusive and open ranges, excluded ranges, one-sided and absolute bounds, integers, vector length and contents, vector ordering and uniqueness, matching vector lengths, matrix row and column counts, square matrices, registered values, available values, and values from registered option sets.
 The result constructors return `[status; value; rule_code; data_1; data_2]`, allowing `AddValidationResult$` to render the value, permitted criterion, and status from one result.
 Stack results with `join_rows`, obtain their statuses with `ValidationResultsStatuses`, and close the table with `EndValidationResults$`.

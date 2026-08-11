@@ -22,40 +22,52 @@ CreateTitle$
 CreatePurpose$
 CreateScope$
 
+#hide
+REF_MATERIAL_LIBRARY = 1
+REF_PROJECT_BASIS = 2
+REF_MATERIAL_PROVENANCE = 3
+CRITERION_YIELD = 1
+CRITERION_TENSILE = 2
+CRITERION_UTILIZATION = 3
+ASSUMPTION_STATIC_TENSION = 1
+ASSUMPTION_UNIFORM_STRESS = 2
+ASSUMPTION_MATERIAL_REPRESENTATION = 3
+LIMITATION_SCREENING_VALUES = 1
+LIMITATION_EXCLUDED_MODES = 2
+LIMITATION_DEMONSTRATION_INPUTS = 3
+#show
+
 BeginRevisions$
 AddRevision$(0; Initial integrated example; EXAMPLE AUTHOR; 2026-08-09)
 EndRevisions$
 
 BeginReferences$
-AddReference$(EngineeringMaterialsLibraryName$, revision EngineeringMaterialsLibraryRevision$, dated EngineeringMaterialsLibraryDate$.)
-AddReference$(Project-specific material specification and design basis to be confirmed by the responsible engineer.)
-AddReference$(Material source registry entry reported with the selected material record.)
+AddReference$(REF_MATERIAL_LIBRARY; EngineeringMaterialsLibraryName$; Common engineering materials screening data; EngineeringMaterialsLibraryRevision$ / EngineeringMaterialsLibraryDate$; Selected material record; Representative values are not project-certified allowables.)
+AddReference$(REF_PROJECT_BASIS; Project design basis; Project-specific material specification and acceptance requirements; Project revision; Governing design criteria; To be confirmed by the responsible engineer.)
+AddReference$(REF_MATERIAL_PROVENANCE; Material source registry; Source reported with the selected material record; Dataset revision; Selected material source; Use the reported source and revision when reviewing the retrieved properties.)
 EndReferences$
 
 "Design Basis and Assumptions
 
-BeginListSection$(Design Criteria)
-AddListItem$(Nominal axial tensile stress must not exceed the yield-strength screening value divided by the selected yield factor.)
-AddListItem$(Nominal axial tensile stress must not exceed the tensile-strength screening value divided by the selected ultimate factor.)
-AddListItem$(A utilization of 1.0 is the screening limit, and the warning threshold identifies checks approaching that limit.)
-EndListSection$
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_YIELD; Yield screening; Nominal axial tensile stress must not exceed the yield-strength screening value divided by the selected yield factor.; REF_PROJECT_BASIS; Project acceptance criteria; Replace with the governing project or code criterion.)
+AddDesignCriterion$(CRITERION_TENSILE; Tensile screening; Nominal axial tensile stress must not exceed the tensile-strength screening value divided by the selected ultimate factor.; REF_PROJECT_BASIS; Project acceptance criteria; Replace with the governing project or code criterion.)
+AddDesignCriterion$(CRITERION_UTILIZATION; Utilization classification; A utilization of 1.0 is the screening limit and the warning threshold identifies checks approaching that limit.; REF_PROJECT_BASIS; Project acceptance criteria; The warning threshold does not change the acceptance limit.)
+EndDesignCriteria$
 
-BeginListSection$(Input Sources)
-AddListItem$(Applied load and gross area are saved demonstration inputs in this worksheet.)
-AddListItem$(Yield and tensile strengths are retrieved from EngineeringMaterialsLibraryName$.)
-EndListSection$
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_STATIC_TENSION; Loading; The member carries concentric static uniaxial tension.; The example applies a single axial force without eccentricity or dynamics.; REF_PROJECT_BASIS)
+AddAssumption$(ASSUMPTION_UNIFORM_STRESS; Analysis; Stress is uniformly distributed over the gross cross-sectional area.; The calculation uses nominal axial stress.; REF_PROJECT_BASIS)
+AddAssumption$(ASSUMPTION_MATERIAL_REPRESENTATION; Material; The selected material record represents the member material and condition.; Property applicability must be confirmed from the reported provenance.; REF_MATERIAL_PROVENANCE)
+EndAssumptions$
 
-BeginListSection$(Assumptions)
-AddListItem$(The member carries concentric, static, uniaxial tension.)
-AddListItem$(Stress is uniformly distributed over the gross cross-sectional area.)
-AddListItem$(The selected material record represents the member material and condition.)
-EndListSection$
+BeginLimitations$
+AddLimitation$(LIMITATION_SCREENING_VALUES; The material library contains representative screening values rather than certified project design allowables.; A passing result is suitable only for screening.; Confirm project material properties before design issue.; REF_MATERIAL_LIBRARY)
+AddLimitation$(LIMITATION_EXCLUDED_MODES; Net-section reduction connections stress concentrations fatigue fracture buckling temperature effects and code-specific resistance factors are excluded.; Other failure modes may govern.; Perform the governing code and project-specific checks.; REF_PROJECT_BASIS)
+AddLimitation$(LIMITATION_DEMONSTRATION_INPUTS; Applied load and gross area are saved demonstration inputs.; The reported result does not represent a specific project member.; Replace the inputs and verify all requirements before use.; RPT_NO_REFERENCE)
+EndLimitations$
 
-BeginListSection$(Applicability and Limitations)
-AddListItem$(The material library contains representative screening values, not certified project design allowables.)
-AddListItem$(This example excludes net-section reduction, connections, stress concentrations, fatigue, fracture, buckling, temperature effects, and code-specific resistance factors.)
-AddListItem$(The responsible engineer must replace the demonstration inputs and verify all governing requirements before use.)
-EndListSection$
+ShowReportingSummary$
 
 "Inputs
 
