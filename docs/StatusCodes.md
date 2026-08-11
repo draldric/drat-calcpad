@@ -14,7 +14,7 @@ Use the associated predicate or rendering macro instead of embedding numeric lit
 | `CALC_ERROR` | 40 | A status is unknown or an engineering check contains an evaluation error |
 
 `CalculationStatus` derives the document status from validation and check vectors.
-`CalculationStatusFromRegistries` and `CalculationStatusFromGlobalRegistries` derive the check vector and registry-integrity state from structured check results.
+`CalculationStatusFromRegistries` derives both status vectors and both registry-integrity states from structured validation and check results.
 Invalid inputs produce `CALC_INCOMPLETE` even when their gated engineering checks return `CHK_ERROR`.
 This keeps an unfinished worksheet distinct from a valid calculation that fails its acceptance criteria.
 
@@ -78,6 +78,19 @@ Any registry error contributes an effective `CHK_ERROR`, so it propagates to the
 `ValidationStatusKnown` identifies defined codes.
 `ValidationIsError` treats values of 20 or greater as errors.
 `ValidationStatus$` renders the detailed user-facing result.
+
+## Validation-result registry integrity
+
+| Constant | Value | Meaning |
+| --- | ---: | --- |
+| `VAL_REG_OK` | 0 | Validation result was registered successfully |
+| `VAL_REG_ERR_BAD_REGISTRY` | 10 | Existing result registry has an invalid shape or sentinel row |
+| `VAL_REG_ERR_BAD_RESULT` | 20 | Structured validation result is malformed |
+| `VAL_REG_ERR_BAD_ID` | 30 | Input ID is not a positive integer |
+| `VAL_REG_ERR_DUPLICATE_ID` | 40 | Input ID is already registered |
+
+`ValidationRegistryErrorCount` and `ValidationRegistryErrorsOK` summarize attempted registrations.
+Any registration error contributes an effective `VAL_ERR_BAD_RESULT` and prevents the document from being treated as a complete calculation.
 
 ## Database and property lookup
 

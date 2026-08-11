@@ -28,6 +28,9 @@ REF_INPUT_SOURCE = 2
 CRITERION_PRIMARY = 1
 ASSUMPTION_PRIMARY = 1
 LIMITATION_PRIMARY = 1
+INPUT_DEMAND = 1
+INPUT_CAPACITY = 2
+INPUT_WARNING_THRESHOLD = 3
 CHECK_UPPER_LIMIT = 1
 #show
 
@@ -70,17 +73,19 @@ warning_threshold = CHK_DEFAULT_WARNING
 demand_validation = ValidationNonnegativeResult(demand)
 capacity_validation = ValidationPositiveResult(capacity)
 warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
-input_results = join_rows(demand_validation; capacity_validation; warning_validation)
-input_statuses = ValidationResultsStatuses(input_results)
-input_validation = ValidationOverallStatus(input_statuses)
-inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
 BeginValidationSummary$
-AddValidationResult$(Demand; demand_validation)
-AddValidationResult$(Capacity; capacity_validation)
-AddValidationResult$(Warning threshold; warning_validation)
-EndValidationResults$(input_results)
+AddValidationResult$(INPUT_DEMAND; Demand; demand_validation)
+AddValidationResult$(INPUT_CAPACITY; Capacity; capacity_validation)
+AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
+EndValidationResults$
+ShowValidationIssues$
+
+#hide
+input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
 
 "Methodology
 
@@ -101,9 +106,8 @@ EndCheckRegistryWithSummary$
 ShowCheckIssues$
 
 #hide
-check_statuses = CheckResultRegistryStatuses(EngineeringCheckRegistry)
 overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
-calculation_status = CalculationStatusFromGlobalRegistries(input_results)
+calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 #show
 
 "Results
@@ -112,7 +116,7 @@ calculation_status = CalculationStatusFromGlobalRegistries(input_results)
 AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry))
 #equ
 
-ShowCalculationStatusFromRegistries$(input_results)
+ShowCalculationStatusFromRegistries$
 
 BeginConclusions$
 #novar

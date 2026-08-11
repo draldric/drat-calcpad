@@ -22,6 +22,14 @@ CreatePurpose$
 CreateScope$
 
 #hide
+INPUT_STRENGTH_DEMAND = 1
+INPUT_STRENGTH_CAPACITY = 2
+INPUT_SERVICEABILITY_DEMAND = 3
+INPUT_SERVICEABILITY_LIMIT = 4
+INPUT_REQUIRED_THICKNESS = 5
+INPUT_PROVIDED_THICKNESS = 6
+INPUT_INTERACTION = 7
+INPUT_WARNING_THRESHOLD = 8
 CHECK_STRENGTH = 1
 CHECK_SERVICEABILITY = 2
 CHECK_MINIMUM_THICKNESS = 3
@@ -54,21 +62,23 @@ required_thickness_validation = ValidationPositiveResult(required_thickness)
 provided_thickness_validation = ValidationPositiveResult(provided_thickness)
 interaction_validation = ValidationNonnegativeResult(interaction_utilization)
 warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
-input_results = join_rows(strength_demand_validation; strength_capacity_validation; serviceability_demand_validation; serviceability_limit_validation; required_thickness_validation; provided_thickness_validation; interaction_validation; warning_validation)
-input_statuses = ValidationResultsStatuses(input_results)
-inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
 BeginValidationSummary$
-AddValidationResult$(Strength demand; strength_demand_validation)
-AddValidationResult$(Strength capacity; strength_capacity_validation)
-AddValidationResult$(Serviceability demand; serviceability_demand_validation)
-AddValidationResult$(Serviceability limit; serviceability_limit_validation)
-AddValidationResult$(Required thickness; required_thickness_validation)
-AddValidationResult$(Provided thickness; provided_thickness_validation)
-AddValidationResult$(Interaction utilization; interaction_validation)
-AddValidationResult$(Warning threshold; warning_validation)
-EndValidationResults$(input_results)
+AddValidationResult$(INPUT_STRENGTH_DEMAND; Strength demand; strength_demand_validation)
+AddValidationResult$(INPUT_STRENGTH_CAPACITY; Strength capacity; strength_capacity_validation)
+AddValidationResult$(INPUT_SERVICEABILITY_DEMAND; Serviceability demand; serviceability_demand_validation)
+AddValidationResult$(INPUT_SERVICEABILITY_LIMIT; Serviceability limit; serviceability_limit_validation)
+AddValidationResult$(INPUT_REQUIRED_THICKNESS; Required thickness; required_thickness_validation)
+AddValidationResult$(INPUT_PROVIDED_THICKNESS; Provided thickness; provided_thickness_validation)
+AddValidationResult$(INPUT_INTERACTION; Interaction utilization; interaction_validation)
+AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
+EndValidationResults$
+ShowValidationIssues$
+
+#hide
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
 
 "Engineering Checks
 
@@ -83,7 +93,7 @@ EndCheckRegistryWithSummary$
 
 ShowCheckIssues$
 
-ShowCalculationStatusFromRegistries$(input_results)
+ShowCalculationStatusFromRegistries$
 
 "Registry Query Examples
 
@@ -93,13 +103,17 @@ demo_governing_id = CheckResultRegistryGoverningID(EngineeringCheckRegistry)
 demo_governing_utilization = CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry)
 demo_issue_count = CheckResultRegistryIssueCount(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 demo_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
-demo_calculation_status = CalculationStatusFromGlobalRegistries(input_results)
+demo_validation_count = ValidationResultRegistryCount(InputValidationRegistry)
+demo_validation_issue_count = ValidationResultRegistryIssueCount(InputValidationRegistry; InputValidationRegistryErrors)
+demo_calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 #show
 
 '<table class="bordered reporting-summary check-registry-query">
 '<thead><tr><th>Query</th><th>Result</th></tr></thead>
 '<tbody>
 #val
+'<tr><td>Registered validations</td><td>'demo_validation_count'</td></tr>
+'<tr><td>Validation items requiring review</td><td>'demo_validation_issue_count'</td></tr>
 '<tr><td>Registered checks</td><td>'demo_check_count'</td></tr>
 '<tr><td>Governing check ID</td><td>'demo_governing_id'</td></tr>
 '<tr><td>Governing utilization</td><td>'demo_governing_utilization'</td></tr>

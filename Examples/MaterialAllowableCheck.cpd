@@ -35,6 +35,16 @@ ASSUMPTION_MATERIAL_REPRESENTATION = 3
 LIMITATION_SCREENING_VALUES = 1
 LIMITATION_EXCLUDED_MODES = 2
 LIMITATION_DEMONSTRATION_INPUTS = 3
+INPUT_MATERIAL_ID = 1
+INPUT_TENSILE_LOAD = 2
+INPUT_GROSS_AREA = 3
+INPUT_YIELD_FACTOR = 4
+INPUT_ULTIMATE_FACTOR = 5
+INPUT_WARNING_THRESHOLD = 6
+INPUT_YIELD_PROPERTY = 7
+INPUT_TENSILE_PROPERTY = 8
+INPUT_SOURCE = 9
+INPUT_DATASET_REVISION = 10
 CHECK_YIELD_STRENGTH = 1
 CHECK_TENSILE_STRENGTH = 2
 #show
@@ -100,24 +110,26 @@ ultimate_property_validation = ValidationAvailableResult(S_u)
 source_validation = ValidationRegisteredResult(material_source_id; MatSourceKnown(material_source_id))
 revision_validation = ValidationPositiveResult(material_data_revision)
 
-input_results = join_rows(material_validation; force_validation; area_validation; yield_factor_validation; ultimate_factor_validation; warning_validation; yield_property_validation; ultimate_property_validation; source_validation; revision_validation)
-input_statuses = ValidationResultsStatuses(input_results)
-input_validation = ValidationOverallStatus(input_statuses)
-inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
 BeginValidationSummary$
-AddValidationResult$(Material ID; material_validation)
-AddValidationResult$(Applied tensile load; force_validation)
-AddValidationResult$(Gross cross-sectional area; area_validation)
-AddValidationResult$(Yield factor; yield_factor_validation)
-AddValidationResult$(Ultimate factor; ultimate_factor_validation)
-AddValidationResult$(Warning threshold; warning_validation)
-AddValidationResult$(Yield-strength property; yield_property_validation)
-AddValidationResult$(Tensile-strength property; ultimate_property_validation)
-AddValidationResult$(Source registry entry; source_validation)
-AddValidationResult$(Dataset revision; revision_validation)
-EndValidationResults$(input_results)
+AddValidationResult$(INPUT_MATERIAL_ID; Material ID; material_validation)
+AddValidationResult$(INPUT_TENSILE_LOAD; Applied tensile load; force_validation)
+AddValidationResult$(INPUT_GROSS_AREA; Gross cross-sectional area; area_validation)
+AddValidationResult$(INPUT_YIELD_FACTOR; Yield factor; yield_factor_validation)
+AddValidationResult$(INPUT_ULTIMATE_FACTOR; Ultimate factor; ultimate_factor_validation)
+AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
+AddValidationResult$(INPUT_YIELD_PROPERTY; Yield-strength property; yield_property_validation)
+AddValidationResult$(INPUT_TENSILE_PROPERTY; Tensile-strength property; ultimate_property_validation)
+AddValidationResult$(INPUT_SOURCE; Source registry entry; source_validation)
+AddValidationResult$(INPUT_DATASET_REVISION; Dataset revision; revision_validation)
+EndValidationResults$
+ShowValidationIssues$
+
+#hide
+input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
 
 "Material Data
 
@@ -163,10 +175,9 @@ EndCheckRegistryWithSummary$
 ShowCheckIssues$
 
 #hide
-check_statuses = CheckResultRegistryStatuses(EngineeringCheckRegistry)
 overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 governing_utilization = CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry)
-calculation_status = CalculationStatusFromGlobalRegistries(input_results)
+calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 #show
 
 "Results
@@ -178,7 +189,7 @@ AddConclusion$(Tensile-strength screening allowable; σ_u_allow)
 AddConclusion$(Governing utilization; governing_utilization)
 #equ
 
-ShowCalculationStatusFromRegistries$(input_results)
+ShowCalculationStatusFromRegistries$
 
 BeginConclusions$
 #novar

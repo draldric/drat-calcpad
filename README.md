@@ -50,17 +50,17 @@ The default warning threshold is available as `CHK_DEFAULT_WARNING`.
 Use `BeginCheckRegistry$`, `AddUpperCheck$`, `AddLowerCheck$`, or `AddCustomCheck$`, and `EndCheckRegistryWithSummary$` to create the full check table without maintaining parallel status, utilization, or label vectors.
 `ShowCheckIssues$` lists warning, failure, and error checks, while the governing summary identifies the first maximum utilization by stable check ID.
 
-`CalculationStatus.cpd` combines the validation and engineering-check vectors into a document-level `CALC_PASS`, `CALC_WARN`, `CALC_FAIL`, `CALC_INCOMPLETE`, or `CALC_ERROR` result.
-Use `ShowCalculationStatusFromRegistries$(input_results)` for the standard calculation banner and counts derived directly from the structured validation and check registries.
+`CalculationStatus.cpd` combines the validation and engineering-check registries into a document-level `CALC_PASS`, `CALC_WARN`, `CALC_FAIL`, `CALC_INCOMPLETE`, or `CALC_ERROR` result.
+Use `ShowCalculationStatusFromRegistries$` for the standard calculation banner and counts derived directly from both global registries.
 
 `Reporting.cpd` provides structured registries for references, design criteria, assumptions, and limitations.
 Each entry has a positive integer ID; linked entries validate their source reference, duplicate IDs render inline errors, and `ShowReportingSummary$` reports the registered counts and aggregate registry status.
 CalcPad text remains macro content, while the numeric registries preserve the auditable identities and relationships used for validation.
 
 `Validation.cpd` validates defined values, the complete positive/negative/zero sign family, inclusive and open ranges, excluded ranges, one-sided and absolute bounds, integers, vector length and contents, vector ordering and uniqueness, matching vector lengths, matrix row and column counts, square matrices, registered values, available values, and values from registered option sets.
-The result constructors return `[status; value; rule_code; data_1; data_2]`, allowing `AddValidationResult$` to render the value, permitted criterion, and status from one result.
-Stack results with `join_rows`, obtain their statuses with `ValidationResultsStatuses`, and close the table with `EndValidationResults$`.
-The original scalar `Validation*Status` functions and `AddValidationRow$` remain available for compatibility.
+The result constructors return `[status; value; rule_code; data_1; data_2]`.
+`AddValidationResult$` combines that result with a stable input ID, renders the row, and registers `[id; status; value; rule_code; data_1; data_2]` for summaries and calculation decisions.
+`ShowValidationIssues$` lists warnings and errors with links to the registered input rows.
 `ValidationLengthResult` checks the number of entries in a vector rather than the magnitude of its entries; use `ValidationRangeResult` for a scalar magnitude and `ValidationVectorRangeResult` to check every vector entry.
 Use separate `ValidationMatrixRowsResult` and `ValidationMatrixColumnsResult` records for bounded dimensions, or `ValidationMatrixDimensionsResults` to produce both records for an exact matrix shape.
 
@@ -70,11 +70,12 @@ Add a vector of values with `ValidationRegistryAdd`, then create results with `V
 ```text
 ValidationAllowedRegistry = ValidationRegistryAdd(ValidationAllowedRegistry; set_id; [1.1; 1.2; 1.3])
 input_result = ValidationAllowedSetResult(input_value; set_id)
-input_results = join_rows(input_result)
+INPUT_FACTOR = 1
 
 BeginValidationSummary$
-AddValidationResult$(Input prompt; input_result)
-EndValidationResults$(input_results)
+AddValidationResult$(INPUT_FACTOR; Input prompt; input_result)
+EndValidationResults$
+ShowValidationIssues$
 ```
 
 `Database.cpd` provides column-safe lookup, status, fallback, metadata, and registry helpers for general matrices.
@@ -93,6 +94,7 @@ Required organization, client, project, calculation, and preparation metadata us
 
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
 `Examples/ReportingRegistriesDemo.cpd` demonstrates structured references, linked design criteria, assumptions, limitations, registry queries, and aggregate reporting status without requiring a discipline-specific calculation.
+`Examples/ValidationRegistryDemo.cpd` demonstrates stable input IDs, automatic aggregation, issue links, and validation-registry queries.
 `Examples/CheckRegistryDemo.cpd` demonstrates upper-limit, lower-limit, and custom checks, governing selection, the issue summary, and calculation-status integration.
 `Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.

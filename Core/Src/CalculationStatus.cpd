@@ -1,5 +1,5 @@
 #hide
-'<!-- Document-level calculation status helpers. Version 1.1.0. -->
+'<!-- Document-level calculation status helpers. Version 2.0.0. -->
 
 CALC_PASS = 0
 CALC_WARN = 10
@@ -14,8 +14,7 @@ CalculationInputsComplete(validation_statuses) = and(CalculationValidationStatus
 CalculationChecksComplete(check_statuses) = and(len(check_statuses) > 0; CheckStatusesOK(check_statuses); CheckErrorCount(check_statuses) ≡ 0)
 
 CalculationStatus(validation_statuses; check_statuses) = switch(len(validation_statuses) ≡ 0; CALC_INCOMPLETE; not(CalculationValidationStatusesOK(validation_statuses)); CALC_ERROR; ValidationHasErrors(validation_statuses); CALC_INCOMPLETE; len(check_statuses) ≡ 0; CALC_INCOMPLETE; not(CheckStatusesOK(check_statuses)); CALC_ERROR; CheckErrorCount(check_statuses) > 0; CALC_ERROR; CheckFailureCount(check_statuses) > 0; CALC_FAIL; or(ValidationWarningCount(validation_statuses) > 0; CheckWarningCount(check_statuses) > 0); CALC_WARN; CALC_PASS)
-CalculationStatusFromRegistries(validation_results; check_registry; check_registry_errors) = switch(not(CheckResultRegistryShapeOK(check_registry)); CALC_ERROR; not(CheckRegistryErrorsOK(check_registry_errors)); CALC_ERROR; CalculationStatus(ValidationResultsStatuses(validation_results); CheckResultRegistryStatuses(check_registry)))
-CalculationStatusFromGlobalRegistries(validation_results) = CalculationStatusFromRegistries(validation_results; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+CalculationStatusFromRegistries(validation_registry; validation_registry_errors; check_registry; check_registry_errors) = switch(not(ValidationResultRegistryShapeOK(validation_registry)); CALC_ERROR; not(ValidationRegistryErrorsOK(validation_registry_errors)); CALC_ERROR; not(CheckResultRegistryShapeOK(check_registry)); CALC_ERROR; not(CheckRegistryErrorsOK(check_registry_errors)); CALC_ERROR; CalculationStatus(ValidationResultRegistryStatuses(validation_registry); CheckResultRegistryStatuses(check_registry)))
 
 CalculationIsPass(status) = status ≡ CALC_PASS
 CalculationHasWarning(status) = status ≡ CALC_WARN
@@ -84,11 +83,11 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
     '</section>
 #end def
 
-#def ShowCalculationStatusFromRegistries$(validation_results$)
+#def ShowCalculationStatusFromRegistries$
     #hide
-    ζCALC_registry_validation_statuses = ValidationResultsStatuses(validation_results$)
+    ζCALC_registry_validation_statuses = ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors)
     ζCALC_registry_check_statuses = CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
-    ζCALC_registry_status = CalculationStatusFromGlobalRegistries(validation_results$)
+    ζCALC_registry_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
     #show
     '<section class="calculation-status-banner">
     '<div class="calculation-status-heading"><strong>Calculation Status</strong>
