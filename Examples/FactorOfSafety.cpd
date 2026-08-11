@@ -21,20 +21,40 @@ CreateTitle$
 CreatePurpose$
 CreateScope$
 
+#hide
+REF_PROJECT_BASIS = 1
+REF_FACTOR_SOURCES = 2
+CRITERION_FACTOR_SELECTION = 1
+ASSUMPTION_DIMENSIONLESS_FACTORS = 1
+ASSUMPTION_APPLICABLE_OPTIONS = 2
+LIMITATION_WORKFLOW_EXAMPLE = 1
+#show
+
 BeginRevisions$
 AddRevision$(0; Initial example; EXAMPLE AUTHOR; 2026-08-08)
 EndRevisions$
 
 BeginReferences$
-AddReference$(Project design basis and applicable engineering standard.)
-AddReference$(Material data and loading assumptions documented by the responsible engineer.)
+AddReference$(REF_PROJECT_BASIS; Project design basis; Applicable engineering requirements; Project revision; Governing criteria; Confirm the project-specific acceptance requirements.)
+AddReference$(REF_FACTOR_SOURCES; Engineering input sources; Material data and loading assumptions; Current project revision; Factor selection basis; Document the evidence supporting each selected factor.)
 EndReferences$
 
-BeginInitialConditions$
-AddInitialCondition$(The selected factors are dimensionless and must match one of the documented options.)
-AddInitialCondition$(The responsible engineer must confirm that the factor categories and permitted values apply to the design.)
-AddInitialCondition$(This example demonstrates a workflow and is not a substitute for a governing code requirement.)
-EndInitialConditions$
+"Design Basis and Assumptions
+
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_FACTOR_SELECTION; Factor selection; Each selected factor must match a documented option and the design factor must meet or exceed the recommended minimum.; REF_PROJECT_BASIS; Governing criteria; Confirm the project-specific requirement before issue.)
+EndDesignCriteria$
+
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_DIMENSIONLESS_FACTORS; Methodology; The selected factors are dimensionless.; The factor method combines categorical multipliers.; REF_FACTOR_SOURCES)
+AddAssumption$(ASSUMPTION_APPLICABLE_OPTIONS; Applicability; The documented factor categories and permitted values apply to the design.; Selection must be confirmed by the responsible engineer.; REF_PROJECT_BASIS)
+EndAssumptions$
+
+BeginLimitations$
+AddLimitation$(LIMITATION_WORKFLOW_EXAMPLE; This example demonstrates a workflow and is not a substitute for a governing code requirement.; A passing result does not establish code compliance.; Confirm every governing project and code requirement before use.; REF_PROJECT_BASIS)
+EndLimitations$
+
+ShowReportingSummary$
 
 "Factor Options
 '#### Material knowledge:

@@ -121,12 +121,14 @@ function Test-ApiVersions {
     }
 
     $componentApis = [ordered]@{
+        'Stylesheet.cpd' = 'DRAT_STYLESHEET_API'
         'Definitions.cpd' = 'DRAT_DEFINITIONS_API'
         'DataWrapper.cpd' = 'DRAT_DATA_WRAPPER_API'
         'Checks.cpd' = 'DRAT_CHECKS_API'
         'Database.cpd' = 'DRAT_DATABASE_API'
         'Validation.cpd' = 'DRAT_VALIDATION_API'
         'CalculationStatus.cpd' = 'DRAT_CALCULATION_STATUS_API'
+        'Reporting.cpd' = 'DRAT_REPORTING_API'
         'Plotting.cpd' = 'DRAT_PLOTTING_API'
     }
 

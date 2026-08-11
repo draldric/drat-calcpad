@@ -53,6 +53,10 @@ Use `EndCheckSummaryWithResult$` with matching status and utilization vectors to
 `CalculationStatus.cpd` combines the validation and engineering-check vectors into a document-level `CALC_PASS`, `CALC_WARN`, `CALC_FAIL`, `CALC_INCOMPLETE`, or `CALC_ERROR` result.
 Use `ShowCalculationStatus$` for the standard calculation banner and counts.
 
+`Reporting.cpd` provides structured registries for references, design criteria, assumptions, and limitations.
+Each entry has a positive integer ID; linked entries validate their source reference, duplicate IDs render inline errors, and `ShowReportingSummary$` reports the registered counts and aggregate registry status.
+CalcPad text remains macro content, while the numeric registries preserve the auditable identities and relationships used for validation.
+
 `Validation.cpd` validates defined values, the complete positive/negative/zero sign family, inclusive and open ranges, excluded ranges, one-sided and absolute bounds, integers, vector length and contents, vector ordering and uniqueness, matching vector lengths, matrix row and column counts, square matrices, registered values, available values, and values from registered option sets.
 The result constructors return `[status; value; rule_code; data_1; data_2]`, allowing `AddValidationResult$` to render the value, permitted criterion, and status from one result.
 Stack results with `join_rows`, obtain their statuses with `ValidationResultsStatuses`, and close the table with `EndValidationResults$`.
@@ -88,6 +92,7 @@ Numbered H3 sections begin on new pages when printed or exported to PDF; H4 and 
 Required organization, client, project, calculation, and preparation metadata uses direct, readable placeholders, while unchecked and unapproved states remain visible in the document header.
 
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
+`Examples/ReportingRegistriesDemo.cpd` demonstrates structured references, linked design criteria, assumptions, limitations, registry queries, and aggregate reporting status without requiring a discipline-specific calculation.
 `Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.
 Use `MatItemsByCategory`, `MatAvailablePropertyIDs`, and `MatItemsWithProperty` to discover suitable records without duplicating catalog data in a worksheet.

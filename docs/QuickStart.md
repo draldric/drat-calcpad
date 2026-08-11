@@ -44,6 +44,28 @@ Replace every placeholder in the copied template:
 
 Keep `NOT CHECKED` and `NOT APPROVED` visible until those actions have actually occurred.
 
+## Register the design basis
+
+Assign stable positive integer IDs, register references first, and then link design criteria, assumptions, and limitations to those references.
+Use `RPT_NO_REFERENCE` only where an assumption or limitation genuinely has no external source.
+
+```text
+REF_STANDARD = 1
+CRITERION_PRIMARY = 1
+
+BeginReferences$
+AddReference$(REF_STANDARD; GOVERNING STANDARD; STANDARD TITLE; EDITION; CLAUSE; APPLICATION NOTES)
+EndReferences$
+
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_PRIMARY; PRIMARY CRITERION; REQUIRED LIMIT; REF_STANDARD; CLAUSE; APPLICATION NOTES)
+EndDesignCriteria$
+
+ShowReportingSummary$
+```
+
+Duplicate IDs and unknown reference links are rendered as reporting errors and are counted in the summary.
+
 ## Save and validate inputs
 
 Use explicit CalcPad assignments so issued calculations preserve their selected values.
