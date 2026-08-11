@@ -76,13 +76,11 @@ input_validation = ValidationOverallStatus(input_statuses)
 inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
-#novar
 BeginValidationSummary$
 AddValidationResult$(Demand; demand_validation)
 AddValidationResult$(Capacity; capacity_validation)
 AddValidationResult$(Warning threshold; warning_validation)
 EndValidationResults$(input_results)
-#equ
 
 "Methodology
 

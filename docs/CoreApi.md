@@ -20,7 +20,7 @@ Macro names end with `$`.
 | `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
 | `DRAT_CHECK_REGISTRY_API` | `10000` | Structured engineering-check registry and reporting |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
-| `DRAT_VALIDATION_API` | `10400` | Structured input validation |
+| `DRAT_VALIDATION_API` | `10401` | Structured input validation |
 | `DRAT_CALCULATION_STATUS_API` | `10100` | Document-level calculation status |
 | `DRAT_REPORTING_API` | `10000` | Structured report registries |
 

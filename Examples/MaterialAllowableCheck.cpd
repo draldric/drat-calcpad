@@ -106,7 +106,6 @@ input_validation = ValidationOverallStatus(input_statuses)
 inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
-#novar
 BeginValidationSummary$
 AddValidationResult$(Material ID; material_validation)
 AddValidationResult$(Applied tensile load; force_validation)
@@ -119,7 +118,6 @@ AddValidationResult$(Tensile-strength property; ultimate_property_validation)
 AddValidationResult$(Source registry entry; source_validation)
 AddValidationResult$(Dataset revision; revision_validation)
 EndValidationResults$(input_results)
-#equ
 
 "Material Data
 

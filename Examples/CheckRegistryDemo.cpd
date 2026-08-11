@@ -59,7 +59,6 @@ input_statuses = ValidationResultsStatuses(input_results)
 inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
-#novar
 BeginValidationSummary$
 AddValidationResult$(Strength demand; strength_demand_validation)
 AddValidationResult$(Strength capacity; strength_capacity_validation)
@@ -70,7 +69,6 @@ AddValidationResult$(Provided thickness; provided_thickness_validation)
 AddValidationResult$(Interaction utilization; interaction_validation)
 AddValidationResult$(Warning threshold; warning_validation)
 EndValidationResults$(input_results)
-#equ
 
 "Engineering Checks
 

@@ -8,7 +8,7 @@ DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
 DRAT_CHECKS_API = 20000
 DRAT_DATABASE_API = 10000
-DRAT_VALIDATION_API = 10400
+DRAT_VALIDATION_API = 10401
 DRAT_CHECK_REGISTRY_API = 10000
 DRAT_CALCULATION_STATUS_API = 10100
 DRAT_REPORTING_API = 10000
@@ -516,7 +516,7 @@ DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
 DBRegistryCount(ids) = len(ids)
 #show
 #hide
-'<!-- Input validation helpers. Version 1.4.0. -->
+'<!-- Input validation helpers. Version 1.4.1. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -867,6 +867,7 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 #end def
 
 #def BeginValidationSummary$
+    #novar
     '<table class="bordered data reporting-summary validation-summary">
     '<thead>
     '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
@@ -1031,6 +1032,7 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
     '</tfoot>
     '</table>
+    #equ
 #end def
 
 #def EndValidationResults$(results$)

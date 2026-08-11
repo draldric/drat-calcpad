@@ -33,6 +33,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
+- Validation summary macros now switch to value-only rendering internally and restore equation rendering when the table closes.
 - Core is versioned as 3.0.0 because manual check-summary macros and caller-maintained parallel result vectors were replaced by the structured check-registry workflow before the first public release.
 - Core is versioned as 2.0.0 because the former free-form reference and initial-condition macros were replaced by the structured registry workflow before the first public release.
 

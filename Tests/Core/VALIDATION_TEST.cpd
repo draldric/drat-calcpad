@@ -171,7 +171,6 @@ all_tests = and(range_tests; sign_tests; integer_tests; length_tests; summary_te
 
 ShowValidation$(Range example; 5; range_ok)
 
-#novar
 BeginValidationSummary$
 AddValidationResult$(Range result; range_result)
 AddValidationResult$(Allowed-set result; allowed_result)
@@ -183,4 +182,3 @@ AddValidationResult$(Square-matrix result; square_matrix_result)
 AddValidationResult$(Vector-range result; vector_range_result)
 AddValidationResult$(Matching-length result; matching_length_result)
 EndValidationResults$(join_rows(range_result; allowed_result; registered_result; negative_result; nonzero_result; square_matrix_result; vector_range_result; matching_length_result))
-#equ

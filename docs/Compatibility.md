@@ -12,7 +12,7 @@ This table summarizes the currently supported package combination.
 | Engineering Checks | `20000` | Bundled with Core 3.0.0 |
 | Check Registry | `10000` | Bundled with Core 3.0.0 |
 | Database | `10000` | Bundled with Core 3.0.0 |
-| Validation | `10400` | Bundled with Core 3.0.0 |
+| Validation | `10401` | Bundled with Core 3.0.0 |
 | Calculation Status | `10100` | Bundled with Core 3.0.0 |
 | Reporting | `10000` | Bundled with Core 3.0.0 |
 | Plotting | `30200` | Bundled with Core 3.0.0 and network access for Plotly |

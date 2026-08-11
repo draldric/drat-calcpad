@@ -135,7 +135,6 @@ factor_statuses = ValidationResultsStatuses(factor_results)
 input_validation = ValidationOverallStatus(factor_statuses)
 inputs_valid = not(ValidationHasErrors(factor_statuses))
 #show
-#novar
 BeginValidationSummary$
 AddValidationResult$(Material factor; material_validation)
 AddValidationResult$(Stress factor; stress_validation)
@@ -145,7 +144,6 @@ AddValidationResult$(Reliability factor; reliability_validation)
 AddValidationResult$(Design factor of safety; design_validation)
 AddValidationResult$(Warning threshold; warning_validation)
 EndValidationResults$(factor_results)
-#equ
 
 "Calculation
 FoS_required = n_material*n_stress*n_geometry*n_failure*n_reliability
