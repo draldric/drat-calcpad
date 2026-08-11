@@ -48,9 +48,10 @@ This contract avoids relying on ambiguous nested-include path behavior and makes
 5. `Checks.cpd`
 6. `Database.cpd`
 7. `Validation.cpd`
-8. `CalculationStatus.cpd`
-9. `Reporting.cpd`
-10. `Plotting.cpd`
+8. `CheckRegistry.cpd`
+9. `CalculationStatus.cpd`
+10. `Reporting.cpd`
+11. `Plotting.cpd`
 
 The order is part of the Core contract because later modules use constants and macros defined earlier.
 
@@ -64,17 +65,17 @@ The standard worksheet flow is:
 1. Save explicit, auditable input assignments.
 2. Create structured validation results.
 3. Aggregate and render input validation.
-4. Calculate demands, capacities, and utilizations.
-5. Gate engineering-check statuses on valid inputs.
-6. Aggregate check counts, overall status, and governing utilization.
-7. Aggregate the document-level calculation status.
+4. Calculate demands and capacities.
+5. Register each engineering check once with its stable ID, method, warning threshold, acceptance criterion, and input-validity gate.
+6. Derive status vectors, issue counts, overall status, and governing utilization from the check registry.
+7. Derive the document-level calculation status directly from the validation-result and check registries.
 8. Present results, source records, checks, status, and conclusions.
 
 The reporting registries separately preserve the identities and source relationships for references, design criteria, assumptions, and limitations.
 Their human-readable text is rendered by macros because CalcPad calculation matrices are numeric and unit-valued rather than general string containers.
 
-The validation records and engineering-status vectors are deliberately reused for both calculation decisions and reporting.
-This prevents displayed criteria from drifting away from the rules that were evaluated.
+The structured validation results and check-result registry are deliberately reused for both calculation decisions and reporting.
+This prevents displayed values, criteria, statuses, and governing summaries from drifting away from the rules that were evaluated.
 
 ## Data libraries
 

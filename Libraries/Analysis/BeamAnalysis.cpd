@@ -1,6 +1,6 @@
-#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 30000)
+#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 40000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
-#if and(DRAT_CHECKS_API ≥ 10200; DRAT_CHECKS_API < 20000)
+#if and(DRAT_CHECKS_API ≥ 10200; DRAT_CHECKS_API < 30000)
 #hide
 '<!-- Static beam-response, diagram, and screening library. Version 0.6.0. -->
 #def BeamAnalysisLibraryName$ = DRAT Static Beam Analysis Library

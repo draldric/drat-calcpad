@@ -47,7 +47,7 @@ The verification script confirms that declared Core and component versions match
 Library guards state the range that was actually tested:
 
 ```text
-#if and(DRAT_CORE_API ≥ 20000; DRAT_CORE_API < 30000)
+#if and(DRAT_CORE_API ≥ 30000; DRAT_CORE_API < 40000)
 ```
 
 The upper bound excludes the next incompatible major API.

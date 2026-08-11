@@ -1,5 +1,5 @@
 #hide
-'<!-- Document-level calculation status helpers. Version 1.0.0. -->
+'<!-- Document-level calculation status helpers. Version 1.1.0. -->
 
 CALC_PASS = 0
 CALC_WARN = 10
@@ -14,6 +14,8 @@ CalculationInputsComplete(validation_statuses) = and(CalculationValidationStatus
 CalculationChecksComplete(check_statuses) = and(len(check_statuses) > 0; CheckStatusesOK(check_statuses); CheckErrorCount(check_statuses) ≡ 0)
 
 CalculationStatus(validation_statuses; check_statuses) = switch(len(validation_statuses) ≡ 0; CALC_INCOMPLETE; not(CalculationValidationStatusesOK(validation_statuses)); CALC_ERROR; ValidationHasErrors(validation_statuses); CALC_INCOMPLETE; len(check_statuses) ≡ 0; CALC_INCOMPLETE; not(CheckStatusesOK(check_statuses)); CALC_ERROR; CheckErrorCount(check_statuses) > 0; CALC_ERROR; CheckFailureCount(check_statuses) > 0; CALC_FAIL; or(ValidationWarningCount(validation_statuses) > 0; CheckWarningCount(check_statuses) > 0); CALC_WARN; CALC_PASS)
+CalculationStatusFromRegistries(validation_results; check_registry; check_registry_errors) = switch(not(CheckResultRegistryShapeOK(check_registry)); CALC_ERROR; not(CheckRegistryErrorsOK(check_registry_errors)); CALC_ERROR; CalculationStatus(ValidationResultsStatuses(validation_results); CheckResultRegistryStatuses(check_registry)))
+CalculationStatusFromGlobalRegistries(validation_results) = CalculationStatusFromRegistries(validation_results; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 
 CalculationIsPass(status) = status ≡ CALC_PASS
 CalculationHasWarning(status) = status ≡ CALC_WARN
@@ -78,6 +80,28 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
     '<table class="bordered data calculation-status-counts">
     '<thead><tr><th>Input validation</th><th>Engineering checks</th></tr></thead>
     '<tbody><tr><td><strong>Warnings:</strong> 'ValidationWarningCount(validation_statuses$)' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(validation_statuses$)'</td><td><strong>Pass:</strong> 'CheckPassCount(check_statuses$)' &nbsp; <strong>Warning:</strong> 'CheckWarningCount(check_statuses$)' &nbsp; <strong>Fail:</strong> 'CheckFailureCount(check_statuses$)' &nbsp; <strong>Error:</strong> 'CheckErrorCount(check_statuses$)'</td></tr></tbody>
+    '</table>
+    '</section>
+#end def
+
+#def ShowCalculationStatusFromRegistries$(validation_results$)
+    #hide
+    ζCALC_registry_validation_statuses = ValidationResultsStatuses(validation_results$)
+    ζCALC_registry_check_statuses = CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζCALC_registry_status = CalculationStatusFromGlobalRegistries(validation_results$)
+    #show
+    '<section class="calculation-status-banner">
+    '<div class="calculation-status-heading"><strong>Calculation Status</strong>
+    CalculationStatus$(ζCALC_registry_status)
+    '</div>
+    '<p class="calculation-status-message">
+    CalculationStatusMessage$(ζCALC_registry_status)
+    '</p>
+    '<table class="bordered data calculation-status-counts">
+    '<thead><tr><th>Input validation</th><th>Engineering checks</th></tr></thead>
+    #val
+    '<tbody><tr><td><strong>Warnings:</strong> 'ValidationWarningCount(ζCALC_registry_validation_statuses)' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(ζCALC_registry_validation_statuses)'</td><td><strong>Pass:</strong> 'CheckPassCount(ζCALC_registry_check_statuses)' &nbsp; <strong>Warning:</strong> 'CheckWarningCount(ζCALC_registry_check_statuses)' &nbsp; <strong>Fail:</strong> 'CheckFailureCount(ζCALC_registry_check_statuses)' &nbsp; <strong>Error:</strong> 'CheckErrorCount(ζCALC_registry_check_statuses)'</td></tr></tbody>
+    #equ
     '</table>
     '</section>
 #end def

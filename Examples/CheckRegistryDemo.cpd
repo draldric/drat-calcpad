@@ -1,0 +1,122 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = CHECK REGISTRY WORKFLOW DEMONSTRATION
+#def Title$ = STRUCTURED ENGINEERING CHECK RESULTS
+#def Purpose$ = DEMONSTRATE UPPER-LIMIT, LOWER-LIMIT, CUSTOM, GOVERNING, ISSUE-SUMMARY, AND CALCULATION-STATUS REGISTRY FEATURES.
+#def Scope$ = SHOW THE COMPLETE CHECK-REGISTRY WORKFLOW USING SIMPLE UNIT-AWARE DEMONSTRATION VALUES.
+#def Calculation$ = EXAMPLE-CHK-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+#hide
+CHECK_STRENGTH = 1
+CHECK_SERVICEABILITY = 2
+CHECK_MINIMUM_THICKNESS = 3
+CHECK_INTERACTION = 4
+#show
+
+BeginRevisions$
+AddRevision$(0; Initial check-registry demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
+"Saved Inputs
+
+strength_demand = 60kN
+strength_capacity = 100kN
+serviceability_demand = 9.2mm
+serviceability_limit = 10mm
+required_thickness = 10mm
+provided_thickness = 12mm
+interaction_utilization = 1.08
+warning_threshold = CHK_DEFAULT_WARNING
+
+"Input Validation
+
+#hide
+strength_demand_validation = ValidationNonnegativeResult(strength_demand)
+strength_capacity_validation = ValidationPositiveResult(strength_capacity)
+serviceability_demand_validation = ValidationNonnegativeResult(serviceability_demand)
+serviceability_limit_validation = ValidationPositiveResult(serviceability_limit)
+required_thickness_validation = ValidationPositiveResult(required_thickness)
+provided_thickness_validation = ValidationPositiveResult(provided_thickness)
+interaction_validation = ValidationNonnegativeResult(interaction_utilization)
+warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
+input_results = join_rows(strength_demand_validation; strength_capacity_validation; serviceability_demand_validation; serviceability_limit_validation; required_thickness_validation; provided_thickness_validation; interaction_validation; warning_validation)
+input_statuses = ValidationResultsStatuses(input_results)
+inputs_valid = not(ValidationHasErrors(input_statuses))
+#show
+
+#novar
+BeginValidationSummary$
+AddValidationResult$(Strength demand; strength_demand_validation)
+AddValidationResult$(Strength capacity; strength_capacity_validation)
+AddValidationResult$(Serviceability demand; serviceability_demand_validation)
+AddValidationResult$(Serviceability limit; serviceability_limit_validation)
+AddValidationResult$(Required thickness; required_thickness_validation)
+AddValidationResult$(Provided thickness; provided_thickness_validation)
+AddValidationResult$(Interaction utilization; interaction_validation)
+AddValidationResult$(Warning threshold; warning_validation)
+EndValidationResults$(input_results)
+#equ
+
+"Engineering Checks
+
+'Each macro creates and registers the complete numeric result used by the displayed row and every aggregate that follows.
+
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_STRENGTH; Strength capacity; strength_demand; strength_capacity; warning_threshold; Demand ≤ capacity; inputs_valid)
+AddUpperCheck$(CHECK_SERVICEABILITY; Serviceability limit; serviceability_demand; serviceability_limit; warning_threshold; Deflection ≤ allowable deflection; inputs_valid)
+AddLowerCheck$(CHECK_MINIMUM_THICKNESS; Minimum supplied thickness; required_thickness; provided_thickness; warning_threshold; Provided thickness ≥ required thickness; inputs_valid)
+AddCustomCheck$(CHECK_INTERACTION; Combined interaction; interaction_utilization; 1; interaction_utilization; warning_threshold; Combined interaction ≤ 1.0; CheckStatus(interaction_utilization; warning_threshold))
+EndCheckRegistryWithSummary$
+
+ShowCheckIssues$
+
+ShowCalculationStatusFromRegistries$(input_results)
+
+"Registry Query Examples
+
+#hide
+demo_check_count = CheckResultRegistryCount(EngineeringCheckRegistry)
+demo_governing_id = CheckResultRegistryGoverningID(EngineeringCheckRegistry)
+demo_governing_utilization = CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry)
+demo_issue_count = CheckResultRegistryIssueCount(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+demo_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+demo_calculation_status = CalculationStatusFromGlobalRegistries(input_results)
+#show
+
+'<table class="bordered reporting-summary check-registry-query">
+'<thead><tr><th>Query</th><th>Result</th></tr></thead>
+'<tbody>
+#val
+'<tr><td>Registered checks</td><td>'demo_check_count'</td></tr>
+'<tr><td>Governing check ID</td><td>'demo_governing_id'</td></tr>
+'<tr><td>Governing utilization</td><td>'demo_governing_utilization'</td></tr>
+'<tr><td>Items requiring review</td><td>'demo_issue_count'</td></tr>
+#equ
+'<tr><td>Overall engineering-check status</td><td class="status-cell">
+CheckStatus$(demo_check_status)
+'</td></tr>
+'<tr><td>Document calculation status</td><td class="status-cell">
+CalculationStatus$(demo_calculation_status)
+'</td></tr>
+'</tbody>
+'</table>
+
+"Conclusions
+
+'The registry identifies the custom interaction check as governing and lists both the warning and failure checks under Items Requiring Review.
+'The intentionally failing interaction check demonstrates how a valid calculation is distinguished from a passing calculation.

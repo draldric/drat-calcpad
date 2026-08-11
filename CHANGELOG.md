@@ -7,6 +7,8 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Structured engineering check-result registry with stable IDs, upper-limit, lower-limit, and custom constructors, automatic aggregation, governing selection, issue summaries, and document-status integration.
+- Dedicated check-registry demo and expanded Core regression coverage.
 - Structured registries for references, design criteria, assumptions, and limitations with unique IDs, validated source links, inline errors, standardized tables, and an aggregate reporting summary.
 - Dedicated reporting-registry demo, focused regression coverage, and a registry-based engineering calculation template.
 - Versioned distribution-directory and ZIP creation with a machine-readable compatibility and SHA-256 manifest.
@@ -31,6 +33,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
+- Core is versioned as 3.0.0 because manual check-summary macros and caller-maintained parallel result vectors were replaced by the structured check-registry workflow before the first public release.
 - Core is versioned as 2.0.0 because the former free-form reference and initial-condition macros were replaced by the structured registry workflow before the first public release.
 
 ## 1.6.0 - 2026-08-09

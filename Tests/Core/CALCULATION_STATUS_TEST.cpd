@@ -19,13 +19,27 @@ warning_validation_statuses = [VAL_OK; VAL_WARN]
 warning_check_statuses = [CHK_PASS; CHK_WARN]
 fail_check_statuses = [CHK_PASS; CHK_FAIL]
 
+registry_validation_results = join_rows(ValidationPositiveResult(10); ValidationRangeResult(0.9; 0; 1))
+registry_pass_checks = CheckResultRegistryEmpty
+registry_pass_checks = CheckResultRegistryAdd(registry_pass_checks; CheckUpperResult(101; 50; 100; 0.9; 1))
+registry_warn_checks = CheckResultRegistryEmpty
+registry_warn_checks = CheckResultRegistryAdd(registry_warn_checks; CheckUpperResult(101; 95; 100; 0.9; 1))
+registry_fail_checks = CheckResultRegistryEmpty
+registry_fail_checks = CheckResultRegistryAdd(registry_fail_checks; CheckUpperResult(101; 110; 100; 0.9; 1))
+
 classification_tests = and(calculation_pass ≡ CALC_PASS; calculation_validation_warning ≡ CALC_WARN; calculation_check_warning ≡ CALC_WARN; calculation_fail ≡ CALC_FAIL; calculation_invalid_input ≡ CALC_INCOMPLETE; calculation_missing_validation ≡ CALC_INCOMPLETE; calculation_missing_checks ≡ CALC_INCOMPLETE; calculation_check_error ≡ CALC_ERROR; calculation_unknown_check ≡ CALC_ERROR; calculation_unknown_validation ≡ CALC_ERROR)
 known_status_tests = and(CalculationStatusKnown(CALC_PASS); CalculationStatusKnown(CALC_WARN); CalculationStatusKnown(CALC_FAIL); CalculationStatusKnown(CALC_INCOMPLETE); CalculationStatusKnown(CALC_ERROR); not(CalculationStatusKnown(99)))
 predicate_tests = and(CalculationIsPass(CALC_PASS); CalculationHasWarning(CALC_WARN); CalculationHasFailure(CALC_FAIL); CalculationIsIncomplete(CALC_INCOMPLETE); CalculationHasError(CALC_ERROR); CalculationCanBeIssued(CALC_PASS); CalculationCanBeIssued(CALC_WARN); not(CalculationCanBeIssued(CALC_FAIL)); not(CalculationCanBeIssued(CALC_INCOMPLETE)); not(CalculationCanBeIssued(CALC_ERROR)))
 completion_tests = and(CalculationValidationStatusesOK([VAL_OK; VAL_WARN]); not(CalculationValidationStatusesOK([VAL_OK; 99])); CalculationInputsComplete([VAL_OK; VAL_WARN]); not(CalculationInputsComplete([VAL_OK; VAL_ERR_NEGATIVE])); not(CalculationInputsComplete(empty_statuses)); CalculationChecksComplete([CHK_PASS; CHK_WARN]); not(CalculationChecksComplete([CHK_ERROR])); not(CalculationChecksComplete(empty_statuses)))
+registry_status_tests = and(CalculationStatusFromRegistries(registry_validation_results; registry_pass_checks; [CHECK_REG_OK]) ≡ CALC_PASS; CalculationStatusFromRegistries(registry_validation_results; registry_warn_checks; [CHECK_REG_OK]) ≡ CALC_WARN; CalculationStatusFromRegistries(registry_validation_results; registry_fail_checks; [CHECK_REG_OK]) ≡ CALC_FAIL; CalculationStatusFromRegistries(registry_validation_results; registry_pass_checks; [CHECK_REG_OK; CHECK_REG_ERR_DUPLICATE_ID]) ≡ CALC_ERROR)
 
-all_tests = and(classification_tests; known_status_tests; predicate_tests; completion_tests)
+all_tests = and(classification_tests; known_status_tests; predicate_tests; completion_tests; registry_status_tests)
 
 ShowCalculationStatus$(warning_validation_statuses; warning_check_statuses)
 ShowCalculationStatus$([VAL_OK]; fail_check_statuses)
 ShowCalculationStatus$([VAL_ERR_UNDEFINED]; [CHK_ERROR])
+
+BeginCheckRegistry$
+AddUpperCheck$(201; Registry calculation-status example; 50; 100; 0.9; Demand ≤ capacity; 1)
+EndCheckRegistryWithSummary$
+ShowCalculationStatusFromRegistries$(registry_validation_results)

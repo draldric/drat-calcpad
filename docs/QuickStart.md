@@ -99,23 +99,18 @@ The reporting macros derive the displayed value, permitted criterion, and status
 
 ## Calculate and check
 
-Gate each engineering check with the input-validation result:
+Assign a stable ID and register each engineering check once.
+The check macro calculates utilization and status, applies the input-validity gate, renders the row, and stores the same result for governing and document-status reporting:
 
 ```text
-#hide
-utilization = CheckUpperUtilization(demand; capacity)
-raw_status = CheckUpperStatus(demand; capacity; warning_threshold)
-check_status = CheckGatedStatus(inputs_valid; raw_status)
-check_statuses = [check_status]
-check_utilizations = [utilization]
-overall_status = CheckSummaryStatus(check_statuses; check_utilizations)
-#show
+CHECK_DEMAND = 1
 
-#novar
-BeginCheckSummary$
-AddCheckRow$(Demand check; demand; capacity; utilization; warning_threshold; Demand ≤ capacity; check_status)
-EndCheckSummaryWithResult$(check_statuses; check_utilizations; Demand check)
-#equ
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_DEMAND; Demand check; demand; capacity; warning_threshold; Demand ≤ capacity; inputs_valid)
+EndCheckRegistryWithSummary$
+ShowCheckIssues$
+
+ShowCalculationStatusFromRegistries$(input_results)
 ```
 
 Invalid inputs must produce `CHK_ERROR`; they must not appear as passing engineering checks.

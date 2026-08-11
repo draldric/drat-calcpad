@@ -127,6 +127,7 @@ function Test-ApiVersions {
         'Checks.cpd' = 'DRAT_CHECKS_API'
         'Database.cpd' = 'DRAT_DATABASE_API'
         'Validation.cpd' = 'DRAT_VALIDATION_API'
+        'CheckRegistry.cpd' = 'DRAT_CHECK_REGISTRY_API'
         'CalculationStatus.cpd' = 'DRAT_CALCULATION_STATUS_API'
         'Reporting.cpd' = 'DRAT_REPORTING_API'
         'Plotting.cpd' = 'DRAT_PLOTTING_API'

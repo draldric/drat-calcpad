@@ -15,7 +15,7 @@ The consuming worksheet must load every dependency directly and in order:
 Wrap the entire library body in Core and component API guards:
 
 ```text
-#if and(DRAT_CORE_API ≥ 20000; DRAT_CORE_API < 30000)
+#if and(DRAT_CORE_API ≥ 30000; DRAT_CORE_API < 40000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #hide
 
@@ -26,7 +26,7 @@ Wrap the entire library body in Core and component API guards:
 '<div class="library-load-error"><strong>DRAT library load error:</strong> This library requires DataWrapper API 0.3.2 or newer.</div>
 #end if
 #else
-'<div class="library-load-error"><strong>DRAT library load error:</strong> This library requires DRAT core API 1.x.</div>
+'<div class="library-load-error"><strong>DRAT library load error:</strong> This library requires DRAT core API 3.x.</div>
 #end if
 ```
 
