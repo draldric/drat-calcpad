@@ -14,6 +14,7 @@ Use the associated predicate or rendering macro instead of embedding numeric lit
 | `CALC_ERROR` | 40 | A status is unknown or an engineering check contains an evaluation error |
 
 `CalculationStatus` derives the document status from validation and check vectors.
+`CalculationStatusFromRegistries` and `CalculationStatusFromGlobalRegistries` derive the check vector and registry-integrity state from structured check results.
 Invalid inputs produce `CALC_INCOMPLETE` even when their gated engineering checks return `CHK_ERROR`.
 This keeps an unfinished worksheet distinct from a valid calculation that fails its acceptance criteria.
 
@@ -31,6 +32,20 @@ This keeps an unfinished worksheet distinct from a valid calculation that fails 
 
 Aggregate precedence is error, fail, warning, then pass.
 Unknown status values count as errors.
+
+## Check registry integrity
+
+| Constant | Value | Meaning |
+| --- | ---: | --- |
+| `CHECK_REG_OK` | 0 | Check result was registered successfully |
+| `CHECK_REG_ERR_BAD_REGISTRY` | 10 | Existing registry has an invalid shape or sentinel row |
+| `CHECK_REG_ERR_BAD_RESULT` | 20 | Structured result is malformed or incompatible with the rendered row |
+| `CHECK_REG_ERR_BAD_ID` | 30 | Check ID is not a positive integer |
+| `CHECK_REG_ERR_DUPLICATE_ID` | 40 | Check ID is already registered |
+| `CHECK_REG_ERR_BAD_METHOD` | 50 | Check method is not upper, lower, or custom |
+
+`CheckRegistryErrorCount` and `CheckRegistryErrorsOK` summarize attempted registrations.
+Any registry error contributes an effective `CHK_ERROR`, so it propagates to the check summary and document calculation status even though the invalid result is not added.
 
 ## Input validation
 

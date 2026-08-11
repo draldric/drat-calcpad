@@ -1,5 +1,5 @@
 #hide
-'<!-- Shared worksheet stylesheet. Version 1.5.0. -->
+'<!-- Shared worksheet stylesheet. Version 1.6.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -52,5 +52,11 @@
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
 '<style>.check-summary .check-counts td{text-align:center;}</style>
 '<style>.check-summary .check-governing td:first-of-type{text-align:left;}</style>
+'<style>.check-registry .check-registry-id{display:inline-block;min-width:5.5em;margin-right:0.75em;padding:0.1em 0.4em;border:1px solid #777;background:#fff;text-align:center;white-space:nowrap;}</style>
+'<style>.check-registry .check-registry-entry:focus{outline:3px solid #337ab7;outline-offset:2px;}</style>
+'<style>.check-registry .check-registry-error td{background:#fff2f2;color:#b30000;text-align:left;}</style>
+'<style>.check-registry-link{font-weight:bold;white-space:nowrap;}</style>
+'<style>.check-issue-summary td:first-child{text-align:left;}</style>
+'<style>.check-issue-summary td:nth-child(2){text-align:right;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
 '<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>

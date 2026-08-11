@@ -35,6 +35,8 @@ ASSUMPTION_MATERIAL_REPRESENTATION = 3
 LIMITATION_SCREENING_VALUES = 1
 LIMITATION_EXCLUDED_MODES = 2
 LIMITATION_DEMONSTRATION_INPUTS = 3
+CHECK_YIELD_STRENGTH = 1
+CHECK_TENSILE_STRENGTH = 2
 #show
 
 BeginRevisions$
@@ -104,7 +106,6 @@ input_validation = ValidationOverallStatus(input_statuses)
 inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
-#novar
 BeginValidationSummary$
 AddValidationResult$(Material ID; material_validation)
 AddValidationResult$(Applied tensile load; force_validation)
@@ -117,7 +118,6 @@ AddValidationResult$(Tensile-strength property; ultimate_property_validation)
 AddValidationResult$(Source registry entry; source_validation)
 AddValidationResult$(Dataset revision; revision_validation)
 EndValidationResults$(input_results)
-#equ
 
 "Material Data
 
@@ -154,19 +154,19 @@ EndVariables$
 σ_y_allow = S_y/n_y
 σ_u_allow = S_u/n_u
 
-#hide
-yield_utilization = CheckUpperUtilization(σ_t; σ_y_allow)
-ultimate_utilization = CheckUpperUtilization(σ_t; σ_u_allow)
-yield_raw_status = CheckUpperStatus(σ_t; σ_y_allow; warning_threshold)
-ultimate_raw_status = CheckUpperStatus(σ_t; σ_u_allow; warning_threshold)
-yield_check_status = CheckGatedStatus(inputs_valid; yield_raw_status)
-ultimate_check_status = CheckGatedStatus(inputs_valid; ultimate_raw_status)
+"Engineering Checks
 
-check_statuses = [yield_check_status; ultimate_check_status]
-check_utilizations = [yield_utilization; ultimate_utilization]
-overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
-governing_check_index = CheckGoverningIndex(check_utilizations)
-governing_utilization = CheckGoverningUtilization(check_utilizations)
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_YIELD_STRENGTH; Yield-strength screening; σ_t; σ_y_allow; warning_threshold; Applied stress ≤ yield strength / yield factor; inputs_valid)
+AddUpperCheck$(CHECK_TENSILE_STRENGTH; Tensile-strength screening; σ_t; σ_u_allow; warning_threshold; Applied stress ≤ tensile strength / ultimate factor; inputs_valid)
+EndCheckRegistryWithSummary$
+ShowCheckIssues$
+
+#hide
+check_statuses = CheckResultRegistryStatuses(EngineeringCheckRegistry)
+overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+governing_utilization = CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry)
+calculation_status = CalculationStatusFromGlobalRegistries(input_results)
 #show
 
 "Results
@@ -178,27 +178,13 @@ AddConclusion$(Tensile-strength screening allowable; σ_u_allow)
 AddConclusion$(Governing utilization; governing_utilization)
 #equ
 
-"Engineering Checks
-
-#novar
-BeginCheckSummary$
-AddCheckRow$(Yield-strength screening; σ_t; σ_y_allow; yield_utilization; warning_threshold; Applied stress ≤ yield strength / yield factor; yield_check_status)
-AddCheckRow$(Tensile-strength screening; σ_t; σ_u_allow; ultimate_utilization; warning_threshold; Applied stress ≤ tensile strength / ultimate factor; ultimate_check_status)
-#if governing_check_index ≡ 1
-	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Yield-strength screening)
-#end if
-#if governing_check_index ≡ 2
-	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Tensile-strength screening)
-#end if
-#if governing_check_index ≡ 0
-	    EndCheckSummaryWithResult$(check_statuses; check_utilizations; Not available)
-#end if
-#equ
+ShowCalculationStatusFromRegistries$(input_results)
 
 BeginConclusions$
 #novar
 AddConclusion$(Selected material ID; material_id)
 AddConclusion$(Material dataset revision; material_data_revision)
+AddCalculationStatusConclusion$(Document calculation status; calculation_status)
 AddValidationConclusion$(Overall input validation; input_validation)
 AddCheckConclusion$(Overall material screening status; overall_check_status)
 #if overall_check_status ≡ CHK_PASS

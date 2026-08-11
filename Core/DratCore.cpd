@@ -1,22 +1,23 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 20000
+DRAT_CORE_API = 30000
 DRAT_DEFINITIONS_API = 20000
-DRAT_STYLESHEET_API = 10500
+DRAT_STYLESHEET_API = 10600
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
-DRAT_CHECKS_API = 10200
+DRAT_CHECKS_API = 20000
 DRAT_DATABASE_API = 10000
-DRAT_VALIDATION_API = 10400
-DRAT_CALCULATION_STATUS_API = 10000
+DRAT_VALIDATION_API = 10401
+DRAT_CHECK_REGISTRY_API = 10000
+DRAT_CALCULATION_STATUS_API = 10100
 DRAT_REPORTING_API = 10000
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 2.0.0
+#def DRATCoreVersion$ = 3.0.0
 #show
 #hide
-'<!-- Shared worksheet stylesheet. Version 1.5.0. -->
+'<!-- Shared worksheet stylesheet. Version 1.6.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -69,6 +70,12 @@ DRAT_REPORTING_API = 10000
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
 '<style>.check-summary .check-counts td{text-align:center;}</style>
 '<style>.check-summary .check-governing td:first-of-type{text-align:left;}</style>
+'<style>.check-registry .check-registry-id{display:inline-block;min-width:5.5em;margin-right:0.75em;padding:0.1em 0.4em;border:1px solid #777;background:#fff;text-align:center;white-space:nowrap;}</style>
+'<style>.check-registry .check-registry-entry:focus{outline:3px solid #337ab7;outline-offset:2px;}</style>
+'<style>.check-registry .check-registry-error td{background:#fff2f2;color:#b30000;text-align:left;}</style>
+'<style>.check-registry-link{font-weight:bold;white-space:nowrap;}</style>
+'<style>.check-issue-summary td:first-child{text-align:left;}</style>
+'<style>.check-issue-summary td:nth-child(2){text-align:right;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
 '<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
@@ -373,7 +380,7 @@ DBStatusKnown(status) = or(status ≡ DB_OK; status ≡ DB_ERR_NAME; status ≡ 
 #end def
 #show
 #hide
-'<!-- Engineering check helpers. Version 1.2.0. -->
+'<!-- Engineering check helpers. Version 2.0.0. -->
 
 CHK_PASS = 0
 CHK_WARN = 10
@@ -466,41 +473,6 @@ CheckAllPass(statuses) = CheckOverallStatus(statuses) ≡ CHK_PASS
     '</table>
 #end def
 
-#def BeginCheckSummary$
-    '<table class="bordered data reporting-summary check-summary">
-    '<thead>
-    '<tr><th>Demand / Required</th><th>Capacity / Provided</th><th>Utilization</th><th>Warning</th><th>Acceptance Criterion</th><th>Status</th></tr>
-    '</thead>
-    '<tbody>
-#end def
-
-#def AddCheckRow$(label$; demand$; capacity$; utilization$; warning_threshold$; criterion$; status$)
-    '<tr class="check-title"><th colspan="6">label$</th></tr>
-    '<tr><td class="check-demand">'demand$'</td><td>'capacity$'</td><td>'utilization$'</td><td>'warning_threshold$'</td><td>criterion$</td><td class="status-cell">
-    CheckStatus$(status$)
-    '</td></tr>
-#end def
-
-#def EndCheckSummary$
-    '</tbody>
-    '</table>
-#end def
-
-#def EndCheckSummaryWithResult$(statuses$; utilizations$; governing_label$)
-    '</tbody>
-    '<tfoot>
-    '<tr class="check-counts"><th>Check counts</th><td><strong>Pass:</strong> 'CheckPassCount(statuses$)'</td><td><strong>Warning:</strong> 'CheckWarningCount(statuses$)'</td><td><strong>Fail:</strong> 'CheckFailureCount(statuses$)'</td><td><strong>Error:</strong> 'CheckErrorCount(statuses$)'</td><td class="status-cell"><strong>Overall:</strong>
-    CheckStatus$(CheckSummaryStatus(statuses$; utilizations$))
-    '</td></tr>
-    #if CheckSummaryDataOK(statuses$; utilizations$)
-        '<tr class="check-governing"><th>Governing check</th><td colspan="3">governing_label$ (row 'CheckGoverningIndex(utilizations$)')</td><th>Utilization</th><td>'CheckGoverningUtilization(utilizations$)'</td></tr>
-    #end if
-    #if not(CheckSummaryDataOK(statuses$; utilizations$))
-        '<tr class="check-governing"><th>Governing check</th><td colspan="3">Not available</td><th>Utilization</th><td>Not available</td></tr>
-    #end if
-    '</tfoot>
-    '</table>
-#end def
 #show
 #hide
 '<!-- General table and metadata lookup helpers. Version 1.0.0. -->
@@ -544,7 +516,7 @@ DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
 DBRegistryCount(ids) = len(ids)
 #show
 #hide
-'<!-- Input validation helpers. Version 1.4.0. -->
+'<!-- Input validation helpers. Version 1.4.1. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -895,6 +867,7 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 #end def
 
 #def BeginValidationSummary$
+    #novar
     '<table class="bordered data reporting-summary validation-summary">
     '<thead>
     '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
@@ -1059,6 +1032,7 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
     '</tfoot>
     '</table>
+    #equ
 #end def
 
 #def EndValidationResults$(results$)
@@ -1066,7 +1040,275 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 #end def
 #show
 #hide
-'<!-- Document-level calculation status helpers. Version 1.0.0. -->
+'<!-- Structured engineering check-result registry. Version 1.0.0. -->
+
+CHECK_REG_OK = 0
+CHECK_REG_ERR_BAD_REGISTRY = 10
+CHECK_REG_ERR_BAD_RESULT = 20
+CHECK_REG_ERR_BAD_ID = 30
+CHECK_REG_ERR_DUPLICATE_ID = 40
+CHECK_REG_ERR_BAD_METHOD = 50
+
+CHECK_METHOD_UPPER = 1
+CHECK_METHOD_LOWER = 2
+CHECK_METHOD_CUSTOM = 3
+
+CHECK_RESULT_ID = 1
+CHECK_RESULT_METHOD = 2
+CHECK_RESULT_DEMAND = 3
+CHECK_RESULT_CAPACITY = 4
+CHECK_RESULT_UTILIZATION = 5
+CHECK_RESULT_WARNING = 6
+CHECK_RESULT_STATUS = 7
+CHECK_RESULT_COLUMNS = 7
+
+CHECK_REG_EMPTY = 0
+CheckResultRegistryEmpty = join_rows([CHECK_REG_EMPTY; CHECK_METHOD_CUSTOM; 0; 0; 0; 0; CHK_ERROR])
+
+CheckMethodKnown(method) = or(method ≡ CHECK_METHOD_UPPER; method ≡ CHECK_METHOD_LOWER; method ≡ CHECK_METHOD_CUSTOM)
+CheckResultColumn(result; column) = take(1; col(result; min(max(round(column); 1); n_cols(result))))
+CheckResultShapeOK(result) = and(n_rows(result) ≡ 1; n_cols(result) ≡ CHECK_RESULT_COLUMNS)
+CheckResultID(result) = CheckResultColumn(result; CHECK_RESULT_ID)
+CheckResultMethod(result) = CheckResultColumn(result; CHECK_RESULT_METHOD)
+CheckResultDemand(result) = CheckResultColumn(result; CHECK_RESULT_DEMAND)
+CheckResultCapacity(result) = CheckResultColumn(result; CHECK_RESULT_CAPACITY)
+CheckResultUtilization(result) = CheckResultColumn(result; CHECK_RESULT_UTILIZATION)
+CheckResultWarning(result) = CheckResultColumn(result; CHECK_RESULT_WARNING)
+CheckResultStatus(result) = CheckResultColumn(result; CHECK_RESULT_STATUS)
+CheckResultIDOK(id) = and(ValidationIsInteger(id); id > CHECK_REG_EMPTY)
+CheckResultDataOK(result) = and(CheckResultShapeOK(result); CheckResultIDOK(CheckResultID(result)); CheckMethodKnown(CheckResultMethod(result)); CheckStatusKnown(CheckResultStatus(result)))
+
+CheckCustomResult(id; demand; capacity; utilization; warning_threshold; status) = _
+$block{
+    safe_status = switch(not(CheckWarningThresholdOK(warning_threshold)); CHK_ERROR; not(CheckUtilizationOK(utilization)); CHK_ERROR; not(CheckStatusKnown(status)); CHK_ERROR; status);
+    join_rows([id; CHECK_METHOD_CUSTOM; demand; capacity; utilization; warning_threshold; safe_status]);
+}
+
+CheckUpperResult(id; demand; capacity; warning_threshold; inputs_valid) = _
+$block{
+    utilization = CheckUpperUtilization(demand; capacity);
+    status = CheckGatedStatus(inputs_valid; CheckUpperStatus(demand; capacity; warning_threshold));
+    join_rows([id; CHECK_METHOD_UPPER; demand; capacity; utilization; warning_threshold; status]);
+}
+
+CheckLowerResult(id; required; provided; warning_threshold; inputs_valid) = _
+$block{
+    utilization = CheckLowerUtilization(provided; required);
+    status = CheckGatedStatus(inputs_valid; CheckLowerStatus(provided; required; warning_threshold));
+    join_rows([id; CHECK_METHOD_LOWER; required; provided; utilization; warning_threshold; status]);
+}
+
+CheckResultRegistryShapeOK(registry) = and(n_cols(registry) ≡ CHECK_RESULT_COLUMNS; n_rows(registry) ≥ 1; take(1; col(registry; CHECK_RESULT_ID)) ≡ CHECK_REG_EMPTY)
+CheckResultRegistryCount(registry) = if(CheckResultRegistryShapeOK(registry); n_rows(registry) - 1; 0)
+CheckResultRegistryEntryExists(registry; id) = if(CheckResultRegistryShapeOK(registry); count(col(registry; CHECK_RESULT_ID); id; 1) > 0; 0)
+
+CheckResultRegistryAddStatus(registry; result) = switch(
+    not(CheckResultRegistryShapeOK(registry)); CHECK_REG_ERR_BAD_REGISTRY;
+    not(CheckResultShapeOK(result)); CHECK_REG_ERR_BAD_RESULT;
+    not(CheckResultIDOK(CheckResultID(result))); CHECK_REG_ERR_BAD_ID;
+    CheckResultRegistryEntryExists(registry; CheckResultID(result)); CHECK_REG_ERR_DUPLICATE_ID;
+    not(CheckMethodKnown(CheckResultMethod(result))); CHECK_REG_ERR_BAD_METHOD;
+    not(CheckStatusKnown(CheckResultStatus(result))); CHECK_REG_ERR_BAD_RESULT;
+    CHECK_REG_OK)
+
+CheckResultRegistryAdd(registry; result) = if(CheckResultRegistryAddStatus(registry; result) ≡ CHECK_REG_OK; stack(registry; result); registry)
+
+CheckResultRegistryValues(registry; column) = _
+$block{
+    value_count = CheckResultRegistryCount(registry);
+    safe_column = min(max(round(column); 1); n_cols(registry));
+    safe_values = last(col(registry; safe_column); max(value_count; 1));
+    values = if(value_count > 0; safe_values; find_eq([0]; 1; 1));
+    values;
+}
+
+CheckResultRegistryIDs(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_ID)
+CheckResultRegistryMethods(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_METHOD)
+CheckResultRegistryDemands(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_DEMAND)
+CheckResultRegistryCapacities(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_CAPACITY)
+CheckResultRegistryUtilizations(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_UTILIZATION)
+CheckResultRegistryWarnings(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_WARNING)
+CheckResultRegistryStatuses(registry) = CheckResultRegistryValues(registry; CHECK_RESULT_STATUS)
+
+CheckResultRegistryIDAt(registry; index) = take(index; CheckResultRegistryIDs(registry))
+CheckResultRegistryUtilizationAt(registry; index) = take(index; CheckResultRegistryUtilizations(registry))
+CheckResultRegistryStatusAt(registry; index) = take(index; CheckResultRegistryStatuses(registry))
+
+CheckRegistryErrorCount(errors) = len(errors) - count(errors; CHECK_REG_OK; 1)
+CheckRegistryErrorsOK(errors) = CheckRegistryErrorCount(errors) ≡ 0
+CheckResultRegistryEffectiveStatuses(registry; errors) = if(CheckRegistryErrorsOK(errors); CheckResultRegistryStatuses(registry); join(CheckResultRegistryStatuses(registry); CHK_ERROR))
+CheckResultRegistryIssueCount(registry; errors) = len(CheckResultRegistryEffectiveStatuses(registry; errors)) - CheckPassCount(CheckResultRegistryEffectiveStatuses(registry; errors))
+CheckResultRegistrySummaryStatus(registry; errors) = switch(not(CheckResultRegistryShapeOK(registry)); CHK_ERROR; not(CheckRegistryErrorsOK(errors)); CHK_ERROR; CheckSummaryStatus(CheckResultRegistryStatuses(registry); CheckResultRegistryUtilizations(registry)))
+CheckResultRegistryGoverningIndex(registry) = CheckGoverningIndex(CheckResultRegistryUtilizations(registry))
+CheckResultRegistryGoverningUtilization(registry) = CheckGoverningUtilization(CheckResultRegistryUtilizations(registry))
+CheckResultRegistryGoverningID(registry) = _
+$block{
+    governing_index = CheckResultRegistryGoverningIndex(registry);
+    safe_index = max(governing_index; 1);
+    safe_ids = join(CheckResultRegistryIDs(registry); CHECK_REG_EMPTY);
+    governing_id = if(governing_index > 0; take(safe_index; safe_ids); CHECK_REG_EMPTY);
+    governing_id;
+}
+
+EngineeringCheckRegistry = CheckResultRegistryEmpty
+EngineeringCheckRegistryErrors = [CHECK_REG_OK]
+
+#def CheckRegistryStatus$(status$)
+    #if status$ ≡ CHECK_REG_OK
+        '<span class="ok">VALID</span>
+    #end if
+    #if status$ ≡ CHECK_REG_ERR_BAD_REGISTRY
+        '<span class="err">INVALID CHECK REGISTRY</span>
+    #end if
+    #if status$ ≡ CHECK_REG_ERR_BAD_RESULT
+        '<span class="err">INVALID CHECK RESULT</span>
+    #end if
+    #if status$ ≡ CHECK_REG_ERR_BAD_ID
+        '<span class="err">INVALID CHECK ID</span>
+    #end if
+    #if status$ ≡ CHECK_REG_ERR_DUPLICATE_ID
+        '<span class="err">DUPLICATE CHECK ID</span>
+    #end if
+    #if status$ ≡ CHECK_REG_ERR_BAD_METHOD
+        '<span class="err">INVALID CHECK METHOD</span>
+    #end if
+    #if not(or(status$ ≡ CHECK_REG_OK; status$ ≡ CHECK_REG_ERR_BAD_REGISTRY; status$ ≡ CHECK_REG_ERR_BAD_RESULT; status$ ≡ CHECK_REG_ERR_BAD_ID; status$ ≡ CHECK_REG_ERR_DUPLICATE_ID; status$ ≡ CHECK_REG_ERR_BAD_METHOD))
+        '<span class="err">UNKNOWN CHECK REGISTRY STATUS</span>
+    #end if
+#end def
+
+#def CheckRegistryID$(id$)
+    #val
+    '<span>'id$'</span>
+    #equ
+#end def
+
+#def CheckRegistryLink$(id$)
+    '<a class="check-registry-link" href="#" onclick="event.preventDefault();var n=this.textContent.replace(&quot;Check&quot;,&quot;&quot;).trim();var rows=document.querySelectorAll(&quot;.check-registry-entry&quot;);for(var i=0;i&lt;rows.length;i++){var cell=rows[i].querySelector(&quot;.check-registry-id&quot;);if(cell&amp;&amp;cell.textContent.trim()===n){rows[i].scrollIntoView({block:&quot;center&quot;});rows[i].focus();break;}}">Check
+    CheckRegistryID$(id$)
+    '</a>
+#end def
+
+#def BeginCheckRegistry$
+    '<table class="bordered data reporting-summary check-summary check-registry">
+    '<thead><tr><th>Demand / Required</th><th>Capacity / Provided</th><th>Utilization</th><th>Warning</th><th>Acceptance Criterion</th><th>Status</th></tr></thead>
+    '<tbody>
+#end def
+
+#def AddCheckResult$(id$; label$; criterion$; result$)
+    #hide
+    ζCHECK_expected_id = id$
+    ζCHECK_result_id = CheckResultID(result$)
+    ζCHECK_base_registration_status = CheckResultRegistryAddStatus(EngineeringCheckRegistry; result$)
+    ζCHECK_registration_status = if(ζCHECK_expected_id ≡ ζCHECK_result_id; ζCHECK_base_registration_status; CHECK_REG_ERR_BAD_RESULT)
+    EngineeringCheckRegistry = if(ζCHECK_registration_status ≡ CHECK_REG_OK; CheckResultRegistryAdd(EngineeringCheckRegistry; result$); EngineeringCheckRegistry)
+    EngineeringCheckRegistryErrors = join(EngineeringCheckRegistryErrors; ζCHECK_registration_status)
+    #show
+    '<tr class="check-title check-registry-entry" tabindex="-1"><th colspan="6">Check <span class="check-registry-id">
+    CheckRegistryID$(ζCHECK_result_id)
+    '</span> &mdash; label$</th></tr>
+    #val
+    '<tr><td class="check-demand">'CheckResultDemand(result$)'</td><td>'CheckResultCapacity(result$)'</td><td>'CheckResultUtilization(result$)'</td><td>'CheckResultWarning(result$)'</td><td>criterion$</td><td class="status-cell">
+    #equ
+    CheckStatus$(CheckResultStatus(result$))
+    '</td></tr>
+    #if ζCHECK_registration_status ≠ CHECK_REG_OK
+        '<tr class="check-registry-error"><td colspan="6"><strong>Check registry error:</strong>
+        CheckRegistryStatus$(ζCHECK_registration_status)
+        '</td></tr>
+    #end if
+#end def
+
+#def AddUpperCheck$(id$; label$; demand$; capacity$; warning_threshold$; criterion$; inputs_valid$)
+    #hide
+    ζCHECK_pending_result = CheckUpperResult(id$; demand$; capacity$; warning_threshold$; inputs_valid$)
+    #show
+    AddCheckResult$(id$; label$; criterion$; ζCHECK_pending_result)
+#end def
+
+#def AddLowerCheck$(id$; label$; required$; provided$; warning_threshold$; criterion$; inputs_valid$)
+    #hide
+    ζCHECK_pending_result = CheckLowerResult(id$; required$; provided$; warning_threshold$; inputs_valid$)
+    #show
+    AddCheckResult$(id$; label$; criterion$; ζCHECK_pending_result)
+#end def
+
+#def AddCustomCheck$(id$; label$; demand$; capacity$; utilization$; warning_threshold$; criterion$; status$)
+    #hide
+    ζCHECK_pending_result = CheckCustomResult(id$; demand$; capacity$; utilization$; warning_threshold$; status$)
+    #show
+    AddCheckResult$(id$; label$; criterion$; ζCHECK_pending_result)
+#end def
+
+#def EndCheckRegistry$
+    '</tbody>
+    '</table>
+#end def
+
+#def EndCheckRegistryWithSummary$
+    '</tbody>
+    '<tfoot>
+    #val
+    '<tr class="check-counts"><th>Check counts</th><td><strong>Pass:</strong> 'CheckPassCount(CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors))'</td><td><strong>Warning:</strong> 'CheckWarningCount(CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors))'</td><td><strong>Fail:</strong> 'CheckFailureCount(CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors))'</td><td><strong>Error:</strong> 'CheckErrorCount(CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors))'</td><td class="status-cell"><strong>Overall:</strong>
+    #equ
+    CheckStatus$(CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors))
+    '</td></tr>
+    #if and(CheckRegistryErrorsOK(EngineeringCheckRegistryErrors); CheckSummaryDataOK(CheckResultRegistryStatuses(EngineeringCheckRegistry); CheckResultRegistryUtilizations(EngineeringCheckRegistry)))
+        '<tr class="check-governing"><th>Governing check</th><td colspan="3">
+        CheckRegistryLink$(CheckResultRegistryGoverningID(EngineeringCheckRegistry))
+        '</td><th>Utilization</th>
+        #val
+        '<td>'CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry)'</td></tr>
+        #equ
+    #else
+        '<tr class="check-governing"><th>Governing check</th><td colspan="3">Not available</td><th>Utilization</th><td>Not available</td></tr>
+    #end if
+    '</tfoot>
+    '</table>
+#end def
+
+#def ShowCheckIssues$
+    #hide
+    ζCHECK_issue_count = CheckResultRegistryIssueCount(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζCHECK_registry_count = CheckResultRegistryCount(EngineeringCheckRegistry)
+    #show
+    '<section class="check-issues">
+    '<h4>Items Requiring Review</h4>
+    #if ζCHECK_issue_count ≡ 0
+        '<p class="ok">No warning, failure, or error checks were registered.</p>
+    #else
+        '<table class="bordered reporting-summary check-issue-summary">
+        '<thead><tr><th>Check</th><th>Utilization</th><th>Status</th></tr></thead>
+        '<tbody>
+        #if ζCHECK_registry_count > 0
+            #for ζCHECK_issue_index = 1 : ζCHECK_registry_count
+                #hide
+                ζCHECK_issue_status = CheckResultRegistryStatusAt(EngineeringCheckRegistry; ζCHECK_issue_index)
+                #show
+                #if ζCHECK_issue_status ≠ CHK_PASS
+                    '<tr><td>
+                    CheckRegistryLink$(CheckResultRegistryIDAt(EngineeringCheckRegistry; ζCHECK_issue_index))
+                    '</td>
+                    #val
+                    '<td>'CheckResultRegistryUtilizationAt(EngineeringCheckRegistry; ζCHECK_issue_index)'</td>
+                    #equ
+                    '<td class="status-cell">
+                    CheckStatus$(ζCHECK_issue_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(CheckRegistryErrorsOK(EngineeringCheckRegistryErrors))
+            '<tr><td>Registry</td><td>Not available</td><td class="status-cell"><span class="err">REGISTRATION ERROR</span></td></tr>
+        #end if
+        '</tbody>
+        '</table>
+    #end if
+    '</section>
+#end def
+#show
+#hide
+'<!-- Document-level calculation status helpers. Version 1.1.0. -->
 
 CALC_PASS = 0
 CALC_WARN = 10
@@ -1081,6 +1323,8 @@ CalculationInputsComplete(validation_statuses) = and(CalculationValidationStatus
 CalculationChecksComplete(check_statuses) = and(len(check_statuses) > 0; CheckStatusesOK(check_statuses); CheckErrorCount(check_statuses) ≡ 0)
 
 CalculationStatus(validation_statuses; check_statuses) = switch(len(validation_statuses) ≡ 0; CALC_INCOMPLETE; not(CalculationValidationStatusesOK(validation_statuses)); CALC_ERROR; ValidationHasErrors(validation_statuses); CALC_INCOMPLETE; len(check_statuses) ≡ 0; CALC_INCOMPLETE; not(CheckStatusesOK(check_statuses)); CALC_ERROR; CheckErrorCount(check_statuses) > 0; CALC_ERROR; CheckFailureCount(check_statuses) > 0; CALC_FAIL; or(ValidationWarningCount(validation_statuses) > 0; CheckWarningCount(check_statuses) > 0); CALC_WARN; CALC_PASS)
+CalculationStatusFromRegistries(validation_results; check_registry; check_registry_errors) = switch(not(CheckResultRegistryShapeOK(check_registry)); CALC_ERROR; not(CheckRegistryErrorsOK(check_registry_errors)); CALC_ERROR; CalculationStatus(ValidationResultsStatuses(validation_results); CheckResultRegistryStatuses(check_registry)))
+CalculationStatusFromGlobalRegistries(validation_results) = CalculationStatusFromRegistries(validation_results; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 
 CalculationIsPass(status) = status ≡ CALC_PASS
 CalculationHasWarning(status) = status ≡ CALC_WARN
@@ -1145,6 +1389,28 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
     '<table class="bordered data calculation-status-counts">
     '<thead><tr><th>Input validation</th><th>Engineering checks</th></tr></thead>
     '<tbody><tr><td><strong>Warnings:</strong> 'ValidationWarningCount(validation_statuses$)' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(validation_statuses$)'</td><td><strong>Pass:</strong> 'CheckPassCount(check_statuses$)' &nbsp; <strong>Warning:</strong> 'CheckWarningCount(check_statuses$)' &nbsp; <strong>Fail:</strong> 'CheckFailureCount(check_statuses$)' &nbsp; <strong>Error:</strong> 'CheckErrorCount(check_statuses$)'</td></tr></tbody>
+    '</table>
+    '</section>
+#end def
+
+#def ShowCalculationStatusFromRegistries$(validation_results$)
+    #hide
+    ζCALC_registry_validation_statuses = ValidationResultsStatuses(validation_results$)
+    ζCALC_registry_check_statuses = CheckResultRegistryEffectiveStatuses(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζCALC_registry_status = CalculationStatusFromGlobalRegistries(validation_results$)
+    #show
+    '<section class="calculation-status-banner">
+    '<div class="calculation-status-heading"><strong>Calculation Status</strong>
+    CalculationStatus$(ζCALC_registry_status)
+    '</div>
+    '<p class="calculation-status-message">
+    CalculationStatusMessage$(ζCALC_registry_status)
+    '</p>
+    '<table class="bordered data calculation-status-counts">
+    '<thead><tr><th>Input validation</th><th>Engineering checks</th></tr></thead>
+    #val
+    '<tbody><tr><td><strong>Warnings:</strong> 'ValidationWarningCount(ζCALC_registry_validation_statuses)' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(ζCALC_registry_validation_statuses)'</td><td><strong>Pass:</strong> 'CheckPassCount(ζCALC_registry_check_statuses)' &nbsp; <strong>Warning:</strong> 'CheckWarningCount(ζCALC_registry_check_statuses)' &nbsp; <strong>Fail:</strong> 'CheckFailureCount(ζCALC_registry_check_statuses)' &nbsp; <strong>Error:</strong> 'CheckErrorCount(ζCALC_registry_check_statuses)'</td></tr></tbody>
+    #equ
     '</table>
     '</section>
 #end def

@@ -1,5 +1,5 @@
 #hide
-'<!-- Engineering check helpers. Version 1.2.0. -->
+'<!-- Engineering check helpers. Version 2.0.0. -->
 
 CHK_PASS = 0
 CHK_WARN = 10
@@ -92,39 +92,4 @@ CheckAllPass(statuses) = CheckOverallStatus(statuses) ≡ CHK_PASS
     '</table>
 #end def
 
-#def BeginCheckSummary$
-    '<table class="bordered data reporting-summary check-summary">
-    '<thead>
-    '<tr><th>Demand / Required</th><th>Capacity / Provided</th><th>Utilization</th><th>Warning</th><th>Acceptance Criterion</th><th>Status</th></tr>
-    '</thead>
-    '<tbody>
-#end def
-
-#def AddCheckRow$(label$; demand$; capacity$; utilization$; warning_threshold$; criterion$; status$)
-    '<tr class="check-title"><th colspan="6">label$</th></tr>
-    '<tr><td class="check-demand">'demand$'</td><td>'capacity$'</td><td>'utilization$'</td><td>'warning_threshold$'</td><td>criterion$</td><td class="status-cell">
-    CheckStatus$(status$)
-    '</td></tr>
-#end def
-
-#def EndCheckSummary$
-    '</tbody>
-    '</table>
-#end def
-
-#def EndCheckSummaryWithResult$(statuses$; utilizations$; governing_label$)
-    '</tbody>
-    '<tfoot>
-    '<tr class="check-counts"><th>Check counts</th><td><strong>Pass:</strong> 'CheckPassCount(statuses$)'</td><td><strong>Warning:</strong> 'CheckWarningCount(statuses$)'</td><td><strong>Fail:</strong> 'CheckFailureCount(statuses$)'</td><td><strong>Error:</strong> 'CheckErrorCount(statuses$)'</td><td class="status-cell"><strong>Overall:</strong>
-    CheckStatus$(CheckSummaryStatus(statuses$; utilizations$))
-    '</td></tr>
-    #if CheckSummaryDataOK(statuses$; utilizations$)
-        '<tr class="check-governing"><th>Governing check</th><td colspan="3">governing_label$ (row 'CheckGoverningIndex(utilizations$)')</td><th>Utilization</th><td>'CheckGoverningUtilization(utilizations$)'</td></tr>
-    #end if
-    #if not(CheckSummaryDataOK(statuses$; utilizations$))
-        '<tr class="check-governing"><th>Governing check</th><td colspan="3">Not available</td><th>Utilization</th><td>Not available</td></tr>
-    #end if
-    '</tfoot>
-    '</table>
-#end def
 #show

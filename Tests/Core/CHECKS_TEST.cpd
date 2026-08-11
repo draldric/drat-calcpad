@@ -17,6 +17,16 @@ unit_upper_status = CheckUpperStatus(5kN; 10kN; 0.90)
 unit_lower_utilization = CheckLowerUtilization(10kN; 5kN)
 unit_lower_status = CheckLowerStatus(10kN; 5kN; 0.90)
 
+upper_result = CheckUpperResult(101; 80kN; 100kN; 0.90; 1)
+lower_result = CheckLowerResult(102; 100kN; 120kN; 0.90; 1)
+custom_result = CheckCustomResult(103; 25mm; 30mm; 5/6; 0.90; CHK_PASS)
+gated_result = CheckUpperResult(104; 80kN; 100kN; 0.90; 0)
+
+test_check_registry = CheckResultRegistryEmpty
+test_check_registry = CheckResultRegistryAdd(test_check_registry; upper_result)
+test_check_registry = CheckResultRegistryAdd(test_check_registry; lower_result)
+test_check_registry = CheckResultRegistryAdd(test_check_registry; custom_result)
+
 check_statuses = [status_pass; status_warn; status_limit; status_fail; status_bad_capacity]
 check_utilizations = [0.80; 0.95; 1.00; 1.01; 0.50]
 worst_status = CheckWorst(check_statuses)
@@ -53,22 +63,21 @@ predicate_tests_1 = and(CheckNoFailures([CHK_PASS; CHK_WARN]); not(CheckNoFailur
 predicate_tests_2 = and(not(CheckAllPass([CHK_PASS; CHK_WARN])); CheckStatusKnown(CHK_WARN); not(CheckStatusKnown(99)))
 predicate_tests = and(predicate_tests_1; predicate_tests_2)
 unit_tests = and(unit_upper_utilization ≡ 0.5; unit_upper_status ≡ CHK_PASS; unit_lower_utilization ≡ 0.5; unit_lower_status ≡ CHK_PASS)
+result_tests = and(CheckResultShapeOK(upper_result); CheckResultID(upper_result) ≡ 101; CheckResultMethod(upper_result) ≡ CHECK_METHOD_UPPER; CheckResultDemand(upper_result) ≡ 80kN; CheckResultCapacity(upper_result) ≡ 100kN; CheckResultUtilization(upper_result) ≡ 0.8; CheckResultStatus(upper_result) ≡ CHK_PASS; CheckResultMethod(lower_result) ≡ CHECK_METHOD_LOWER; abs(CheckResultUtilization(lower_result) - 5/6) < 1*10^-12; CheckResultStatus(gated_result) ≡ CHK_ERROR)
+registry_tests_1 = and(CheckResultRegistryShapeOK(test_check_registry); CheckResultRegistryCount(test_check_registry) ≡ 3; CheckResultRegistryEntryExists(test_check_registry; 102); CheckResultRegistryAddStatus(test_check_registry; upper_result) ≡ CHECK_REG_ERR_DUPLICATE_ID; CheckResultRegistryAddStatus(test_check_registry; CheckUpperResult(0; 1kN; 2kN; 0.9; 1)) ≡ CHECK_REG_ERR_BAD_ID)
+registry_tests_2 = and(len(CheckResultRegistryIDs(test_check_registry)) ≡ 3; take(1; CheckResultRegistryIDs(test_check_registry)) ≡ 101; take(2; CheckResultRegistryStatuses(test_check_registry)) ≡ CHK_PASS; CheckResultRegistryGoverningIndex(test_check_registry) ≡ 2; CheckResultRegistryGoverningID(test_check_registry) ≡ 102; abs(CheckResultRegistryGoverningUtilization(test_check_registry) - 5/6) < 1*10^-12)
+registry_tests_3 = and(CheckRegistryErrorCount([CHECK_REG_OK; CHECK_REG_OK]) ≡ 0; CheckRegistryErrorCount([CHECK_REG_OK; CHECK_REG_ERR_BAD_ID]) ≡ 1; CheckResultRegistrySummaryStatus(test_check_registry; [CHECK_REG_OK]) ≡ CHK_PASS; CheckResultRegistrySummaryStatus(test_check_registry; [CHECK_REG_OK; CHECK_REG_ERR_DUPLICATE_ID]) ≡ CHK_ERROR; CheckResultRegistryIssueCount(test_check_registry; [CHECK_REG_OK]) ≡ 0)
+registry_tests = and(result_tests; registry_tests_1; registry_tests_2; registry_tests_3)
 
-all_tests_1 = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests; unit_tests)
+all_tests_1 = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests; unit_tests; registry_tests)
 all_tests_2 = and(count_tests; unknown_tests; overall_tests; summary_data_tests; governing_tests; empty_tests; gating_tests)
 all_tests = and(all_tests_1; all_tests_2)
 
 ShowCheck$(Upper-limit example; upper_utilization; status_pass)
 
-#novar
-BeginCheckSummary$
-AddCheckRow$(Upper-limit example; 80; 100; upper_utilization; 0.9; Demand ≤ capacity; status_pass)
-EndCheckSummaryWithResult$([status_pass]; [upper_utilization]; Upper-limit example)
-
-#hide
-invalid_summary_utilizations = [0/0]
-#show
-BeginCheckSummary$
-AddCheckRow$(Invalid-input example; 0; 0; 0; 0.9; Inputs must be valid; CHK_ERROR)
-EndCheckSummaryWithResult$([CHK_ERROR]; invalid_summary_utilizations; Not available)
-#equ
+BeginCheckRegistry$
+AddUpperCheck$(201; Upper-limit passing example; 80kN; 100kN; 0.9; Demand ≤ capacity; 1)
+AddUpperCheck$(202; Upper-limit warning example; 95kN; 100kN; 0.9; Demand ≤ capacity; 1)
+AddLowerCheck$(203; Lower-limit failing example; 100kN; 80kN; 0.9; Provided ≥ required; 1)
+EndCheckRegistryWithSummary$
+ShowCheckIssues$

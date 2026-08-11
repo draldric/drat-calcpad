@@ -28,6 +28,7 @@ CRITERION_FACTOR_SELECTION = 1
 ASSUMPTION_DIMENSIONLESS_FACTORS = 1
 ASSUMPTION_APPLICABLE_OPTIONS = 2
 LIMITATION_WORKFLOW_EXAMPLE = 1
+CHECK_MINIMUM_FOS = 1
 #show
 
 BeginRevisions$
@@ -134,7 +135,6 @@ factor_statuses = ValidationResultsStatuses(factor_results)
 input_validation = ValidationOverallStatus(factor_statuses)
 inputs_valid = not(ValidationHasErrors(factor_statuses))
 #show
-#novar
 BeginValidationSummary$
 AddValidationResult$(Material factor; material_validation)
 AddValidationResult$(Stress factor; stress_validation)
@@ -144,28 +144,30 @@ AddValidationResult$(Reliability factor; reliability_validation)
 AddValidationResult$(Design factor of safety; design_validation)
 AddValidationResult$(Warning threshold; warning_validation)
 EndValidationResults$(factor_results)
-#equ
 
 "Calculation
 FoS_required = n_material*n_stress*n_geometry*n_failure*n_reliability
+
+"Engineering Checks
+
+BeginCheckRegistry$
+AddLowerCheck$(CHECK_MINIMUM_FOS; Minimum factor of safety; FoS_required; FoS_design; warning_threshold; Design FoS ≥ required FoS; inputs_valid)
+EndCheckRegistryWithSummary$
+ShowCheckIssues$
+
 #hide
-FoS_utilization = CheckLowerUtilization(FoS_design; FoS_required)
-FoS_raw_status = CheckLowerStatus(FoS_design; FoS_required; warning_threshold)
-FoS_status = CheckGatedStatus(inputs_valid; FoS_raw_status)
-check_statuses = [FoS_status]
-check_utilizations = [FoS_utilization]
-overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
+overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+calculation_status = CalculationStatusFromGlobalRegistries(factor_results)
 #show
-#novar
-BeginCheckSummary$
-AddCheckRow$(Minimum factor of safety; FoS_required; FoS_design; FoS_utilization; warning_threshold; Design FoS ≥ required FoS; FoS_status)
-EndCheckSummaryWithResult$(check_statuses; check_utilizations; Minimum factor of safety)
-#equ
+
+ShowCalculationStatusFromRegistries$(factor_results)
 
 BeginConclusions$
 #novar
 AddConclusion$(Recommended minimum factor of safety; FoS_required)
 AddConclusion$(Design factor of safety; FoS_design)
+AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry))
+AddCalculationStatusConclusion$(Document calculation status; calculation_status)
 AddValidationConclusion$(Input validation status; input_validation)
 AddCheckConclusion$(Design check status; overall_check_status)
 EndConclusions$

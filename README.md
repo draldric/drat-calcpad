@@ -46,12 +46,12 @@ If a required API is missing or incompatible, the library skips its body and ren
 `Checks.cpd` classifies engineering utilization ratios as `CHK_PASS`, `CHK_WARN`, `CHK_FAIL`, or `CHK_ERROR`.
 Use `CheckUpperStatus` when demand must not exceed capacity, and `CheckLowerStatus` when a provided value must meet a minimum requirement.
 The default warning threshold is available as `CHK_DEFAULT_WARNING`.
-Use `BeginCheckSummary$`, `AddCheckRow$`, and `EndCheckSummary$` for expanded comparison tables containing demand or required value, capacity or provided value, utilization, warning threshold, acceptance criterion, and status.
-Use `EndCheckSummaryWithResult$` with matching status and utilization vectors to add pass, warning, fail, and error counts, the overall status, and the governing check.
-`CheckGoverningIndex` selects the first maximum utilization when values tie, and `CheckGatedStatus` forces a check error when its validated inputs are not usable.
+`CheckRegistry.cpd` stores each check as `[id; method; demand_or_required; capacity_or_provided; utilization; warning_threshold; status]`.
+Use `BeginCheckRegistry$`, `AddUpperCheck$`, `AddLowerCheck$`, or `AddCustomCheck$`, and `EndCheckRegistryWithSummary$` to create the full check table without maintaining parallel status, utilization, or label vectors.
+`ShowCheckIssues$` lists warning, failure, and error checks, while the governing summary identifies the first maximum utilization by stable check ID.
 
 `CalculationStatus.cpd` combines the validation and engineering-check vectors into a document-level `CALC_PASS`, `CALC_WARN`, `CALC_FAIL`, `CALC_INCOMPLETE`, or `CALC_ERROR` result.
-Use `ShowCalculationStatus$` for the standard calculation banner and counts.
+Use `ShowCalculationStatusFromRegistries$(input_results)` for the standard calculation banner and counts derived directly from the structured validation and check registries.
 
 `Reporting.cpd` provides structured registries for references, design criteria, assumptions, and limitations.
 Each entry has a positive integer ID; linked entries validate their source reference, duplicate IDs render inline errors, and `ShowReportingSummary$` reports the registered counts and aggregate registry status.
@@ -93,6 +93,7 @@ Required organization, client, project, calculation, and preparation metadata us
 
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
 `Examples/ReportingRegistriesDemo.cpd` demonstrates structured references, linked design criteria, assumptions, limitations, registry queries, and aggregate reporting status without requiring a discipline-specific calculation.
+`Examples/CheckRegistryDemo.cpd` demonstrates upper-limit, lower-limit, and custom checks, governing selection, the issue summary, and calculation-status integration.
 `Examples/MaterialAllowableCheck.cpd` demonstrates a complete Engineering Materials lookup, source and revision reporting, unit-aware validation, multiple factored-strength checks, governing-check identification, and engineering conclusions.
 Use `ShowMatRecord$` for the selected material metadata and `ShowMatPROP$` for retrieved property values and source status; both predefined tables right-align their value column.
 Use `MatItemsByCategory`, `MatAvailablePropertyIDs`, and `MatItemsWithProperty` to discover suitable records without duplicating catalog data in a worksheet.

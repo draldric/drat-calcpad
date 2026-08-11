@@ -12,15 +12,16 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `20000` | Complete generated-Core API |
+| `DRAT_CORE_API` | `30000` | Complete generated-Core API |
 | `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
-| `DRAT_STYLESHEET_API` | `10500` | Shared rendered styles |
+| `DRAT_STYLESHEET_API` | `10600` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
 | `DRAT_DATA_WRAPPER_API` | `302` | Numeric property and curve wrapper |
-| `DRAT_CHECKS_API` | `10200` | Engineering checks and summaries |
+| `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
+| `DRAT_CHECK_REGISTRY_API` | `10000` | Structured engineering-check registry and reporting |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
-| `DRAT_VALIDATION_API` | `10400` | Structured input validation |
-| `DRAT_CALCULATION_STATUS_API` | `10000` | Document-level calculation status |
+| `DRAT_VALIDATION_API` | `10401` | Structured input validation |
+| `DRAT_CALCULATION_STATUS_API` | `10100` | Document-level calculation status |
 | `DRAT_REPORTING_API` | `10000` | Structured report registries |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
@@ -121,7 +122,8 @@ See [`Examples/ReportingRegistriesDemo.cpd`](../Examples/ReportingRegistriesDemo
 
 ## Calculation status
 
-`CalculationStatus(validation_statuses; check_statuses)` combines the input-validation and engineering-check vectors into one document-level result.
+`CalculationStatus(validation_statuses; check_statuses)` combines input-validation and engineering-check status vectors into one document-level result.
+New worksheets should use `CalculationStatusFromRegistries(validation_results; check_registry; check_registry_errors)` or `CalculationStatusFromGlobalRegistries(validation_results)` so the check-status vector cannot drift from the rendered check table.
 Its precedence distinguishes incomplete inputs from a completed calculation that fails an engineering requirement:
 
 | Constant | Meaning |
@@ -132,7 +134,9 @@ Its precedence distinguishes incomplete inputs from a completed calculation that
 | `CALC_INCOMPLETE` | Validation or engineering-check results are missing, or inputs contain errors |
 | `CALC_ERROR` | Validation/check statuses are unknown or a completed check contains an evaluation error |
 
-Use `CalculationStatus$` for an inline label and `ShowCalculationStatus$` for the document banner with validation and check counts.
+Use `CalculationStatus$` for an inline label.
+Use `ShowCalculationStatusFromRegistries$(validation_results)` for the standard document banner derived from the global validation and check registries.
+`ShowCalculationStatus$` remains available when explicit status vectors are required.
 `AddCalculationStatusConclusion$` adds the same status to an open conclusions block.
 `CalculationCanBeIssued` returns true for pass and warning statuses; the checker must still decide whether each warning is acceptable before issue.
 `CalculationValidationStatusesOK`, `CalculationInputsComplete`, and `CalculationChecksComplete` expose the completeness checks used by the aggregate.
@@ -184,19 +188,45 @@ Capacities and provided values must be positive after units are cleared.
 `CheckWorst`, `CheckNoFailures`, and `CheckAllPass` are compatibility predicates built on `CheckOverallStatus`.
 `CheckCount`, `CheckKnownCount`, and `CheckUnknownCount` provide lower-level status counts.
 
-### Reporting
+### Structured check registry and reporting
 
-Use `CheckStatus$(status)` for an inline status or `ShowCheck$(label; utilization; status)` for a small table.
-For a calculation summary:
+Use `CheckStatus$(status)` for an inline status or `ShowCheck$(label; utilization; status)` for one small standalone table.
+For a calculation, register every rendered check as one structured result:
 
 ```text
-BeginCheckSummary$
-AddCheckRow$(label; demand; capacity; utilization; warning_threshold; criterion; status)
-EndCheckSummaryWithResult$(statuses; utilizations; governing_label)
+[id; method; demand_or_required; capacity_or_provided; utilization; warning_threshold; status]
 ```
 
-Use `EndCheckSummary$` when aggregate counts and governing results are not required.
-The caller supplies `governing_label`; `CheckGoverningIndex` selects the first row when utilizations tie.
+The constructors are `CheckUpperResult`, `CheckLowerResult`, and `CheckCustomResult`.
+The corresponding accessors are `CheckResultID`, `CheckResultMethod`, `CheckResultDemand`, `CheckResultCapacity`, `CheckResultUtilization`, `CheckResultWarning`, and `CheckResultStatus`.
+Check IDs must be positive integers and unique within the worksheet.
+
+The generated Core initializes `EngineeringCheckRegistry` and `EngineeringCheckRegistryErrors`.
+The registration macros render the human-readable label and acceptance criterion while storing the numeric result used for aggregation:
+
+```text
+CHECK_STRESS = 1
+CHECK_DEFLECTION = 2
+
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_STRESS; Bending stress; bending_stress; allowable_stress; CHK_DEFAULT_WARNING; Demand must not exceed allowable stress.; inputs_valid)
+AddUpperCheck$(CHECK_DEFLECTION; Deflection; deflection; allowable_deflection; CHK_DEFAULT_WARNING; Deflection must not exceed the serviceability limit.; inputs_valid)
+EndCheckRegistryWithSummary$
+
+ShowCheckIssues$
+ShowCalculationStatusFromRegistries$(validation_results)
+```
+
+`AddLowerCheck$` handles minimum-required checks and `AddCustomCheck$` stores a caller-calculated utilization and status.
+`AddCheckResult$` registers a preconstructed result.
+`EndCheckRegistry$` closes the table without an aggregate footer; `EndCheckRegistryWithSummary$` adds counts, overall status, and a link to the governing check.
+`ShowCheckIssues$` lists warnings, failures, and errors with links back to their registered rows.
+
+Registry query helpers include `CheckResultRegistryCount`, `CheckResultRegistryEntryExists`, the `CheckResultRegistry*` vector accessors, `CheckResultRegistrySummaryStatus`, `CheckResultRegistryIssueCount`, and the governing-index, governing-ID, and governing-utilization functions.
+`CheckResultRegistryEffectiveStatuses` adds `CHK_ERROR` when any attempted registration failed, ensuring registry-integrity failures propagate into calculation status.
+When utilizations tie, the first registered row governs.
+
+See [`Examples/CheckRegistryDemo.cpd`](../Examples/CheckRegistryDemo.cpd), [`Tests/Core/CHECKS_TEST.cpd`](../Tests/Core/CHECKS_TEST.cpd), and [`Tests/Core/CALCULATION_STATUS_TEST.cpd`](../Tests/Core/CALCULATION_STATUS_TEST.cpd).
 
 ## Validation
 

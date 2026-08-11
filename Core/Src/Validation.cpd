@@ -1,5 +1,5 @@
 #hide
-'<!-- Input validation helpers. Version 1.4.0. -->
+'<!-- Input validation helpers. Version 1.4.1. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -350,6 +350,7 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
 #end def
 
 #def BeginValidationSummary$
+    #novar
     '<table class="bordered data reporting-summary validation-summary">
     '<thead>
     '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
@@ -514,6 +515,7 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     '</td></tr>
     '</tfoot>
     '</table>
+    #equ
 #end def
 
 #def EndValidationResults$(results$)

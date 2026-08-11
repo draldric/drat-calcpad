@@ -28,6 +28,7 @@ REF_INPUT_SOURCE = 2
 CRITERION_PRIMARY = 1
 ASSUMPTION_PRIMARY = 1
 LIMITATION_PRIMARY = 1
+CHECK_UPPER_LIMIT = 1
 #show
 
 BeginRevisions$
@@ -75,13 +76,11 @@ input_validation = ValidationOverallStatus(input_statuses)
 inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
-#novar
 BeginValidationSummary$
 AddValidationResult$(Demand; demand_validation)
 AddValidationResult$(Capacity; capacity_validation)
 AddValidationResult$(Warning threshold; warning_validation)
 EndValidationResults$(input_results)
-#equ
 
 "Methodology
 
@@ -92,29 +91,28 @@ EndValidationResults$(input_results)
 
 #hide
 utilization = CheckUpperUtilization(demand; capacity)
-raw_check_status = CheckUpperStatus(demand; capacity; warning_threshold)
-check_status = CheckGatedStatus(inputs_valid; raw_check_status)
-check_statuses = [check_status]
-check_utilizations = [utilization]
-overall_check_status = CheckSummaryStatus(check_statuses; check_utilizations)
-calculation_status = CalculationStatus(input_statuses; check_statuses)
+#show
+
+"Engineering Checks
+
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_UPPER_LIMIT; Upper-limit demonstration; demand; capacity; warning_threshold; Demand ≤ capacity; inputs_valid)
+EndCheckRegistryWithSummary$
+ShowCheckIssues$
+
+#hide
+check_statuses = CheckResultRegistryStatuses(EngineeringCheckRegistry)
+overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+calculation_status = CalculationStatusFromGlobalRegistries(input_results)
 #show
 
 "Results
 
 #novar
-AddConclusion$(Governing utilization; utilization)
+AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry))
 #equ
 
-"Engineering Checks
-
-#novar
-BeginCheckSummary$
-AddCheckRow$(Upper-limit demonstration; demand; capacity; utilization; warning_threshold; Demand ≤ capacity; check_status)
-EndCheckSummaryWithResult$(check_statuses; check_utilizations; Upper-limit demonstration)
-#equ
-
-ShowCalculationStatus$(input_statuses; check_statuses)
+ShowCalculationStatusFromRegistries$(input_results)
 
 BeginConclusions$
 #novar
