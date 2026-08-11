@@ -80,7 +80,6 @@ AddValidationResult$(INPUT_DEMAND; Demand; demand_validation)
 AddValidationResult$(INPUT_CAPACITY; Capacity; capacity_validation)
 AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
 EndValidationResults$
-ShowValidationIssues$
 
 #hide
 input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
@@ -103,7 +102,6 @@ utilization = CheckUpperUtilization(demand; capacity)
 BeginCheckRegistry$
 AddUpperCheck$(CHECK_UPPER_LIMIT; Upper-limit demonstration; demand; capacity; warning_threshold; Demand ≤ capacity; inputs_valid)
 EndCheckRegistryWithSummary$
-ShowCheckIssues$
 
 #hide
 overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
@@ -117,6 +115,7 @@ AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(En
 #equ
 
 ShowCalculationStatusFromRegistries$
+ShowDocumentReviewSummary$
 
 BeginConclusions$
 #novar

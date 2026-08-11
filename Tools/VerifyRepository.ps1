@@ -130,6 +130,7 @@ function Test-ApiVersions {
         'CheckRegistry.cpd' = 'DRAT_CHECK_REGISTRY_API'
         'CalculationStatus.cpd' = 'DRAT_CALCULATION_STATUS_API'
         'Reporting.cpd' = 'DRAT_REPORTING_API'
+        'ReviewSummary.cpd' = 'DRAT_REVIEW_SUMMARY_API'
         'Plotting.cpd' = 'DRAT_PLOTTING_API'
     }
 

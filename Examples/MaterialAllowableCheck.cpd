@@ -124,7 +124,6 @@ AddValidationResult$(INPUT_TENSILE_PROPERTY; Tensile-strength property; ultimate
 AddValidationResult$(INPUT_SOURCE; Source registry entry; source_validation)
 AddValidationResult$(INPUT_DATASET_REVISION; Dataset revision; revision_validation)
 EndValidationResults$
-ShowValidationIssues$
 
 #hide
 input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
@@ -172,7 +171,6 @@ BeginCheckRegistry$
 AddUpperCheck$(CHECK_YIELD_STRENGTH; Yield-strength screening; σ_t; σ_y_allow; warning_threshold; Applied stress ≤ yield strength / yield factor; inputs_valid)
 AddUpperCheck$(CHECK_TENSILE_STRENGTH; Tensile-strength screening; σ_t; σ_u_allow; warning_threshold; Applied stress ≤ tensile strength / ultimate factor; inputs_valid)
 EndCheckRegistryWithSummary$
-ShowCheckIssues$
 
 #hide
 overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
@@ -190,6 +188,7 @@ AddConclusion$(Governing utilization; governing_utilization)
 #equ
 
 ShowCalculationStatusFromRegistries$
+ShowDocumentReviewSummary$
 
 BeginConclusions$
 #novar

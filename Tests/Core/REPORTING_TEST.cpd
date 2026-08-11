@@ -15,6 +15,10 @@ test_assumptions = ReportLinkedRegistryAdd(test_assumptions; 301; RPT_NO_REFEREN
 test_limitations = ReportLinkedRegistryEmpty
 test_limitations = ReportLinkedRegistryAdd(test_limitations; 401; 102; test_references; 0)
 
+test_reporting_errors = ReportErrorRegistryEmpty
+test_reporting_errors = ReportErrorRegistryAdd(test_reporting_errors; RPT_ENTRY_REFERENCE; 101; RPT_OK)
+test_reporting_errors = ReportErrorRegistryAdd(test_reporting_errors; RPT_ENTRY_CRITERION; 202; RPT_ERR_UNKNOWN_REFERENCE)
+
 shape_tests = and(
     ReportRegistryShapeOK(ReportRegistryEmpty);
     ReportLinkedRegistryShapeOK(ReportLinkedRegistryEmpty);
@@ -48,10 +52,16 @@ linked_tests = and(
 
 summary_tests = and(
     ReportRegistriesCount(test_references; test_criteria; test_assumptions; test_limitations) ≡ 5;
-    ReportErrorRegistryCount([RPT_OK; RPT_OK]) ≡ 0;
-    ReportErrorRegistryCount([RPT_OK; RPT_ERR_BAD_ID; RPT_OK]) ≡ 1;
-    ReportRegistriesStatus(test_references; test_criteria; test_assumptions; test_limitations; [RPT_OK]) ≡ RPT_OK;
-    ReportRegistriesStatus(test_references; test_criteria; test_assumptions; test_limitations; [RPT_OK; RPT_ERR_DUPLICATE_ID]) ≡ RPT_ERR_DUPLICATE_ID)
+    ReportErrorRegistryShapeOK(test_reporting_errors);
+    ReportErrorRegistryAttemptCount(test_reporting_errors) ≡ 2;
+    ReportErrorRegistryCount(test_reporting_errors) ≡ 1;
+    ReportErrorRegistryStatus(test_reporting_errors) ≡ RPT_ERR_UNKNOWN_REFERENCE;
+    ReportErrorRegistryTypeAt(test_reporting_errors; 2) ≡ RPT_ENTRY_CRITERION;
+    ReportErrorRegistryIDAt(test_reporting_errors; 2) ≡ 202;
+    ReportErrorRegistryStatusAt(test_reporting_errors; 2) ≡ RPT_ERR_UNKNOWN_REFERENCE;
+    ReportErrorRegistrySequenceAt(test_reporting_errors; 2) ≡ 2;
+    ReportRegistriesStatus(test_references; test_criteria; test_assumptions; test_limitations; ReportErrorRegistryEmpty) ≡ RPT_OK;
+    ReportRegistriesStatus(test_references; test_criteria; test_assumptions; test_limitations; test_reporting_errors) ≡ RPT_ERR_UNKNOWN_REFERENCE)
 
 all_tests = and(shape_tests; reference_tests; linked_tests; summary_tests)
 

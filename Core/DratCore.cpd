@@ -1,9 +1,9 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 40000
+DRAT_CORE_API = 40100
 DRAT_DEFINITIONS_API = 20000
-DRAT_STYLESHEET_API = 10700
+DRAT_STYLESHEET_API = 10800
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 302
 DRAT_CHECKS_API = 20000
@@ -11,13 +11,14 @@ DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 20000
 DRAT_CHECK_REGISTRY_API = 10000
 DRAT_CALCULATION_STATUS_API = 20000
-DRAT_REPORTING_API = 10000
+DRAT_REPORTING_API = 20000
+DRAT_REVIEW_SUMMARY_API = 10000
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 4.0.0
+#def DRATCoreVersion$ = 4.1.0
 #show
 #hide
-'<!-- Shared worksheet stylesheet. Version 1.7.0. -->
+'<!-- Shared worksheet stylesheet. Version 1.8.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -82,8 +83,18 @@ DRAT_REPORTING_API = 10000
 '<style>.validation-registry-link{font-weight:bold;white-space:nowrap;}</style>
 '<style>.validation-issue-summary td:first-child{text-align:left;}</style>
 '<style>.validation-issue-summary td:nth-child(2){text-align:right;}</style>
+'<style>.report-entry-link{font-weight:bold;white-space:nowrap;}</style>
+'<style>.document-review-summary{border:2px solid #444;background:#f5f5f5;padding:0.75em 1em;margin:1.5em 2em;break-inside:avoid;page-break-inside:avoid;}</style>
+'<style>.document-review-heading{display:flex;justify-content:space-between;align-items:center;gap:1em;font-size:12pt;text-transform:uppercase;}</style>
+'<style>.review-status-label{display:inline-block;padding:0.2em 0.6em;border:2px solid currentColor;font-weight:bold;white-space:nowrap;}</style>
+'<style>.review-status-ready{color:#176b2c;background:#e8f5e9;}</style>
+'<style>.review-status-attention{color:#795500;background:#fff4c2;}</style>
+'<style>.review-status-blocked,.review-status-error{color:#9b1c1c;background:#fdeaea;}</style>
+'<style>.document-review-counts,.document-review-issues{width:100%;margin:0.75em 0 0 0;}</style>
+'<style>.document-review-counts th,.document-review-counts td{text-align:center;}</style>
+'<style>.document-review-issues td:first-child,.document-review-issues td:nth-child(2){text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner,.document-review-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
 #hide
 '<!-- Worksheet formatting definitions. Version 2.0.0. -->
 
@@ -1158,6 +1169,7 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     '</tfoot>
     '</table>
     #equ
+    #varsub
 #end def
 
 #def EndValidationResults$
@@ -1586,7 +1598,7 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
 #end def
 #show
 #hide
-'<!-- Structured engineering-report registries. Version 1.0.0. -->
+'<!-- Structured engineering-report registries. Version 2.0.0. -->
 
 RPT_OK = 0
 RPT_ERR_BAD_REGISTRY = 10
@@ -1596,6 +1608,17 @@ RPT_ERR_UNKNOWN_REFERENCE = 40
 
 RPT_EMPTY = 0
 RPT_NO_REFERENCE = 0
+
+RPT_ENTRY_REFERENCE = 1
+RPT_ENTRY_CRITERION = 2
+RPT_ENTRY_ASSUMPTION = 3
+RPT_ENTRY_LIMITATION = 4
+
+RPT_ATTEMPT_TYPE = 1
+RPT_ATTEMPT_ID = 2
+RPT_ATTEMPT_STATUS = 3
+RPT_ATTEMPT_SEQUENCE = 4
+RPT_ATTEMPT_COLUMNS = 4
 
 ReportRegistryEmpty = [RPT_EMPTY]
 ReportLinkedRegistryEmpty = join_rows([RPT_EMPTY; RPT_NO_REFERENCE])
@@ -1630,8 +1653,18 @@ ReportLinkedRegistryAddStatus(registry; id; reference_id; references; reference_
 ReportLinkedRegistryAdd(registry; id; reference_id; references; reference_required) = if(ReportLinkedRegistryAddStatus(registry; id; reference_id; references; reference_required) ≡ RPT_OK; stack(registry; join_rows([id; reference_id])); registry)
 ReportLinkedRegistryReference(registry; id) = if(ReportLinkedRegistryShapeOK(registry); DBLookupOr(registry; id; 1; 2; RPT_NO_REFERENCE); RPT_NO_REFERENCE)
 
-ReportErrorRegistryCount(errors) = len(errors) - count(errors; RPT_OK; 1)
-ReportErrorRegistryStatus(errors) = if(ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(errors))
+ReportEntryTypeKnown(entry_type) = or(entry_type ≡ RPT_ENTRY_REFERENCE; entry_type ≡ RPT_ENTRY_CRITERION; entry_type ≡ RPT_ENTRY_ASSUMPTION; entry_type ≡ RPT_ENTRY_LIMITATION)
+ReportErrorRegistryEmpty = join_rows([0; 0; RPT_OK; 0])
+ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; RPT_ATTEMPT_SEQUENCE)) ≡ 0)
+ReportErrorRegistryAttemptCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - 1; 0)
+ReportErrorRecord(entry_type; id; status; sequence) = join_rows([entry_type; id; status; sequence])
+ReportErrorRegistryAdd(errors; entry_type; id; status) = stack(errors; ReportErrorRecord(entry_type; id; status; ReportErrorRegistryAttemptCount(errors) + 1))
+ReportErrorRegistryCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - count(col(errors; RPT_ATTEMPT_STATUS); RPT_OK; 1); 1)
+ReportErrorRegistryStatus(errors) = if(ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(col(errors; RPT_ATTEMPT_STATUS)))
+ReportErrorRegistryTypeAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_TYPE); max(ReportErrorRegistryAttemptCount(errors); 1)))
+ReportErrorRegistryIDAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_ID); max(ReportErrorRegistryAttemptCount(errors); 1)))
+ReportErrorRegistryStatusAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_STATUS); max(ReportErrorRegistryAttemptCount(errors); 1)))
+ReportErrorRegistrySequenceAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_SEQUENCE); max(ReportErrorRegistryAttemptCount(errors); 1)))
 ReportRegistriesCount(references; criteria; assumptions; limitations) = ReportRegistryCount(references) + ReportLinkedRegistryCount(criteria) + ReportLinkedRegistryCount(assumptions) + ReportLinkedRegistryCount(limitations)
 ReportRegistriesStatus(references; criteria; assumptions; limitations; errors) = switch(
     not(ReportRegistryShapeOK(references)); RPT_ERR_BAD_REGISTRY;
@@ -1645,7 +1678,7 @@ ReportReferences = ReportRegistryEmpty
 ReportDesignCriteria = ReportLinkedRegistryEmpty
 ReportAssumptions = ReportLinkedRegistryEmpty
 ReportLimitations = ReportLinkedRegistryEmpty
-ReportRegistryErrors = [RPT_OK]
+ReportRegistryErrors = ReportErrorRegistryEmpty
 
 #def ReportStatus$(status$)
     #if status$ ≡ RPT_OK
@@ -1684,6 +1717,34 @@ ReportRegistryErrors = [RPT_OK]
     #equ
 #end def
 
+#def ReportEntryType$(entry_type$)
+    #if entry_type$ ≡ RPT_ENTRY_REFERENCE
+        '<span>Reference</span>
+    #end if
+    #if entry_type$ ≡ RPT_ENTRY_CRITERION
+        '<span>Design criterion</span>
+    #end if
+    #if entry_type$ ≡ RPT_ENTRY_ASSUMPTION
+        '<span>Assumption</span>
+    #end if
+    #if entry_type$ ≡ RPT_ENTRY_LIMITATION
+        '<span>Limitation</span>
+    #end if
+    #if not(ReportEntryTypeKnown(entry_type$))
+        '<span>Reporting entry</span>
+    #end if
+#end def
+
+#def ReportEntryLink$(entry_type$; id$; sequence$)
+    #val
+    '<a class="report-entry-link" href="#report-entry-'entry_type$'-'sequence$'">
+    #equ
+    ReportEntryType$(entry_type$)
+    '<span>&nbsp;</span>
+    ReportID$(id$)
+    '</a>
+#end def
+
 #def BeginReferences$
     '<h2>References</h2>
     '<table class="bordered reporting-summary reporting-registry reference-registry">
@@ -1695,14 +1756,16 @@ ReportRegistryErrors = [RPT_OK]
     #hide
     ζRPT_reference_status = ReportRegistryAddStatus(ReportReferences; id$)
     ReportReferences = ReportRegistryAdd(ReportReferences; id$)
-    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_reference_status)
+    ReportRegistryErrors = ReportErrorRegistryAdd(ReportRegistryErrors; RPT_ENTRY_REFERENCE; id$; ζRPT_reference_status)
+    ζRPT_reference_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
-    #if ζRPT_reference_status ≡ RPT_OK
-        '<tr id="report-reference-id$">
-    #else
-        '<tr>
-    #end if
+    #val
+    '<tr id="report-entry-1-'ζRPT_reference_sequence'">
+    #equ
     '<td class="registry-id">
+    #if ζRPT_reference_status ≡ RPT_OK
+        '<span id="report-reference-id$"></span>
+    #end if
     ReportID$(id$)
     '</td><td>document$</td><td>title$</td><td>edition$</td><td>clause$</td><td>notes$</td></tr>
     #if ζRPT_reference_status ≠ RPT_OK
@@ -1731,9 +1794,12 @@ ReportRegistryErrors = [RPT_OK]
     #hide
     ζRPT_criterion_status = ReportLinkedRegistryAddStatus(ReportDesignCriteria; id$; reference_id$; ReportReferences; 1)
     ReportDesignCriteria = ReportLinkedRegistryAdd(ReportDesignCriteria; id$; reference_id$; ReportReferences; 1)
-    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_criterion_status)
+    ReportRegistryErrors = ReportErrorRegistryAdd(ReportRegistryErrors; RPT_ENTRY_CRITERION; id$; ζRPT_criterion_status)
+    ζRPT_criterion_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
-    '<tr><td class="registry-id">
+    #val
+    '<tr id="report-entry-2-'ζRPT_criterion_sequence'"><td class="registry-id">
+    #equ
     ReportID$(id$)
     '</td><td>criterion$</td><td>requirement$</td><td class="registry-id">
     ReportReferenceID$(reference_id$)
@@ -1764,9 +1830,12 @@ ReportRegistryErrors = [RPT_OK]
     #hide
     ζRPT_assumption_status = ReportLinkedRegistryAddStatus(ReportAssumptions; id$; reference_id$; ReportReferences; 0)
     ReportAssumptions = ReportLinkedRegistryAdd(ReportAssumptions; id$; reference_id$; ReportReferences; 0)
-    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_assumption_status)
+    ReportRegistryErrors = ReportErrorRegistryAdd(ReportRegistryErrors; RPT_ENTRY_ASSUMPTION; id$; ζRPT_assumption_status)
+    ζRPT_assumption_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
-    '<tr><td class="registry-id">
+    #val
+    '<tr id="report-entry-3-'ζRPT_assumption_sequence'"><td class="registry-id">
+    #equ
     ReportID$(id$)
     '</td><td>category$</td><td>assumption$</td><td>basis$</td><td class="registry-id">
     ReportReferenceID$(reference_id$)
@@ -1797,9 +1866,12 @@ ReportRegistryErrors = [RPT_OK]
     #hide
     ζRPT_limitation_status = ReportLinkedRegistryAddStatus(ReportLimitations; id$; reference_id$; ReportReferences; 0)
     ReportLimitations = ReportLinkedRegistryAdd(ReportLimitations; id$; reference_id$; ReportReferences; 0)
-    ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_limitation_status)
+    ReportRegistryErrors = ReportErrorRegistryAdd(ReportRegistryErrors; RPT_ENTRY_LIMITATION; id$; ζRPT_limitation_status)
+    ζRPT_limitation_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
-    '<tr><td class="registry-id">
+    #val
+    '<tr id="report-entry-4-'ζRPT_limitation_sequence'"><td class="registry-id">
+    #equ
     ReportID$(id$)
     '</td><td>limitation$</td><td>consequence$</td><td>follow_up$</td><td class="registry-id">
     ReportReferenceID$(reference_id$)
@@ -1833,6 +1905,153 @@ ReportRegistryErrors = [RPT_OK]
     ReportStatus$(ζRPT_overall_status)
     '</td></tr></tbody>
     '</table>
+    '</section>
+#end def
+#show
+#hide
+'<!-- Unified document review summary. Version 1.0.0. -->
+
+REVIEW_READY = 0
+REVIEW_ATTENTION = 10
+REVIEW_BLOCKED = 20
+REVIEW_ERROR = 30
+
+ReviewStatusKnown(status) = or(status ≡ REVIEW_READY; status ≡ REVIEW_ATTENTION; status ≡ REVIEW_BLOCKED; status ≡ REVIEW_ERROR)
+ReviewValidationIssueCount(validation_registry; validation_errors) = ValidationResultRegistryIssueCount(validation_registry; validation_errors)
+ReviewCheckIssueCount(check_registry; check_errors) = CheckResultRegistryIssueCount(check_registry; check_errors)
+ReviewReportingIssueCount(reporting_errors) = ReportErrorRegistryCount(reporting_errors)
+ReviewTotalIssueCount(validation_registry; validation_errors; check_registry; check_errors; reporting_errors) = ReviewValidationIssueCount(validation_registry; validation_errors) + ReviewCheckIssueCount(check_registry; check_errors) + ReviewReportingIssueCount(reporting_errors)
+
+ReviewStatus(calculation_status; reporting_status) = switch(
+    not(CalculationStatusKnown(calculation_status)); REVIEW_ERROR;
+    reporting_status ≠ RPT_OK; REVIEW_ERROR;
+    calculation_status ≡ CALC_ERROR; REVIEW_ERROR;
+    or(calculation_status ≡ CALC_FAIL; calculation_status ≡ CALC_INCOMPLETE); REVIEW_BLOCKED;
+    calculation_status ≡ CALC_WARN; REVIEW_ATTENTION;
+    calculation_status ≡ CALC_PASS; REVIEW_READY;
+    REVIEW_ERROR)
+
+ReviewReadyForCheck(status) = or(status ≡ REVIEW_READY; status ≡ REVIEW_ATTENTION)
+ReviewReadyForIssue(status) = status ≡ REVIEW_READY
+
+#def ReviewStatus$(status$)
+    #if status$ ≡ REVIEW_READY
+        '<span class="review-status-label review-status-ready">READY</span>
+    #end if
+    #if status$ ≡ REVIEW_ATTENTION
+        '<span class="review-status-label review-status-attention">REVIEW REQUIRED</span>
+    #end if
+    #if status$ ≡ REVIEW_BLOCKED
+        '<span class="review-status-label review-status-blocked">BLOCKED</span>
+    #end if
+    #if status$ ≡ REVIEW_ERROR
+        '<span class="review-status-label review-status-error">REVIEW ERROR</span>
+    #end if
+    #if not(ReviewStatusKnown(status$))
+        '<span class="review-status-label review-status-error">UNKNOWN STATUS</span>
+    #end if
+#end def
+
+#def ReviewReadiness$(ready$)
+    #if ready$
+        '<span class="ok">YES</span>
+    #else
+        '<span class="err">NO</span>
+    #end if
+#end def
+
+#def ShowDocumentReviewSummary$
+    #hide
+    ζREVIEW_calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζREVIEW_reporting_status = ReportRegistriesStatus(ReportReferences; ReportDesignCriteria; ReportAssumptions; ReportLimitations; ReportRegistryErrors)
+    ζREVIEW_status = ReviewStatus(ζREVIEW_calculation_status; ζREVIEW_reporting_status)
+    ζREVIEW_validation_issues = ReviewValidationIssueCount(InputValidationRegistry; InputValidationRegistryErrors)
+    ζREVIEW_check_issues = ReviewCheckIssueCount(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+    ζREVIEW_reporting_issues = ReviewReportingIssueCount(ReportRegistryErrors)
+    ζREVIEW_total_issues = ζREVIEW_validation_issues + ζREVIEW_check_issues + ζREVIEW_reporting_issues
+    ζREVIEW_validation_count = ValidationResultRegistryCount(InputValidationRegistry)
+    ζREVIEW_check_count = CheckResultRegistryCount(EngineeringCheckRegistry)
+    ζREVIEW_reporting_attempts = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
+    #show
+    '<h4>Document Review Summary</h4>
+    '<section class="document-review-summary">
+    '<div class="document-review-heading"><strong>Overall review state</strong>
+    ReviewStatus$(ζREVIEW_status)
+    '</div>
+    '<table class="bordered reporting-summary document-review-counts">
+    '<thead><tr><th>Calculation</th><th>Validation Issues</th><th>Check Issues</th><th>Reporting Errors</th><th>Ready for Check</th><th>Ready for Issue</th></tr></thead>
+    '<tbody><tr><td class="status-cell">
+    CalculationStatus$(ζREVIEW_calculation_status)
+    '</td>
+    #val
+    '<td>'ζREVIEW_validation_issues'</td><td>'ζREVIEW_check_issues'</td><td>'ζREVIEW_reporting_issues'</td>
+    #equ
+    '<td class="status-cell">
+    ReviewReadiness$(ReviewReadyForCheck(ζREVIEW_status))
+    '</td><td class="status-cell">
+    ReviewReadiness$(ReviewReadyForIssue(ζREVIEW_status))
+    '</td></tr></tbody>
+    '</table>
+    #if ζREVIEW_total_issues ≡ 0
+        '<p class="ok">No validation, engineering-check, or reporting issues were identified.</p>
+    #else
+        '<table class="bordered reporting-summary document-review-issues">
+        '<thead><tr><th>Source</th><th>Item</th><th>Status</th></tr></thead>
+        '<tbody>
+        #if ζREVIEW_validation_count > 0
+            #for ζREVIEW_validation_index = 1 : ζREVIEW_validation_count
+                #hide
+                ζREVIEW_validation_status = ValidationResultRegistryStatusAt(InputValidationRegistry; ζREVIEW_validation_index)
+                #show
+                #if ζREVIEW_validation_status ≠ VAL_OK
+                    '<tr><td>Input validation</td><td>
+                    ValidationRegistryLink$(ValidationResultRegistryIDAt(InputValidationRegistry; ζREVIEW_validation_index))
+                    '</td><td class="status-cell">
+                    ValidationStatus$(ζREVIEW_validation_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(ValidationRegistryErrorsOK(InputValidationRegistryErrors))
+            '<tr><td>Input validation</td><td>Validation registry</td><td class="status-cell"><span class="err">REGISTRATION ERROR</span></td></tr>
+        #end if
+        #if ζREVIEW_check_count > 0
+            #for ζREVIEW_check_index = 1 : ζREVIEW_check_count
+                #hide
+                ζREVIEW_check_status = CheckResultRegistryStatusAt(EngineeringCheckRegistry; ζREVIEW_check_index)
+                #show
+                #if ζREVIEW_check_status ≠ CHK_PASS
+                    '<tr><td>Engineering check</td><td>
+                    CheckRegistryLink$(CheckResultRegistryIDAt(EngineeringCheckRegistry; ζREVIEW_check_index))
+                    '</td><td class="status-cell">
+                    CheckStatus$(ζREVIEW_check_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(CheckRegistryErrorsOK(EngineeringCheckRegistryErrors))
+            '<tr><td>Engineering check</td><td>Check registry</td><td class="status-cell"><span class="err">REGISTRATION ERROR</span></td></tr>
+        #end if
+        #if ζREVIEW_reporting_attempts > 0
+            #for ζREVIEW_reporting_index = 1 : ζREVIEW_reporting_attempts
+                #hide
+                ζREVIEW_reporting_entry_status = ReportErrorRegistryStatusAt(ReportRegistryErrors; ζREVIEW_reporting_index)
+                #show
+                #if ζREVIEW_reporting_entry_status ≠ RPT_OK
+                    '<tr><td>Reporting registry</td><td>
+                    ReportEntryLink$(ReportErrorRegistryTypeAt(ReportRegistryErrors; ζREVIEW_reporting_index); ReportErrorRegistryIDAt(ReportRegistryErrors; ζREVIEW_reporting_index); ReportErrorRegistrySequenceAt(ReportRegistryErrors; ζREVIEW_reporting_index))
+                    '</td><td class="status-cell">
+                    ReportStatus$(ζREVIEW_reporting_entry_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(ReportErrorRegistryShapeOK(ReportRegistryErrors))
+            '<tr><td>Reporting registry</td><td>Reporting registry</td><td class="status-cell"><span class="err">INVALID REGISTRY</span></td></tr>
+        #end if
+        '</tbody>
+        '</table>
+    #end if
     '</section>
 #end def
 #show

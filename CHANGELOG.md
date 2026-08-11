@@ -7,6 +7,8 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Unified document-review status combining calculation results and reporting integrity, with separate readiness-for-check and readiness-for-issue decisions.
+- Consolidated linked review summary for validation, engineering-check, and reporting issues, with a dedicated demo and regression worksheet.
 - Structured engineering check-result registry with stable IDs, upper-limit, lower-limit, and custom constructors, automatic aggregation, governing selection, issue summaries, and document-status integration.
 - Dedicated check-registry demo and expanded Core regression coverage.
 - Structured input-validation registry with stable IDs, automatic aggregation, linked issue summaries, integrity checks, and document-status integration.
@@ -35,8 +37,10 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
-- Core is versioned as 4.0.0 because validation reporting now registers results by stable input ID and no longer requires caller-maintained result matrices.
-- Validation summary macros now switch to value-only rendering internally and restore equation rendering when the table closes.
+- Core is versioned as 4.1.0 with the unified review-summary API and exact links to failed reporting-registration attempts.
+- Reporting registration attempts now store entry type, ID, status, and sequence so document-review errors can link to their exact source rows.
+- Core was versioned as 4.0.0 because validation reporting registers results by stable input ID and no longer requires caller-maintained result matrices.
+- Validation summary macros now switch to value-only rendering internally and restore equation and variable-substitution rendering when the table closes.
 - Core is versioned as 3.0.0 because manual check-summary macros and caller-maintained parallel result vectors were replaced by the structured check-registry workflow before the first public release.
 - Core is versioned as 2.0.0 because the former free-form reference and initial-condition macros were replaced by the structured registry workflow before the first public release.
 
