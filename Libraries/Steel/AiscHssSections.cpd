@@ -1,4 +1,4 @@
-#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 40000)
+#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #hide
 '<!-- AISC HSS geometric-property library. Source: AISC Shapes Database v16.0 (August 2023). -->

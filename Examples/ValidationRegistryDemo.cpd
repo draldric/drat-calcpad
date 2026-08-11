@@ -1,0 +1,89 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = VALIDATION REGISTRY WORKFLOW DEMONSTRATION
+#def Title$ = STRUCTURED INPUT VALIDATION RESULTS
+#def Purpose$ = DEMONSTRATE STABLE INPUT IDS, AUTOMATIC VALIDATION AGGREGATION, ISSUE LINKS, AND REGISTRY QUERIES.
+#def Scope$ = SHOW THE VALIDATION-RESULT REGISTRY USING SIMPLE UNIT-AWARE AND DIMENSIONLESS INPUTS.
+#def Calculation$ = EXAMPLE-VAL-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+#hide
+INPUT_SPAN = 1
+INPUT_MEMBER_COUNT = 2
+INPUT_CONFIDENCE = 3
+INPUT_OFFSET = 4
+#show
+
+BeginRevisions$
+AddRevision$(0; Initial validation-registry demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
+"Saved Inputs
+
+span = 6m
+member_count = 4
+confidence = 0.95
+offset = 12mm
+
+"Input Validation
+
+'Each rendered row registers the same structured result used by the summary and issue list.
+'The confidence warning and offset error are intentional demonstrations.
+
+#hide
+span_validation = ValidationPositiveResult(span)
+member_count_validation = ValidationIntegerResult(member_count)
+confidence_validation = [VAL_WARN; confidence; VAL_RULE_RANGE; 0; 1]
+offset_validation = ValidationMaximumResult(offset; 10mm)
+#show
+
+BeginValidationSummary$
+AddValidationResult$(INPUT_SPAN; Beam span; span_validation)
+AddValidationResult$(INPUT_MEMBER_COUNT; Member count; member_count_validation)
+AddValidationResult$(INPUT_CONFIDENCE; Screening confidence; confidence_validation)
+AddValidationResult$(INPUT_OFFSET; Connection offset; offset_validation)
+EndValidationResults$
+
+ShowValidationIssues$
+
+"Registry Query Examples
+
+#hide
+demo_validation_count = ValidationResultRegistryCount(InputValidationRegistry)
+demo_validation_issue_count = ValidationResultRegistryIssueCount(InputValidationRegistry; InputValidationRegistryErrors)
+demo_validation_status = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
+demo_inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
+
+'<table class="bordered reporting-summary validation-registry-query">
+'<thead><tr><th>Query</th><th>Result</th></tr></thead>
+'<tbody>
+#val
+'<tr><td>Registered validation results</td><td>'demo_validation_count'</td></tr>
+'<tr><td>Items requiring review</td><td>'demo_validation_issue_count'</td></tr>
+'<tr><td>Inputs valid for calculation</td><td>'demo_inputs_valid'</td></tr>
+#equ
+'<tr><td>Overall validation status</td><td class="status-cell">
+ValidationSummaryStatus$([demo_validation_status])
+'</td></tr>
+'</tbody>
+'</table>
+
+"Conclusions
+
+'The registry retains four stable numeric input IDs and identifies two items requiring review.
+'The warning remains a usable input state, while the invalid offset prevents the inputs from being accepted for engineering checks.

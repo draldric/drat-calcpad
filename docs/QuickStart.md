@@ -76,22 +76,26 @@ demand = 80kN
 capacity = 100kN
 warning_threshold = CHK_DEFAULT_WARNING
 
+INPUT_DEMAND = 1
+INPUT_CAPACITY = 2
+INPUT_WARNING_THRESHOLD = 3
+
 #hide
 demand_validation = ValidationNonnegativeResult(demand)
 capacity_validation = ValidationPositiveResult(capacity)
 warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
-input_results = join_rows(demand_validation; capacity_validation; warning_validation)
-input_statuses = ValidationResultsStatuses(input_results)
-inputs_valid = not(ValidationHasErrors(input_statuses))
 #show
 
-#novar
 BeginValidationSummary$
-AddValidationResult$(Demand; demand_validation)
-AddValidationResult$(Capacity; capacity_validation)
-AddValidationResult$(Warning threshold; warning_validation)
-EndValidationResults$(input_results)
-#equ
+AddValidationResult$(INPUT_DEMAND; Demand; demand_validation)
+AddValidationResult$(INPUT_CAPACITY; Capacity; capacity_validation)
+AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
+EndValidationResults$
+ShowValidationIssues$
+
+#hide
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
 ```
 
 Structured results use `[status; value; rule_code; data_1; data_2]`.
@@ -110,7 +114,7 @@ AddUpperCheck$(CHECK_DEMAND; Demand check; demand; capacity; warning_threshold; 
 EndCheckRegistryWithSummary$
 ShowCheckIssues$
 
-ShowCalculationStatusFromRegistries$(input_results)
+ShowCalculationStatusFromRegistries$
 ```
 
 Invalid inputs must produce `CHK_ERROR`; they must not appear as passing engineering checks.

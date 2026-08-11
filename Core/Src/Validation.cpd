@@ -1,5 +1,5 @@
 #hide
-'<!-- Input validation helpers. Version 1.4.1. -->
+'<!-- Input validation helpers. Version 2.0.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -63,6 +63,21 @@ VAL_RESULT_RULE = 3
 VAL_RESULT_DATA_1 = 4
 VAL_RESULT_DATA_2 = 5
 VAL_RESULT_LENGTH = 5
+
+VAL_REG_OK = 0
+VAL_REG_ERR_BAD_REGISTRY = 10
+VAL_REG_ERR_BAD_RESULT = 20
+VAL_REG_ERR_BAD_ID = 30
+VAL_REG_ERR_DUPLICATE_ID = 40
+
+VAL_REG_ID = 1
+VAL_REG_STATUS = 2
+VAL_REG_VALUE = 3
+VAL_REG_RULE = 4
+VAL_REG_DATA_1 = 5
+VAL_REG_DATA_2 = 6
+VAL_REG_COLUMNS = 6
+VAL_REG_EMPTY = 0
 
 VAL_EMPTY = DB_MISSING
 
@@ -245,6 +260,62 @@ ValidationResultRegistryOK(result) = if(ValidationResultRule(result) ≡ VAL_RUL
 ValidationResultStatus(result) = switch(not(ValidationResultShapeOK(result)); VAL_ERR_BAD_RESULT; not(ValidationStatusKnown(ValidationResultStoredStatus(result))); VAL_ERR_BAD_RESULT; not(ValidationRuleKnown(ValidationResultRule(result))); VAL_ERR_BAD_RESULT; not(ValidationResultRegistryOK(result)); VAL_ERR_BAD_SET; ValidationResultStoredStatus(result))
 ValidationResultsStatuses(results) = col(results; VAL_RESULT_STATUS)
 
+ValidationResultRecord(id; result) = join_rows([id; ValidationResultStatus(result); ValidationResultValue(result); ValidationResultRule(result); ValidationResultData1(result); ValidationResultData2(result)])
+ValidationResultRecordShapeOK(record) = and(n_rows(record) ≡ 1; n_cols(record) ≡ VAL_REG_COLUMNS)
+ValidationResultRecordID(record) = take(VAL_REG_ID; record)
+ValidationResultRecordStatus(record) = take(VAL_REG_STATUS; record)
+ValidationResultRecordValue(record) = take(VAL_REG_VALUE; record)
+ValidationResultRecordRule(record) = take(VAL_REG_RULE; record)
+ValidationResultRecordData1(record) = take(VAL_REG_DATA_1; record)
+ValidationResultRecordData2(record) = take(VAL_REG_DATA_2; record)
+ValidationResultRecordResult(record) = [ValidationResultRecordStatus(record); ValidationResultRecordValue(record); ValidationResultRecordRule(record); ValidationResultRecordData1(record); ValidationResultRecordData2(record)]
+ValidationResultRecordIDOK(id) = and(ValidationIsInteger(id); id > VAL_REG_EMPTY)
+ValidationResultRecordDataOK(record) = and(ValidationResultRecordShapeOK(record); ValidationResultRecordIDOK(ValidationResultRecordID(record)); ValidationStatusKnown(ValidationResultRecordStatus(record)); ValidationRuleKnown(ValidationResultRecordRule(record)))
+
+ValidationResultRegistryEmpty = join_rows([VAL_REG_EMPTY; VAL_ERR_BAD_RESULT; 0; 0; VAL_EMPTY; VAL_EMPTY])
+ValidationResultRegistryShapeOK(registry) = and(n_cols(registry) ≡ VAL_REG_COLUMNS; n_rows(registry) ≥ 1; take(1; col(registry; VAL_REG_ID)) ≡ VAL_REG_EMPTY)
+ValidationResultRegistryCount(registry) = if(ValidationResultRegistryShapeOK(registry); n_rows(registry) - 1; 0)
+ValidationResultRegistryEntryExists(registry; id) = if(ValidationResultRegistryShapeOK(registry); count(col(registry; VAL_REG_ID); id; 1) > 0; 0)
+
+ValidationResultRegistryAddStatus(registry; record) = switch(
+    not(ValidationResultRegistryShapeOK(registry)); VAL_REG_ERR_BAD_REGISTRY;
+    not(ValidationResultRecordShapeOK(record)); VAL_REG_ERR_BAD_RESULT;
+    not(ValidationResultRecordIDOK(ValidationResultRecordID(record))); VAL_REG_ERR_BAD_ID;
+    ValidationResultRegistryEntryExists(registry; ValidationResultRecordID(record)); VAL_REG_ERR_DUPLICATE_ID;
+    not(ValidationStatusKnown(ValidationResultRecordStatus(record))); VAL_REG_ERR_BAD_RESULT;
+    not(ValidationRuleKnown(ValidationResultRecordRule(record))); VAL_REG_ERR_BAD_RESULT;
+    VAL_REG_OK)
+
+ValidationResultRegistryAdd(registry; record) = if(ValidationResultRegistryAddStatus(registry; record) ≡ VAL_REG_OK; stack(registry; record); registry)
+
+ValidationResultRegistryValues(registry; column) = _
+$block{
+    value_count = ValidationResultRegistryCount(registry);
+    safe_column = min(max(round(column); 1); n_cols(registry));
+    safe_values = last(col(registry; safe_column); max(value_count; 1));
+    values = if(value_count > 0; safe_values; find_eq([0]; 1; 1));
+    values;
+}
+
+ValidationResultRegistryIDs(registry) = ValidationResultRegistryValues(registry; VAL_REG_ID)
+ValidationResultRegistryStatuses(registry) = ValidationResultRegistryValues(registry; VAL_REG_STATUS)
+ValidationResultRegistryValuesStored(registry) = ValidationResultRegistryValues(registry; VAL_REG_VALUE)
+ValidationResultRegistryRules(registry) = ValidationResultRegistryValues(registry; VAL_REG_RULE)
+ValidationResultRegistryIDAt(registry; index) = take(index; ValidationResultRegistryIDs(registry))
+ValidationResultRegistryStatusAt(registry; index) = take(index; ValidationResultRegistryStatuses(registry))
+ValidationResultRegistryValueAt(registry; index) = take(index; ValidationResultRegistryValuesStored(registry))
+ValidationResultRegistryRuleAt(registry; index) = take(index; ValidationResultRegistryValues(registry; VAL_REG_RULE))
+ValidationResultRegistryData1At(registry; index) = take(index; ValidationResultRegistryValues(registry; VAL_REG_DATA_1))
+ValidationResultRegistryData2At(registry; index) = take(index; ValidationResultRegistryValues(registry; VAL_REG_DATA_2))
+ValidationResultRegistryResultAt(registry; index) = [ValidationResultRegistryStatusAt(registry; index); ValidationResultRegistryValueAt(registry; index); ValidationResultRegistryRuleAt(registry; index); ValidationResultRegistryData1At(registry; index); ValidationResultRegistryData2At(registry; index)]
+
+ValidationRegistryErrorCount(errors) = len(errors) - count(errors; VAL_REG_OK; 1)
+ValidationRegistryErrorsOK(errors) = ValidationRegistryErrorCount(errors) ≡ 0
+ValidationResultRegistryEffectiveStatuses(registry; errors) = if(ValidationRegistryErrorsOK(errors); ValidationResultRegistryStatuses(registry); join(ValidationResultRegistryStatuses(registry); VAL_ERR_BAD_RESULT))
+
+InputValidationRegistry = ValidationResultRegistryEmpty
+InputValidationRegistryErrors = [VAL_REG_OK]
+
 ValidationWorst(statuses) = max(statuses)
 ValidationCount(statuses; status) = count(statuses; status; 1)
 ValidationWarningCount(statuses) = ValidationCount(statuses; VAL_WARN)
@@ -252,6 +323,9 @@ ValidationErrorCount(statuses) = len(statuses) - ValidationCount(statuses; VAL_O
 ValidationHasErrors(statuses) = ValidationErrorCount(statuses) > 0
 ValidationOverallStatus(statuses) = switch(ValidationHasErrors(statuses); VAL_ERR_UNKNOWN; ValidationWarningCount(statuses) > 0; VAL_WARN; VAL_OK)
 ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
+ValidationResultRegistryIssueCount(registry; errors) = len(ValidationResultRegistryEffectiveStatuses(registry; errors)) - ValidationCount(ValidationResultRegistryEffectiveStatuses(registry; errors); VAL_OK)
+ValidationResultRegistrySummaryStatus(registry; errors) = switch(not(ValidationResultRegistryShapeOK(registry)); VAL_ERR_UNKNOWN; not(ValidationRegistryErrorsOK(errors)); VAL_ERR_UNKNOWN; ValidationResultRegistryCount(registry) ≡ 0; VAL_ERR_UNKNOWN; ValidationOverallStatus(ValidationResultRegistryStatuses(registry)))
+ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegistryCount(registry) > 0; ValidationRegistryErrorsOK(errors); not(ValidationHasErrors(ValidationResultRegistryStatuses(registry))))
 
 #def ValidationStatus$(status$)
     #if status$ ≡ VAL_OK
@@ -349,9 +423,42 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     #end if
 #end def
 
+#def ValidationRegistryStatus$(status$)
+    #if status$ ≡ VAL_REG_OK
+        '<span class="ok">VALID</span>
+    #end if
+    #if status$ ≡ VAL_REG_ERR_BAD_REGISTRY
+        '<span class="err">INVALID VALIDATION REGISTRY</span>
+    #end if
+    #if status$ ≡ VAL_REG_ERR_BAD_RESULT
+        '<span class="err">INVALID VALIDATION RESULT</span>
+    #end if
+    #if status$ ≡ VAL_REG_ERR_BAD_ID
+        '<span class="err">INVALID INPUT ID</span>
+    #end if
+    #if status$ ≡ VAL_REG_ERR_DUPLICATE_ID
+        '<span class="err">DUPLICATE INPUT ID</span>
+    #end if
+    #if not(or(status$ ≡ VAL_REG_OK; status$ ≡ VAL_REG_ERR_BAD_REGISTRY; status$ ≡ VAL_REG_ERR_BAD_RESULT; status$ ≡ VAL_REG_ERR_BAD_ID; status$ ≡ VAL_REG_ERR_DUPLICATE_ID))
+        '<span class="err">UNKNOWN VALIDATION REGISTRY STATUS</span>
+    #end if
+#end def
+
+#def ValidationRegistryID$(id$)
+    #val
+    '<span>'id$'</span>
+    #equ
+#end def
+
+#def ValidationRegistryLink$(id$)
+    '<a class="validation-registry-link" href="#" onclick="event.preventDefault();var n=this.textContent.replace(&quot;Input&quot;,&quot;&quot;).trim();var rows=document.querySelectorAll(&quot;.validation-registry-entry&quot;);for(var i=0;i&lt;rows.length;i++){var cell=rows[i].querySelector(&quot;.validation-registry-id&quot;);if(cell&amp;&amp;cell.textContent.trim()===n){rows[i].scrollIntoView({block:&quot;center&quot;});rows[i].focus();break;}}">Input
+    ValidationRegistryID$(id$)
+    '</a>
+#end def
+
 #def BeginValidationSummary$
     #novar
-    '<table class="bordered data reporting-summary validation-summary">
+    '<table class="bordered data reporting-summary validation-summary validation-registry">
     '<thead>
     '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
     '</thead>
@@ -493,32 +600,84 @@ ValidationAllOK(statuses) = ValidationWorst(statuses) ≡ VAL_OK
     #end if
 #end def
 
-#def AddValidationResult$(label$; result$)
+#def AddValidationResult$(id$; label$; result$)
     #hide
     ζVAL_result = result$
-    ζVAL_status = ValidationResultStatus(ζVAL_result)
+    ζVAL_record = ValidationResultRecord(id$; ζVAL_result)
+    ζVAL_registration_status = ValidationResultRegistryAddStatus(InputValidationRegistry; ζVAL_record)
+    InputValidationRegistry = if(ζVAL_registration_status ≡ VAL_REG_OK; ValidationResultRegistryAdd(InputValidationRegistry; ζVAL_record); InputValidationRegistry)
+    InputValidationRegistryErrors = join(InputValidationRegistryErrors; ζVAL_registration_status)
     #show
-    '<tr><td>label$</td><td>
+    '<tr class="validation-registry-entry" tabindex="-1"><td>Input <span class="validation-registry-id">
+    ValidationRegistryID$(id$)
+    '</span> &mdash; label$</td><td>
     ValidationResultValue$(ζVAL_result)
     '</td><td>
     ValidationPermitted$(ζVAL_result)
     '</td><td class="status-cell">
-    ValidationStatus$(ζVAL_status)
+    ValidationStatus$(ValidationResultRecordStatus(ζVAL_record))
     '</td></tr>
+    #if ζVAL_registration_status ≠ VAL_REG_OK
+        '<tr class="validation-registry-error"><td colspan="4"><strong>Validation registry error:</strong>
+        ValidationRegistryStatus$(ζVAL_registration_status)
+        '</td></tr>
+    #end if
 #end def
 
-#def EndValidationSummary$(statuses$)
+#def EndValidationSummary$
     '</tbody>
     '<tfoot>
-    '<tr><th colspan="2">Overall validation</th><td><strong>Errors:</strong> 'ValidationErrorCount(statuses$)'</td><td class="status-cell">
-    ValidationSummaryStatus$(statuses$)
+    #val
+    '<tr><th colspan="2">Overall validation</th><td><strong>Warnings:</strong> 'ValidationWarningCount(ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors))' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors))'</td><td class="status-cell">
+    #equ
+    ValidationSummaryStatus$([ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)])
     '</td></tr>
     '</tfoot>
     '</table>
     #equ
 #end def
 
-#def EndValidationResults$(results$)
-    EndValidationSummary$(ValidationResultsStatuses(results$))
+#def EndValidationResults$
+    EndValidationSummary$
+#end def
+
+#def ShowValidationIssues$
+    #hide
+    ζVAL_issue_count = ValidationResultRegistryIssueCount(InputValidationRegistry; InputValidationRegistryErrors)
+    ζVAL_registry_count = ValidationResultRegistryCount(InputValidationRegistry)
+    #show
+    '<section class="validation-issues">
+    '<h4>Input Items Requiring Review</h4>
+    #if ζVAL_issue_count ≡ 0
+        '<p class="ok">No validation warnings or errors were registered.</p>
+    #else
+        '<table class="bordered reporting-summary validation-issue-summary">
+        '<thead><tr><th>Input</th><th>Value</th><th>Status</th></tr></thead>
+        '<tbody>
+        #if ζVAL_registry_count > 0
+            #for ζVAL_issue_index = 1 : ζVAL_registry_count
+                #hide
+                ζVAL_issue_status = ValidationResultRegistryStatusAt(InputValidationRegistry; ζVAL_issue_index)
+                #show
+                #if ζVAL_issue_status ≠ VAL_OK
+                    '<tr><td>
+                    ValidationRegistryLink$(ValidationResultRegistryIDAt(InputValidationRegistry; ζVAL_issue_index))
+                    '</td>
+                    '<td>
+                    ValidationResultValue$(ValidationResultRegistryResultAt(InputValidationRegistry; ζVAL_issue_index))
+                    '</td>
+                    '<td class="status-cell">
+                    ValidationStatus$(ζVAL_issue_status)
+                    '</td></tr>
+                #end if
+            #loop
+        #end if
+        #if not(ValidationRegistryErrorsOK(InputValidationRegistryErrors))
+            '<tr><td>Registry</td><td>Not available</td><td class="status-cell"><span class="err">REGISTRATION ERROR</span></td></tr>
+        #end if
+        '</tbody>
+        '</table>
+    #end if
+    '</section>
 #end def
 #show

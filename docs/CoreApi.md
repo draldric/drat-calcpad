@@ -12,16 +12,16 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `30000` | Complete generated-Core API |
+| `DRAT_CORE_API` | `40000` | Complete generated-Core API |
 | `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
-| `DRAT_STYLESHEET_API` | `10600` | Shared rendered styles |
+| `DRAT_STYLESHEET_API` | `10700` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
 | `DRAT_DATA_WRAPPER_API` | `302` | Numeric property and curve wrapper |
 | `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
 | `DRAT_CHECK_REGISTRY_API` | `10000` | Structured engineering-check registry and reporting |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
-| `DRAT_VALIDATION_API` | `10401` | Structured input validation |
-| `DRAT_CALCULATION_STATUS_API` | `10100` | Document-level calculation status |
+| `DRAT_VALIDATION_API` | `20000` | Structured input validation and result registry |
+| `DRAT_CALCULATION_STATUS_API` | `20000` | Document-level calculation status |
 | `DRAT_REPORTING_API` | `10000` | Structured report registries |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
@@ -122,8 +122,8 @@ See [`Examples/ReportingRegistriesDemo.cpd`](../Examples/ReportingRegistriesDemo
 
 ## Calculation status
 
-`CalculationStatus(validation_statuses; check_statuses)` combines input-validation and engineering-check status vectors into one document-level result.
-New worksheets should use `CalculationStatusFromRegistries(validation_results; check_registry; check_registry_errors)` or `CalculationStatusFromGlobalRegistries(validation_results)` so the check-status vector cannot drift from the rendered check table.
+`CalculationStatus(validation_statuses; check_statuses)` combines explicit input-validation and engineering-check status vectors into one document-level result.
+New worksheets should use `CalculationStatusFromRegistries(validation_registry; validation_registry_errors; check_registry; check_registry_errors)` so neither status vector can drift from its rendered table.
 Its precedence distinguishes incomplete inputs from a completed calculation that fails an engineering requirement:
 
 | Constant | Meaning |
@@ -135,7 +135,7 @@ Its precedence distinguishes incomplete inputs from a completed calculation that
 | `CALC_ERROR` | Validation/check statuses are unknown or a completed check contains an evaluation error |
 
 Use `CalculationStatus$` for an inline label.
-Use `ShowCalculationStatusFromRegistries$(validation_results)` for the standard document banner derived from the global validation and check registries.
+Use `ShowCalculationStatusFromRegistries$` for the standard document banner derived from the global validation and check registries.
 `ShowCalculationStatus$` remains available when explicit status vectors are required.
 `AddCalculationStatusConclusion$` adds the same status to an open conclusions block.
 `CalculationCanBeIssued` returns true for pass and warning statuses; the checker must still decide whether each warning is acceptable before issue.
@@ -214,7 +214,7 @@ AddUpperCheck$(CHECK_DEFLECTION; Deflection; deflection; allowable_deflection; C
 EndCheckRegistryWithSummary$
 
 ShowCheckIssues$
-ShowCalculationStatusFromRegistries$(validation_results)
+ShowCalculationStatusFromRegistries$
 ```
 
 `AddLowerCheck$` handles minimum-required checks and `AddCustomCheck$` stores a caller-calculated utilization and status.
@@ -303,23 +303,44 @@ factor_result = ValidationAllowedSetResult(factor; 101)
 Use `ValidationAllowedSetValues`, `ValidationAllowedSetExists`, `ValidationAllowedSetCount`, and `ValidationAllowedSetStatus` to inspect or validate global sets.
 The lower-level `ValidationRegistryAdd`, `ValidationRegistryValues`, and related functions can operate on an explicitly passed registry.
 
-### Aggregation and reporting
+### Structured validation-result registry and reporting
 
-Stack results with `join_rows`, extract statuses with `ValidationResultsStatuses`, and use `ValidationHasErrors`, `ValidationWarningCount`, `ValidationErrorCount`, or `ValidationOverallStatus` for decisions.
+The generated Core initializes `InputValidationRegistry` and `InputValidationRegistryErrors`.
+Each registered record stores:
 
 ```text
-BeginValidationSummary$
-AddValidationResult$(Input label; result)
-EndValidationResults$(results)
+[id; status; value; rule_code; data_1; data_2]
 ```
 
-`AddValidationRow$` and the scalar `Validation*Status` functions remain available for compatibility, but new worksheets should prefer structured results.
-`ShowValidation$` renders one compatibility result table, and `EndValidationSummary$` closes a manually populated summary using an explicit status vector.
+Input IDs must be positive integers and unique within the worksheet.
+The standard flow registers and renders each result once:
+
+```text
+INPUT_DEMAND = 1
+INPUT_CAPACITY = 2
+
+BeginValidationSummary$
+AddValidationResult$(INPUT_DEMAND; Demand; demand_validation)
+AddValidationResult$(INPUT_CAPACITY; Capacity; capacity_validation)
+EndValidationResults$
+ShowValidationIssues$
+```
+
+`EndValidationResults$` derives warning and error counts from the registry.
+`ShowValidationIssues$` links each warning or error back to its registered input row.
+`ValidationResultRegistryInputsValid` supplies the gate for downstream engineering checks.
+
+Registry helpers include `ValidationResultRecord`, the `ValidationResultRecord*` accessors, `ValidationResultRegistryAddStatus`, `ValidationResultRegistryAdd`, `ValidationResultRegistryCount`, `ValidationResultRegistryEntryExists`, the `ValidationResultRegistry*` vector accessors, `ValidationResultRegistryIssueCount`, and `ValidationResultRegistrySummaryStatus`.
+Registration errors contribute an effective `VAL_ERR_BAD_RESULT` and propagate to document calculation status.
+
+The lower-level `ValidationResultsStatuses`, `ValidationHasErrors`, `ValidationWarningCount`, `ValidationErrorCount`, and `ValidationOverallStatus` helpers remain available for explicit result matrices.
+`ShowValidation$` renders one standalone result table.
+See [`Examples/ValidationRegistryDemo.cpd`](../Examples/ValidationRegistryDemo.cpd) and [`Tests/Core/VALIDATION_TEST.cpd`](../Tests/Core/VALIDATION_TEST.cpd).
 
 ### Low-level validation helpers
 
 - Value predicates: `ValidationIsFinite`, `ValidationIsInteger`, `ValidationValuesUnique`, `ValidationStatusKnown`, and `ValidationRuleKnown`.
-- Registry helpers: `ValidationRegistryAddStatus`, `ValidationRegistrySetExists`, `ValidationRegistrySetCount`, and `ValidationRegistrySetStatus`.
+- Allowed-set registry helpers: `ValidationRegistryAddStatus`, `ValidationRegistrySetExists`, `ValidationRegistrySetCount`, and `ValidationRegistrySetStatus`.
 - Result-integrity helpers: `ValidationResultShapeOK`, `ValidationResultSafe`, `ValidationResultStoredStatus`, `ValidationResultAllowedSetCurrent`, and `ValidationResultRegistryOK`.
 - Aggregate helpers: `ValidationWorst`, `ValidationCount`, and `ValidationAllOK`.
 - Rendering macros: `ValidationStatus$`, `ValidationSummaryStatus$`, `ValidationPermitted$`, and `ValidationResultValue$`.

@@ -28,6 +28,13 @@ CRITERION_FACTOR_SELECTION = 1
 ASSUMPTION_DIMENSIONLESS_FACTORS = 1
 ASSUMPTION_APPLICABLE_OPTIONS = 2
 LIMITATION_WORKFLOW_EXAMPLE = 1
+INPUT_MATERIAL_FACTOR = 1
+INPUT_STRESS_FACTOR = 2
+INPUT_GEOMETRY_FACTOR = 3
+INPUT_FAILURE_FACTOR = 4
+INPUT_RELIABILITY_FACTOR = 5
+INPUT_DESIGN_FOS = 6
+INPUT_WARNING_THRESHOLD = 7
 CHECK_MINIMUM_FOS = 1
 #show
 
@@ -130,20 +137,22 @@ reliability_validation = ValidationAllowedSetResult(n_reliability; fos_reliabili
 design_validation = ValidationPositiveResult(FoS_design)
 warning_validation = ValidationRangeResult(warning_threshold; 0; 1)
 
-factor_results = join_rows(material_validation; stress_validation; geometry_validation; failure_validation; reliability_validation; design_validation; warning_validation)
-factor_statuses = ValidationResultsStatuses(factor_results)
-input_validation = ValidationOverallStatus(factor_statuses)
-inputs_valid = not(ValidationHasErrors(factor_statuses))
 #show
 BeginValidationSummary$
-AddValidationResult$(Material factor; material_validation)
-AddValidationResult$(Stress factor; stress_validation)
-AddValidationResult$(Geometry factor; geometry_validation)
-AddValidationResult$(Failure-analysis factor; failure_validation)
-AddValidationResult$(Reliability factor; reliability_validation)
-AddValidationResult$(Design factor of safety; design_validation)
-AddValidationResult$(Warning threshold; warning_validation)
-EndValidationResults$(factor_results)
+AddValidationResult$(INPUT_MATERIAL_FACTOR; Material factor; material_validation)
+AddValidationResult$(INPUT_STRESS_FACTOR; Stress factor; stress_validation)
+AddValidationResult$(INPUT_GEOMETRY_FACTOR; Geometry factor; geometry_validation)
+AddValidationResult$(INPUT_FAILURE_FACTOR; Failure-analysis factor; failure_validation)
+AddValidationResult$(INPUT_RELIABILITY_FACTOR; Reliability factor; reliability_validation)
+AddValidationResult$(INPUT_DESIGN_FOS; Design factor of safety; design_validation)
+AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
+EndValidationResults$
+ShowValidationIssues$
+
+#hide
+input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
 
 "Calculation
 FoS_required = n_material*n_stress*n_geometry*n_failure*n_reliability
@@ -157,10 +166,10 @@ ShowCheckIssues$
 
 #hide
 overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
-calculation_status = CalculationStatusFromGlobalRegistries(factor_results)
+calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 #show
 
-ShowCalculationStatusFromRegistries$(factor_results)
+ShowCalculationStatusFromRegistries$
 
 BeginConclusions$
 #novar
