@@ -177,6 +177,26 @@ simple_moment_beam = BeamWithSampleCount(simple_moment_beam; 7)
 cantilever_moment_beam = BeamModel(BEAM_CANTILEVER; 6m; 200GPa; 8*10^-6m^4)
 cantilever_moment_beam = BeamWithMoment(cantilever_moment_beam; 4m; 12kN*m)
 cantilever_moment_beam = BeamWithSampleCount(cantilever_moment_beam; 7)
+
+simple_triangular_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+simple_triangular_beam = BeamWithVaryingDistributedLoad(simple_triangular_beam; 0m; 6m; 0kN/m; 3kN/m)
+simple_triangular_beam = BeamWithSampleCount(simple_triangular_beam; 13)
+
+cantilever_triangular_beam = BeamModel(BEAM_CANTILEVER; 6m; 200GPa; 8*10^-6m^4)
+cantilever_triangular_beam = BeamWithVaryingDistributedLoad(cantilever_triangular_beam; 0m; 6m; 0kN/m; 3kN/m)
+cantilever_triangular_beam = BeamWithSampleCount(cantilever_triangular_beam; 13)
+
+constant_varying_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+constant_varying_beam = BeamWithVaryingDistributedLoad(constant_varying_beam; 0m; 6m; 2kN/m; 2kN/m)
+
+partial_trapezoid_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+partial_trapezoid_beam = BeamWithVaryingDistributedLoad(partial_trapezoid_beam; 1m; 5m; 1kN/m; 3kN/m)
+
+cantilever_trapezoid_beam = BeamModel(BEAM_CANTILEVER; 6m; 200GPa; 8*10^-6m^4)
+cantilever_trapezoid_beam = BeamWithVaryingDistributedLoad(cantilever_trapezoid_beam; 1m; 5m; 1kN/m; 3kN/m)
+
+invalid_varying_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+invalid_varying_beam = BeamWithVaryingDistributedLoads(invalid_varying_beam; [0m]; [6m]; [0kN/m]; [3kN/m; 4kN/m])
 #show
 
 model_api_tests = and(
@@ -218,4 +238,41 @@ moment_response_tests = and(
     abs(BeamDeflection(cantilever_moment_beam; 6m) + 120mm) < 1*10^-6m;
     abs(BeamPeakMoment(cantilever_moment_beam) - 12kN*m) < 1N*m)
 
-all_tests = and(catalog_tests; simple_udl_tests; simple_point_tests; cantilever_tests; check_tests; modular_tests; multi_tests; cantilever_modular_tests; axial_tests; model_api_tests; moment_response_tests)
+varying_load_tests = and(
+    BeamModelStatus(simple_triangular_beam) ≡ DB_OK;
+    len(BeamModelVaryingStarts(simple_triangular_beam)) ≡ 1;
+    abs(BeamLeftReaction(simple_triangular_beam) - 3kN) < 1N;
+    abs(BeamRightReaction(simple_triangular_beam) - 6kN) < 1N;
+    abs(BeamShear(simple_triangular_beam; 3m) - 0.75kN) < 1N;
+    abs(BeamMoment(simple_triangular_beam; 3m) - 6.75kN*m) < 1N*m;
+    abs(BeamRotation(simple_triangular_beam; 0m) - 7*(3kN/m)*(6m)^3/(360*(200GPa)*(8*10^-6m^4))) < 1*10^-9;
+    abs(BeamDeflection(simple_triangular_beam; 3m) - 5*(3kN/m)*(6m)^4/(768*(200GPa)*(8*10^-6m^4))) < 1*10^-9m;
+    abs(BeamDeflection(simple_triangular_beam; 6m)) < 1*10^-9m;
+    BeamModelStatus(cantilever_triangular_beam) ≡ DB_OK;
+    abs(BeamLeftReaction(cantilever_triangular_beam) - 9kN) < 1N;
+    abs(BeamFixedEndMoment(cantilever_triangular_beam) - 36kN*m) < 1N*m;
+    abs(BeamShear(cantilever_triangular_beam; 0m) - 9kN) < 1N;
+    abs(BeamMoment(cantilever_triangular_beam; 0m) - 36kN*m) < 1N*m;
+    abs(BeamRotation(cantilever_triangular_beam; 6m) - (3kN/m)*(6m)^3/(8*(200GPa)*(8*10^-6m^4))) < 1*10^-9;
+    abs(BeamDeflection(cantilever_triangular_beam; 6m) - 11*(3kN/m)*(6m)^4/(120*(200GPa)*(8*10^-6m^4))) < 1*10^-9m;
+    abs(BeamLeftReaction(constant_varying_beam) - BeamReactionLeftLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia)) < 1N;
+    abs(BeamMoment(constant_varying_beam; 3m) - BeamMomentAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 3m)) < 1N*m;
+    abs(BeamRotation(constant_varying_beam; 3m) - BeamRotationAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 3m)) < 1*10^-9;
+    abs(BeamDeflection(constant_varying_beam; 3m) - BeamDeflectionAtLoads(modular_support; modular_span; modular_point_loads; modular_point_positions; modular_udl_starts; modular_udl_ends; modular_udl_values; simple_udl_modulus; simple_udl_inertia; 3m)) < 1*10^-9m;
+    abs(BeamLeftReaction(partial_trapezoid_beam) - 32/9*kN) < 1N;
+    abs(BeamRightReaction(partial_trapezoid_beam) - 40/9*kN) < 1N;
+    abs(BeamShear(partial_trapezoid_beam; 3m) - 5/9*kN) < 1N;
+    abs(BeamMoment(partial_trapezoid_beam; 3m) - 8kN*m) < 1N*m;
+    abs(BeamMoment(partial_trapezoid_beam; 6m)) < 1N*m;
+    abs(BeamDeflection(partial_trapezoid_beam; 6m)) < 1*10^-9m;
+    abs(BeamLeftReaction(cantilever_trapezoid_beam) - 8kN) < 1N;
+    abs(BeamFixedEndMoment(cantilever_trapezoid_beam) - 80/3*kN*m) < 1N*m;
+    abs(BeamShear(cantilever_trapezoid_beam; 3m) - 5kN) < 1N;
+    abs(BeamMoment(cantilever_trapezoid_beam; 3m) - 16/3*kN*m) < 1N*m;
+    abs(BeamShear(cantilever_trapezoid_beam; 6m)) < 1N;
+    abs(BeamMoment(cantilever_trapezoid_beam; 6m)) < 1N*m;
+    BeamVaryingLoadSetStatus(6m; [0m]; [6m]; [0kN/m]; [3kN/m; 4kN/m]) ≡ DB_ERR_BAD_RANGE;
+    BeamVaryingLoadSetStatus(6m; [2m]; [2m]; [0kN/m]; [3kN/m]) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(invalid_varying_beam) ≡ DB_ERR_BAD_RANGE)
+
+all_tests = and(catalog_tests; simple_udl_tests; simple_point_tests; cantilever_tests; check_tests; modular_tests; multi_tests; cantilever_modular_tests; axial_tests; model_api_tests; moment_response_tests; varying_load_tests)

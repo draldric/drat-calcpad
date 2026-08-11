@@ -6,6 +6,7 @@
 demo_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
 demo_beam = BeamWithPointLoads(demo_beam; [10kN; 4kN]; [2m; 4m])
 demo_beam = BeamWithDistributedLoads(demo_beam; [0m; 3m]; [3m; 6m]; [1kN/m; 1kN/m])
+demo_beam = BeamWithVaryingDistributedLoad(demo_beam; 1m; 5m; 0.25kN/m; 1kN/m)
 demo_beam = BeamWithAxialPointLoads(demo_beam; [8kN; -3kN]; [1m; 5m])
 demo_beam = BeamWithMoments(demo_beam; [3m; 5m]; [6kN*m; -4kN*m])
 demo_beam = BeamWithSampleCount(demo_beam; 121)
@@ -63,6 +64,8 @@ ShowBeamRotationPlot$(beam_rotation; demo_beam)
 '#### Deflection diagram
 
 ShowBeamDeflectionPlot$(beam_deflection; demo_beam)
+
+'The tapered blue region is a linearly varying distributed load whose arrow lengths follow the local load intensity.
 
 'Positive applied moments are counterclockwise; they contribute to reactions, shear, moment, rotation, and deflection.
 

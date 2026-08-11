@@ -10,6 +10,7 @@ The current release supports:
 - cantilever beams;
 - any finite set of point loads at user-specified positions;
 - any finite set of piecewise-constant distributed-load segments;
+- any finite set of linearly varying triangular or trapezoidal load segments;
 - any finite set of concentrated moments;
 - axial point loads and piecewise-constant axial-load segments; and
 - sampled loading, shear, bending-moment, rotation, axial-force, and displacement diagrams through the Core Plotting wrapper.
@@ -31,6 +32,7 @@ Accessor functions retain the units of each stored element, while the public cal
 beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
 beam = BeamWithPointLoads(beam; [10kN; 4kN]; [2m; 4m])
 beam = BeamWithDistributedLoads(beam; [0m; 3m]; [3m; 6m]; [1kN/m; 1kN/m])
+beam = BeamWithVaryingDistributedLoad(beam; 1m; 5m; 0.25kN/m; 1kN/m)
 beam = BeamWithMoment(beam; 3m; 6kN*m)
 beam = BeamWithSampleCount(beam; 121)
 #show
@@ -40,13 +42,15 @@ ShowBeamModel$(beam)
 ShowBeamDiagrams$(beam_plot; beam)
 ```
 
-`BeamModel(...)` returns a model with the supplied beam properties, zero-valued defaults for every load family, and a default sample count of 61.
+`BeamModel(...)` returns a model with the supplied beam properties, zero-valued defaults for every load family, and a default sample count of 121.
 Each `BeamWith...` function returns an updated model, so assign the result back to the beam variable as shown above.
 The update functions replace one load family without repeating the beam properties:
 
 - `BeamWithPointLoad(model; load; position)` or `BeamWithPointLoads(model; loads; positions)`;
 - `BeamWithUDL(model; load)` for one full-span UDL;
 - `BeamWithDistributedLoads(model; starts; ends; loads)` for piecewise-constant transverse loading;
+- `BeamWithVaryingDistributedLoad(model; start; finish; start_value; end_value)` for one triangular or trapezoidal segment;
+- `BeamWithVaryingDistributedLoads(model; starts; ends; start_values; end_values)` for multiple linearly varying segments;
 - `BeamWithAxialPointLoads(model; loads; positions)`;
 - `BeamWithAxialDistributedLoads(model; starts; ends; loads)`;
 - `BeamWithMoment(model; position; moment)` or `BeamWithMoments(model; positions; moments)`;
@@ -68,7 +72,13 @@ Concentrated moments create a jump in the bending-moment response while rotation
 `BeamPeakMoment(model)` checks both sides of every concentrated-moment discontinuity in addition to the ordinary sample stations.
 
 The record is versioned and self-describing rather than dependent on a global registry.
-Use accessors such as `BeamModelSpan(model)`, `BeamModelPointLoads(model)`, and `BeamModelModulus(model)` when individual fields must be audited or reused.
+Use accessors such as `BeamModelSpan(model)`, `BeamModelPointLoads(model)`, `BeamModelVaryingStarts(model)`, `BeamModelVaryingStartValues(model)`, `BeamModelVaryingEndValues(model)`, and `BeamModelModulus(model)` when individual fields must be audited or reused.
+
+For a varying-load segment, `start_value` is the load intensity at `start` and `end_value` is the intensity at `finish`.
+Equal endpoint values reproduce a UDL exactly, while either endpoint may be zero for a triangular load.
+Endpoint values may also have opposite signs when a linearly varying load crosses zero.
+Segments require `finish > start` because their slope is defined over a nonzero length.
+The reaction and response equations integrate the linear load exactly; the model sample count affects only diagrams and sampled extrema.
 
 ## Legacy scalar API
 
@@ -114,8 +124,11 @@ Use zero-valued one-element vectors for a load family that is not present.
 - `BeamMaxShearAtSamples(...; sample_positions)`, `BeamMaxMomentAtSamples(...; sample_positions)`, `BeamMaxRotationAtSamples(...; sample_positions)`, and `BeamMaxDeflectionAtSamples(...; sample_positions)` return sampled absolute maxima.
 - `BeamShearSampleSeries(...)`, `BeamMomentSampleSeries(...)`, `BeamRotationSampleSeries(...)`, and `BeamDeflectionSampleSeries(...)` return unit-consistent vectors suitable for caller-owned tables or plotting code.
 
-The explicit load-set signature is retained for compatibility and does not contain moment vectors.
-Use the recommended beam-model API when concentrated moments must participate in the response.
+The explicit point-and-UDL load-set signature is retained for compatibility and does not contain varying-load or moment vectors.
+Use the recommended beam-model API when linearly varying loads or concentrated moments must participate in the combined response.
+
+The focused varying-load helpers are `BeamVaryingLoadSetStatus(...)`, `BeamVaryingResponse(...)`, `BeamVaryingLeftReaction(...)`, `BeamVaryingRightReaction(...)`, and `BeamVaryingFixedReaction(...)`.
+They accept `starts`, `ends`, `start_values`, and `end_values` vectors of equal length.
 
 The sampled extrema are only as complete as the supplied sample positions.
 Add the span ends, point-load positions, and any load-segment boundaries when a diagram or peak search should include those discontinuities.
@@ -178,7 +191,8 @@ The following explicit report macros remain available for compatibility and spec
 
 When the Core Plotting API is in the supported 3.2.x range, the following helpers render Plotly diagrams:
 
-- `ShowBeamSchematic$(id; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; axial_loads; axial_positions; axial_starts; axial_ends; axial_values; moment_positions; moment_values)` shows triangular supports, shaded distributed-load regions, load-scaled color-coded arrows, and applied-moment symbols;
+- `ShowBeamSchematic$(id; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; axial_loads; axial_positions; axial_starts; axial_ends; axial_values; moment_positions; moment_values)` retains the original point, uniform, axial, and moment schematic signature;
+- `ShowBeamSchematicWithVarying$(id; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; varying_starts; varying_ends; varying_start_values; varying_end_values; axial_loads; axial_positions; axial_starts; axial_ends; axial_values; moment_positions; moment_values)` additionally renders tapered varying-load regions;
 - `ShowBeamShearDiagram$(id; ...; sample_positions)` shows sampled shear;
 - `ShowBeamMomentDiagram$(id; ...; sample_positions)` shows sampled bending moment;
 - `ShowBeamRotationDiagram$(id; ...; sample_positions)` shows sampled rotation;
@@ -186,7 +200,7 @@ When the Core Plotting API is in the supported 3.2.x range, the following helper
 - `ShowBeamDeflectionDiagram$(id; ...; sample_positions)` shows sampled displacement.
 
 The diagram helpers convert unit-valued vectors to numeric plotting ordinates internally.
-Each distributed-load region and its arrows use the same normalized ordinate, so the shaded height is proportional to the load magnitude and the arrow tails coincide with its boundary.
+Each distributed-load region and its arrows use the same normalized ordinate, so the shaded height is proportional to the local load magnitude and the arrow tails coincide with its boundary.
 The schematic uses red for transverse point loads, blue for distributed loads, green for axial loads, and purple for applied moments; the legend is intentionally hidden.
 Include the span ends, point-load positions, moment positions, and segment boundaries in `sample_positions` when exact changes or extrema must be visible.
 The model-level bending-moment plot adds a vertical trace at every applied-moment jump.
