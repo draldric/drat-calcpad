@@ -117,6 +117,7 @@ The public calculation helpers include:
 
 An invalid registration is not added.
 Its attempted row is still rendered with a prominent inline registry error so the source worksheet remains easy to diagnose.
+See [`Examples/ReportingRegistriesDemo.cpd`](../Examples/ReportingRegistriesDemo.cpd) for the complete valid workflow and [`Tests/Core/REPORTING_TEST.cpd`](../Tests/Core/REPORTING_TEST.cpd) for duplicate-ID and invalid-reference coverage.
 
 ## Calculation status
 

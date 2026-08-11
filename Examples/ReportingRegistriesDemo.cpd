@@ -1,0 +1,115 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = REPORTING WORKFLOW DEMONSTRATION
+#def Title$ = STRUCTURED REPORTING REGISTRIES
+#def Purpose$ = DEMONSTRATE AUDITABLE REFERENCES, DESIGN CRITERIA, ASSUMPTIONS, LIMITATIONS, AND THEIR SOURCE RELATIONSHIPS.
+#def Scope$ = SHOW THE COMPLETE VALID REPORTING WORKFLOW WITHOUT PERFORMING A DISCIPLINE-SPECIFIC ENGINEERING ANALYSIS.
+#def Calculation$ = EXAMPLE-RPT-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+#hide
+REF_DESIGN_STANDARD = 1
+REF_PROJECT_DRAWING = 2
+REF_PROJECT_SPECIFICATION = 3
+REF_MATERIAL_DATA = 4
+
+CRITERION_STRENGTH = 1
+CRITERION_DEFLECTION = 2
+CRITERION_MATERIAL = 3
+
+ASSUMPTION_STATIC_LOADING = 1
+ASSUMPTION_GEOMETRY = 2
+ASSUMPTION_AMBIENT_CONDITIONS = 3
+
+LIMITATION_DYNAMIC_RESPONSE = 1
+LIMITATION_DRAWING_REVISION = 2
+LIMITATION_FIELD_CONDITIONS = 3
+#show
+
+BeginRevisions$
+AddRevision$(0; Initial reporting-registry demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
+"Registry Workflow
+
+'References are registered first because design criteria require a valid source reference.
+'Assumptions and limitations may use a registered source or RPT_NO_REFERENCE when their basis is explicitly internal to the calculation.
+'IDs are positive integers stored in CalcPad registries, while the accompanying report text remains visible directly in the worksheet source.
+
+BeginReferences$
+AddReference$(REF_DESIGN_STANDARD; CSA S16; Design of steel structures; 2024; Clause 13; Governing structural resistance and serviceability reference.)
+AddReference$(REF_PROJECT_DRAWING; Project drawing GA-001; General arrangement; Rev 2; Member geometry; Source of member span support arrangement and connection locations.)
+AddReference$(REF_PROJECT_SPECIFICATION; Project specification SP-100; Structural design criteria; Rev 1; Section 4; Defines project loads acceptance criteria and serviceability limits.)
+AddReference$(REF_MATERIAL_DATA; Engineering material dataset; Certified steel material properties; Current project submittal; Material certificate; Source of the project-specific strength properties.)
+EndReferences$
+
+BeginDesignCriteria$
+AddDesignCriterion$(CRITERION_STRENGTH; Strength; Factored demand must not exceed the applicable member resistance.; REF_DESIGN_STANDARD; Clause 13; Evaluate every applicable strength limit state.)
+AddDesignCriterion$(CRITERION_DEFLECTION; Serviceability; Calculated deflection must not exceed the project serviceability limit.; REF_PROJECT_SPECIFICATION; Section 4.3; Use the governing service load combination.)
+AddDesignCriterion$(CRITERION_MATERIAL; Material properties; Design properties must correspond to the supplied member material and condition.; REF_MATERIAL_DATA; Material certificate; Confirm grade thickness and condition before issue.)
+EndDesignCriteria$
+
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_STATIC_LOADING; Loading; Applied loads are static.; No impact cyclic or dynamic loading is included in the defined scope.; REF_PROJECT_SPECIFICATION)
+AddAssumption$(ASSUMPTION_GEOMETRY; Geometry; The analyzed member geometry matches the current general arrangement.; Dimensions are taken from the registered drawing revision.; REF_PROJECT_DRAWING)
+AddAssumption$(ASSUMPTION_AMBIENT_CONDITIONS; Environment; The calculation applies at ordinary ambient temperature.; Temperature-dependent behavior is outside this demonstration.; RPT_NO_REFERENCE)
+EndAssumptions$
+
+BeginLimitations$
+AddLimitation$(LIMITATION_DYNAMIC_RESPONSE; Dynamic response is not evaluated.; Resonance impact or transient effects may increase demand.; Perform a dynamic assessment where the loading source requires it.; REF_PROJECT_SPECIFICATION)
+AddLimitation$(LIMITATION_DRAWING_REVISION; Results apply only to the registered drawing revision.; Geometry changes may invalidate the calculated response.; Recheck the calculation following any drawing revision.; REF_PROJECT_DRAWING)
+AddLimitation$(LIMITATION_FIELD_CONDITIONS; Existing field conditions have not been independently verified.; Unrecorded modifications or deterioration may affect applicability.; Confirm critical dimensions and condition before relying on the calculation.; RPT_NO_REFERENCE)
+EndLimitations$
+
+ShowReportingSummary$
+
+"Registry Query Examples
+
+#hide
+demo_reference_count = ReportRegistryCount(ReportReferences)
+demo_criterion_count = ReportLinkedRegistryCount(ReportDesignCriteria)
+demo_assumption_count = ReportLinkedRegistryCount(ReportAssumptions)
+demo_limitation_count = ReportLinkedRegistryCount(ReportLimitations)
+demo_strength_reference = ReportLinkedRegistryReference(ReportDesignCriteria; CRITERION_STRENGTH)
+demo_optional_reference_known = ReportReferenceKnown(ReportReferences; RPT_NO_REFERENCE)
+demo_reporting_status = ReportRegistriesStatus(ReportReferences; ReportDesignCriteria; ReportAssumptions; ReportLimitations; ReportRegistryErrors)
+#show
+
+'The same numeric registries used to validate the rendered rows remain available to calculation and reporting logic.
+
+'<table class="bordered reporting-summary reporting-registry">
+'<thead><tr><th>Query</th><th>Result</th></tr></thead>
+'<tbody>
+#val
+'<tr><td>Registered references</td><td>'demo_reference_count'</td></tr>
+'<tr><td>Registered design criteria</td><td>'demo_criterion_count'</td></tr>
+'<tr><td>Registered assumptions</td><td>'demo_assumption_count'</td></tr>
+'<tr><td>Registered limitations</td><td>'demo_limitation_count'</td></tr>
+'<tr><td>Reference linked to the strength criterion</td><td>'demo_strength_reference'</td></tr>
+'<tr><td>Optional no-reference sentinel is accepted</td><td>'demo_optional_reference_known'</td></tr>
+#equ
+'<tr><td>Aggregate registry status</td><td class="status-cell">
+ReportStatus$(demo_reporting_status)
+'</td></tr>
+'</tbody>
+'</table>
+
+"Implementation Notes
+
+'A duplicate ID, invalid ID, or unknown required reference is not added to its registry.
+'The attempted row remains visible with an inline reporting error, and ShowReportingSummary&dollar; counts the failed registration.
+'Those deliberate failure cases are exercised in Tests/Core/REPORTING_TEST.cpd so this demonstration remains a valid example document.

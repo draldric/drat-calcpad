@@ -1242,8 +1242,16 @@ ReportRegistryErrors = [RPT_OK]
     #if reference_id$ ≡ RPT_NO_REFERENCE
         '<span class="note">None</span>
     #else
-        '<a class="registry-reference-link" href="#report-reference-reference_id$">reference_id$</a>
+        #val
+        '<a class="registry-reference-link" href="#report-reference-reference_id$">'reference_id$'</a>
+        #equ
     #end if
+#end def
+
+#def ReportID$(id$)
+    #val
+    '<span>'id$'</span>
+    #equ
 #end def
 
 #def BeginReferences$
@@ -1264,7 +1272,9 @@ ReportRegistryErrors = [RPT_OK]
     #else
         '<tr>
     #end if
-    '<td class="registry-id">id$</td><td>document$</td><td>title$</td><td>edition$</td><td>clause$</td><td>notes$</td></tr>
+    '<td class="registry-id">
+    ReportID$(id$)
+    '</td><td>document$</td><td>title$</td><td>edition$</td><td>clause$</td><td>notes$</td></tr>
     #if ζRPT_reference_status ≠ RPT_OK
         '<tr class="registry-error"><td></td><td colspan="5"><strong>Reference registry error:</strong>
         ReportStatus$(ζRPT_reference_status)
@@ -1293,7 +1303,9 @@ ReportRegistryErrors = [RPT_OK]
     ReportDesignCriteria = ReportLinkedRegistryAdd(ReportDesignCriteria; id$; reference_id$; ReportReferences; 1)
     ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_criterion_status)
     #show
-    '<tr><td class="registry-id">id$</td><td>criterion$</td><td>requirement$</td><td class="registry-id">
+    '<tr><td class="registry-id">
+    ReportID$(id$)
+    '</td><td>criterion$</td><td>requirement$</td><td class="registry-id">
     ReportReferenceID$(reference_id$)
     '</td><td>clause$</td><td>notes$</td></tr>
     #if ζRPT_criterion_status ≠ RPT_OK
@@ -1324,7 +1336,9 @@ ReportRegistryErrors = [RPT_OK]
     ReportAssumptions = ReportLinkedRegistryAdd(ReportAssumptions; id$; reference_id$; ReportReferences; 0)
     ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_assumption_status)
     #show
-    '<tr><td class="registry-id">id$</td><td>category$</td><td>assumption$</td><td>basis$</td><td class="registry-id">
+    '<tr><td class="registry-id">
+    ReportID$(id$)
+    '</td><td>category$</td><td>assumption$</td><td>basis$</td><td class="registry-id">
     ReportReferenceID$(reference_id$)
     '</td></tr>
     #if ζRPT_assumption_status ≠ RPT_OK
@@ -1355,7 +1369,9 @@ ReportRegistryErrors = [RPT_OK]
     ReportLimitations = ReportLinkedRegistryAdd(ReportLimitations; id$; reference_id$; ReportReferences; 0)
     ReportRegistryErrors = join(ReportRegistryErrors; ζRPT_limitation_status)
     #show
-    '<tr><td class="registry-id">id$</td><td>limitation$</td><td>consequence$</td><td>follow_up$</td><td class="registry-id">
+    '<tr><td class="registry-id">
+    ReportID$(id$)
+    '</td><td>limitation$</td><td>consequence$</td><td>follow_up$</td><td class="registry-id">
     ReportReferenceID$(reference_id$)
     '</td></tr>
     #if ζRPT_limitation_status ≠ RPT_OK
