@@ -1,0 +1,53 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = PLOTTING WORKFLOW DEMONSTRATION
+#def Title$ = ENGINEERING PLOTTING WRAPPER
+#def Purpose$ = DEMONSTRATE THE CORE PLOTTING WORKFLOW FOR LINES, SCATTER DATA, A SECONDARY AXIS, LIMIT LINES, AND SHADED BANDS.
+#def Scope$ = RENDER ONE SYNTHETIC PERFORMANCE COMPARISON. DATA IMPORT, STATISTICAL ANALYSIS, AND DISCIPLINE-SPECIFIC INTERPRETATION ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-PLOT-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial focused plotting demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
+"Synthetic Data
+
+Theoretical(x) = 20 + 1.5*x
+Measured(x) = Theoretical(x) + 4*sin(1.2*x)
+Power(x) = 6 + 0.25*x^2
+
+sampleData$(x_line; y_line; Theoretical; 0; 10; 101)
+sampleData$(x_points; y_points; Measured; 0; 10; 21)
+sampleData$(x_power; y_power; Power; 0; 10; 51)
+
+"Plot Configuration
+
+figure$(performancePlot)
+figureSize$(performancePlot; 900; 480)
+plot$(performancePlot; x_line; y_line; #d9534f; Design Trend)
+scatter$(performancePlot; x_points; y_points; #292b2c; Measurements)
+plotY2$(performancePlot; x_power; y_power; #337ab7; Power)
+y2Axis$(performancePlot; Power (kW))
+hline$(performancePlot; 32; #d9534f; Design Limit)
+yBand$(performancePlot; 32; 38; rgba(217,83,79,0.12); Warning Zone)
+hoverUnified$(performancePlot)
+render$(performancePlot; Performance Comparison; Time (min); Response (mm))
+
+"Conclusions
+
+'The chart combines calculated series, discrete observations, a secondary response axis, and explicit review limits in one reusable plotting workflow.

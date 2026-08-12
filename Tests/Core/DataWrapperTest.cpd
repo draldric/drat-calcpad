@@ -1,5 +1,7 @@
 #include ../../Core/DratCore.cpd
-#include ../../Templates/PropertyLibraryTemplate.cpd
+#include ../../Templates/Libraries/PropertyLibraryTemplate.cpd
+
+'<!-- TEST PURPOSE: Verify the property-wrapper template aliases, values, statuses, metadata, and bounds policies. -->
 
 "Data Wrapper Parser and Calculation Test
 

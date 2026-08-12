@@ -6,6 +6,7 @@ REVIEW_ATTENTION = 10
 REVIEW_BLOCKED = 20
 REVIEW_ERROR = 30
 
+'<!-- Warnings permit independent checking but not issue; failed or incomplete calculations block both, and registry corruption is a review error. -->
 ReviewStatusKnown(status) = or(status ≡ REVIEW_READY; status ≡ REVIEW_ATTENTION; status ≡ REVIEW_BLOCKED; status ≡ REVIEW_ERROR)
 ReviewValidationIssueCount(validation_registry; validation_errors) = ValidationResultRegistryIssueCount(validation_registry; validation_errors)
 ReviewCheckIssueCount(check_registry; check_errors) = CheckResultRegistryIssueCount(check_registry; check_errors)

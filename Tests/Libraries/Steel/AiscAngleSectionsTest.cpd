@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Steel/AiscAngleSections.cpd
 
+'<!-- TEST PURPOSE: Verify the AISC single-angle catalog, property lookups, and selected-record helpers. -->
+
 "AISC Single-Angle Test
 
 catalog_tests = and(AiscAngleItemCount ≡ 137; AiscAnglePropertyCount ≡ 20; n_rows(AiscAngleData) ≡ 137; n_cols(AiscAngleData) ≡ 21; AiscAngleDatasetStatus ≡ DB_OK)

@@ -1,5 +1,8 @@
 #include ../../Core/DratCore.cpd
 
+'<!-- TEST PURPOSE: Confirm that generated worksheet JavaScript executes and the Plotly CDN dependency loads in the rendering browser. -->
+'<!-- TEST TYPE: BROWSER DIAGNOSTIC -->
+
 "JavaScript and Plotly Diagnostic
 
 #val

@@ -12,11 +12,11 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `40100` | Complete generated-Core API |
+| `DRAT_CORE_API` | `40101` | Complete generated-Core API |
 | `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
 | `DRAT_STYLESHEET_API` | `10800` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
-| `DRAT_DATA_WRAPPER_API` | `302` | Numeric property and curve wrapper |
+| `DRAT_DATA_WRAPPER_API` | `303` | Numeric property and curve wrapper |
 | `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
 | `DRAT_CHECK_REGISTRY_API` | `10000` | Structured engineering-check registry and reporting |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
@@ -120,7 +120,7 @@ The public calculation helpers include:
 
 An invalid registration is not added.
 Its attempted row is still rendered with a prominent inline registry error so the source worksheet remains easy to diagnose.
-See [`Examples/ReportingRegistriesDemo.cpd`](../Examples/ReportingRegistriesDemo.cpd) for the complete valid workflow and [`Tests/Core/REPORTING_TEST.cpd`](../Tests/Core/REPORTING_TEST.cpd) for duplicate-ID and invalid-reference coverage.
+See [`Examples/ReportingRegistriesDemo.cpd`](../Examples/ReportingRegistriesDemo.cpd) for the complete valid workflow and [`Tests/Core/ReportingTest.cpd`](../Tests/Core/ReportingTest.cpd) for duplicate-ID and invalid-reference coverage.
 
 ## Calculation status
 
@@ -158,7 +158,7 @@ Its precedence is registry or calculation error, blocked calculation, warning re
 `ReviewValidationIssueCount`, `ReviewCheckIssueCount`, `ReviewReportingIssueCount`, and `ReviewTotalIssueCount` provide auditable issue counts.
 `ReviewReadyForCheck` accepts ready and attention states; `ReviewReadyForIssue` accepts only the ready state.
 `ShowDocumentReviewSummary$` derives all inputs from the global registries, renders both readiness decisions, and links each stored issue back to its source row.
-See [`Examples/UnifiedReviewSummaryDemo.cpd`](../Examples/UnifiedReviewSummaryDemo.cpd) and [`Tests/Core/REVIEW_SUMMARY_TEST.cpd`](../Tests/Core/REVIEW_SUMMARY_TEST.cpd).
+See [`Examples/UnifiedReviewSummaryDemo.cpd`](../Examples/UnifiedReviewSummaryDemo.cpd) and [`Tests/Core/ReviewSummaryTest.cpd`](../Tests/Core/ReviewSummaryTest.cpd).
 
 ## Engineering checks
 
@@ -245,7 +245,7 @@ Registry query helpers include `CheckResultRegistryCount`, `CheckResultRegistryE
 `CheckResultRegistryEffectiveStatuses` adds `CHK_ERROR` when any attempted registration failed, ensuring registry-integrity failures propagate into calculation status.
 When utilizations tie, the first registered row governs.
 
-See [`Examples/CheckRegistryDemo.cpd`](../Examples/CheckRegistryDemo.cpd), [`Tests/Core/CHECKS_TEST.cpd`](../Tests/Core/CHECKS_TEST.cpd), and [`Tests/Core/CALCULATION_STATUS_TEST.cpd`](../Tests/Core/CALCULATION_STATUS_TEST.cpd).
+See [`Examples/CheckRegistryDemo.cpd`](../Examples/CheckRegistryDemo.cpd), [`Tests/Core/ChecksTest.cpd`](../Tests/Core/ChecksTest.cpd), and [`Tests/Core/CalculationStatusTest.cpd`](../Tests/Core/CalculationStatusTest.cpd).
 
 ## Validation
 
@@ -354,7 +354,7 @@ Registration errors contribute an effective `VAL_ERR_BAD_RESULT` and propagate t
 
 The lower-level `ValidationResultsStatuses`, `ValidationHasErrors`, `ValidationWarningCount`, `ValidationErrorCount`, and `ValidationOverallStatus` helpers remain available for explicit result matrices.
 `ShowValidation$` renders one standalone result table.
-See [`Examples/ValidationRegistryDemo.cpd`](../Examples/ValidationRegistryDemo.cpd) and [`Tests/Core/VALIDATION_TEST.cpd`](../Tests/Core/VALIDATION_TEST.cpd).
+See [`Examples/ValidationRegistryDemo.cpd`](../Examples/ValidationRegistryDemo.cpd) and [`Tests/Core/ValidationTest.cpd`](../Tests/Core/ValidationTest.cpd).
 
 ### Low-level validation helpers
 

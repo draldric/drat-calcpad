@@ -11,6 +11,9 @@
 
 ## Build and static verification
 
+- [ ] Confirm every maintained Core helper still has a clear user or internal purpose.
+- [ ] Remove obsolete, duplicated, experimental, and unreachable code.
+- [ ] Review comments for CalcPad-specific behavior, registry schemas, sentinels, unit handling, and engineering assumptions.
 - [ ] Run `pwsh -File Tools/BuildCore.ps1`.
 - [ ] Run `pwsh -File Tools/BuildCore.ps1 -Check`.
 - [ ] Confirm all includes are direct, relative, repository-local, and exact-case.
@@ -19,6 +22,9 @@
 
 ## CalcPad verification
 
+- [ ] Confirm every test protects a maintained behavior and states its test purpose.
+- [ ] Confirm every example has one end-user purpose, a defined scope, the standard report structure, and a conclusion.
+- [ ] Confirm the general template and every affected specialized template remain usable starting points.
 - [ ] Run `pwsh -File Tools/VerifyRepository.ps1` with the CalcPad CE CLI.
 - [ ] Confirm every Core `all_tests` value is true.
 - [ ] Render every changed example in the CalcPad CE GUI.

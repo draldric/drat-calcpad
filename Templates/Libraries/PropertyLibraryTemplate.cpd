@@ -1,12 +1,14 @@
 #if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #hide
+'<!-- TEMPLATE PURPOSE: Starting point for a guarded numeric property library with aliases, metadata, units, bounds policies, and source reporting. -->
 '<!-- Synthetic property-library template. Replace the example data and source records. -->
 
 #def ExampleLibraryName$ = Example Temperature-Dependent Property Library
-#def ExampleLibraryRevision$ = 0.3.2-DRAFT
-#def ExampleLibraryDate$ = 2026-08-04
+#def ExampleLibraryRevision$ = 0.1.0-DRAFT
+#def ExampleLibraryDate$ = 2026-08-11
 #def ExampleLibrarySource$ = Replace with the governing standard, handbook, manufacturer data, or test report.
+#def ExampleLibraryScope$ = Replace with the included materials, properties, conditions, and explicit exclusions.
 
 MATERIAL_A = 101
 Material_A = MATERIAL_A
@@ -107,6 +109,7 @@ ExamplePROPExtrapolated(item; property; temperature_C) = ExamplePROPEx(item; pro
 	    '<tr><td><strong>Library Revision</strong></td><td>ExampleLibraryRevision$</td></tr>
 	    '<tr><td><strong>Library Date</strong></td><td>ExampleLibraryDate$</td></tr>
 	    '<tr><td><strong>Source</strong></td><td>ExampleLibrarySource$</td></tr>
+	    '<tr><td><strong>Scope</strong></td><td>ExampleLibraryScope$</td></tr>
 	    '<tr><td><strong>Wrapper Core</strong></td><td>DBWrapperName$</td></tr>
 	    '<tr><td><strong>Wrapper Version</strong></td><td>DBWrapperVersion$</td></tr>
 	    '</tbody>
@@ -164,5 +167,5 @@ ExampleSourceKnown(source_id) = or(source_id ≡ SRC_EXAMPLE_A; source_id ≡ SR
 '<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> PropertyLibraryTemplate requires DataWrapper API 0.3.2 or newer. Load a compatible DratCore.cpd before this library.</div>
 #end if
 #else
-'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> PropertyLibraryTemplate requires DRAT core API 1.x. Load DratCore.cpd before this library.</div>
+'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> PropertyLibraryTemplate requires DRAT core API 1.0.0 through 4.x. Load a compatible DratCore.cpd before this library.</div>
 #end if

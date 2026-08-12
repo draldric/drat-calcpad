@@ -1,5 +1,7 @@
 #include ../../Core/DratCore.cpd
 
+'<!-- TEST PURPOSE: Verify reporting-registry shapes, reference integrity, linked records, summaries, and registration failures. -->
+
 "Structured Reporting Registry Test
 
 test_references = ReportRegistryEmpty

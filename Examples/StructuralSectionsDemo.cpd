@@ -1,21 +1,44 @@
+#md on
 #include ../Core/DratCore.cpd
 #include ../Libraries/Steel/StructuralSections.cpd
 #include ../Libraries/Steel/AiscHssSections.cpd
 #include ../Libraries/Steel/AiscChannelSections.cpd
 #include ../Libraries/Steel/AiscAngleSections.cpd
 
-"AISC Structural Sections Library Demo
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = STRUCTURAL SECTION WORKFLOW DEMONSTRATION
+#def Title$ = AISC STRUCTURAL SECTION DISCOVERY
+#def Purpose$ = DEMONSTRATE CONSISTENT DATASET SUMMARIES, SELECTED-SECTION RECORDS, PROPERTY TABLES, AND GEOMETRIC PROPERTY SCREENING ACROSS SUPPORTED SHAPE FAMILIES.
+#def Scope$ = QUERY W, HSS, CHANNEL, AND SINGLE-ANGLE GEOMETRIC RECORDS. MATERIAL STRENGTH, LIMIT STATES, MEMBER CAPACITY, AND FINAL SECTION SELECTION ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-AISC-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial focused structural-section demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
 
 'The structural-section libraries provide tabulated geometric properties and transparent property-threshold screening.
 'They do not select a member, assign material strength, establish design capacity, or replace verification against the governing AISC edition.
 
 "Wide-Flange W Sections
 
-'<h4>Dataset Summary</h4>
+'#### Dataset Summary
 
 ShowAiscWDatasetSummary$
 
-'<h4>Selected Section</h4>
+'#### Selected Section
 
 #hide
 selected_w = W14X90
@@ -25,7 +48,7 @@ ShowAiscWRecord$(selected_w)
 
 ShowAiscWProperties$(selected_w)
 
-'<h4>Property Screening</h4>
+'#### Property Screening
 
 #hide
 w_minimum_Sx = 140in^3
@@ -33,15 +56,15 @@ w_candidates = AiscWItemsAtLeast(AISC_W_P_SX; w_minimum_Sx)
 w_candidate_count = len(w_candidates)
 #show
 
-'<p>'w_candidate_count' W sections have Sx at least 'w_minimum_Sx'.</p>
+'There are 'w_candidate_count' W sections with Sx at least 'w_minimum_Sx'.
 
 "Hollow Structural Sections
 
-'<h4>Dataset Summary</h4>
+'#### Dataset Summary
 
 ShowAiscHssDatasetSummary$
 
-'<h4>Selected Section</h4>
+'#### Selected Section
 
 #hide
 selected_hss = HSS12X8X3_8
@@ -51,7 +74,7 @@ ShowAiscHssRecord$(selected_hss)
 
 ShowAiscHssProperties$(selected_hss)
 
-'<h4>Property Screening</h4>
+'#### Property Screening
 
 #hide
 hss_minimum_Sx = 40in^3
@@ -59,15 +82,15 @@ hss_candidates = AiscHssItemsAtLeast(AISC_HSS_P_SX; hss_minimum_Sx)
 hss_candidate_count = len(hss_candidates)
 #show
 
-'<p>'hss_candidate_count' HSS sections have Sx at least 'hss_minimum_Sx'.</p>
+'There are 'hss_candidate_count' HSS sections with Sx at least 'hss_minimum_Sx'.
 
 "Standard and Miscellaneous Channels
 
-'<h4>Dataset Summary</h4>
+'#### Dataset Summary
 
 ShowAiscChannelDatasetSummary$
 
-'<h4>Selected Section</h4>
+'#### Selected Section
 
 #hide
 selected_channel = MC12X50
@@ -77,7 +100,7 @@ ShowAiscChannelRecord$(selected_channel)
 
 ShowAiscChannelProperties$(selected_channel)
 
-'<h4>Property Screening</h4>
+'#### Property Screening
 
 #hide
 channel_minimum_Sx = 20in^3
@@ -85,15 +108,15 @@ channel_candidates = AiscChannelItemsAtLeast(AISC_CHANNEL_P_SX; channel_minimum_
 channel_candidate_count = len(channel_candidates)
 #show
 
-'<p>'channel_candidate_count' C and MC channels have Sx at least 'channel_minimum_Sx'.</p>
+'There are 'channel_candidate_count' C and MC channels with Sx at least 'channel_minimum_Sx'.
 
 "Single Angles
 
-'<h4>Dataset Summary</h4>
+'#### Dataset Summary
 
 ShowAiscAngleDatasetSummary$
 
-'<h4>Selected Section</h4>
+'#### Selected Section
 
 #hide
 selected_angle = L12X12X1
@@ -103,7 +126,7 @@ ShowAiscAngleRecord$(selected_angle)
 
 ShowAiscAngleProperties$(selected_angle)
 
-'<h4>Property Screening</h4>
+'#### Property Screening
 
 #hide
 angle_minimum_Sx = 15in^3
@@ -111,6 +134,8 @@ angle_candidates = AiscAngleItemsAtLeast(AISC_ANGLE_P_SX; angle_minimum_Sx)
 angle_candidate_count = len(angle_candidates)
 #show
 
-'<p>'angle_candidate_count' single angles have Sx at least 'angle_minimum_Sx'.</p>
+'There are 'angle_candidate_count' single angles with Sx at least 'angle_minimum_Sx'.
+
+"Conclusions
 
 'All screening results are geometric filters only. Apply material properties, unbraced lengths, limit states, resistance factors, and project-specific requirements separately.

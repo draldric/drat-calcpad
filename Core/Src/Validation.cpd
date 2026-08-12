@@ -57,6 +57,7 @@ VAL_RULE_VECTOR_DEFINED = 29
 VAL_RULE_VECTOR_NEGATIVE = 30
 VAL_RULE_VECTOR_NONPOSITIVE = 31
 
+'<!-- Validation results use [status; value; rule; data_1; data_2]; each rule defines whether the final fields are bounds, dimensions, a set ID, or VAL_EMPTY. -->
 VAL_RESULT_STATUS = 1
 VAL_RESULT_VALUE = 2
 VAL_RESULT_RULE = 3
@@ -70,6 +71,7 @@ VAL_REG_ERR_BAD_RESULT = 20
 VAL_REG_ERR_BAD_ID = 30
 VAL_REG_ERR_DUPLICATE_ID = 40
 
+'<!-- Registry rows prepend a stable input ID to the five-field validation result. The first sentinel row preserves a predictable six-column matrix when empty. -->
 VAL_REG_ID = 1
 VAL_REG_STATUS = 2
 VAL_REG_VALUE = 3
@@ -81,6 +83,7 @@ VAL_REG_EMPTY = 0
 
 VAL_EMPTY = DB_MISSING
 
+'<!-- Finite and integer guards are unit-neutral after clrunits; the tolerance absorbs ordinary floating-point roundoff only. -->
 VAL_FINITE_LIMIT = 1*10^300
 VAL_INTEGER_TOLERANCE = 1*10^-9
 
@@ -270,7 +273,6 @@ ValidationResultRecordData1(record) = take(VAL_REG_DATA_1; record)
 ValidationResultRecordData2(record) = take(VAL_REG_DATA_2; record)
 ValidationResultRecordResult(record) = [ValidationResultRecordStatus(record); ValidationResultRecordValue(record); ValidationResultRecordRule(record); ValidationResultRecordData1(record); ValidationResultRecordData2(record)]
 ValidationResultRecordIDOK(id) = and(ValidationIsInteger(id); id > VAL_REG_EMPTY)
-ValidationResultRecordDataOK(record) = and(ValidationResultRecordShapeOK(record); ValidationResultRecordIDOK(ValidationResultRecordID(record)); ValidationStatusKnown(ValidationResultRecordStatus(record)); ValidationRuleKnown(ValidationResultRecordRule(record)))
 
 ValidationResultRegistryEmpty = join_rows([VAL_REG_EMPTY; VAL_ERR_BAD_RESULT; 0; 0; VAL_EMPTY; VAL_EMPTY])
 ValidationResultRegistryShapeOK(registry) = and(n_cols(registry) ≡ VAL_REG_COLUMNS; n_rows(registry) ≥ 1; take(1; col(registry; VAL_REG_ID)) ≡ VAL_REG_EMPTY)
@@ -463,12 +465,6 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
     '</thead>
     '<tbody>
-#end def
-
-#def AddValidationRow$(label$; value$; permitted$; status$)
-    '<tr><td>label$</td><td>'value$'</td><td>permitted$</td><td class="status-cell">
-    ValidationStatus$(status$)
-    '</td></tr>
 #end def
 
 #def ValidationPermitted$(result$)

@@ -9,7 +9,7 @@ Core/Src/                         Maintained Core modules
         └─ Tools/BuildCore.ps1
 Core/DratCore.cpd                 Generated, distributable Core bundle
 Libraries/                        Optional engineering data libraries
-Templates/                        Starting points for worksheets and libraries
+Templates/                        General calculation and categorized specialized templates
 Examples/                         Complete supported workflows
 Tests/Core/                       Deterministic Core regression worksheets
 Tests/Libraries/                  Deterministic library regression worksheets
@@ -104,5 +104,8 @@ See the [library-authoring guide](LibraryAuthoring.md) for the full contract.
 - Git whitespace errors.
 - CalcPad parsing and runtime output for tests, examples, and the engineering template.
 - Every rendered `all_tests` assertion.
+- Example report structure and focused-purpose metadata.
+- Test-purpose declarations and explicit browser-diagnostic exceptions.
+- PascalCase artifact names and categorized template placement.
 
 Manual CalcPad CE GUI review remains necessary for print layout, pagination, table alignment, browser controls, and Plotly behavior.

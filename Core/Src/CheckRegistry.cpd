@@ -12,6 +12,7 @@ CHECK_METHOD_UPPER = 1
 CHECK_METHOD_LOWER = 2
 CHECK_METHOD_CUSTOM = 3
 
+'<!-- Every result row is [id; method; demand; capacity; utilization; warning threshold; status]. Demand and capacity may retain different engineering units across rows. -->
 CHECK_RESULT_ID = 1
 CHECK_RESULT_METHOD = 2
 CHECK_RESULT_DEMAND = 3
@@ -21,6 +22,7 @@ CHECK_RESULT_WARNING = 6
 CHECK_RESULT_STATUS = 7
 CHECK_RESULT_COLUMNS = 7
 
+'<!-- The sentinel first row fixes the registry shape; public counts and value accessors intentionally exclude it. -->
 CHECK_REG_EMPTY = 0
 CheckResultRegistryEmpty = join_rows([CHECK_REG_EMPTY; CHECK_METHOD_CUSTOM; 0; 0; 0; 0; CHK_ERROR])
 
@@ -35,7 +37,6 @@ CheckResultUtilization(result) = CheckResultColumn(result; CHECK_RESULT_UTILIZAT
 CheckResultWarning(result) = CheckResultColumn(result; CHECK_RESULT_WARNING)
 CheckResultStatus(result) = CheckResultColumn(result; CHECK_RESULT_STATUS)
 CheckResultIDOK(id) = and(ValidationIsInteger(id); id > CHECK_REG_EMPTY)
-CheckResultDataOK(result) = and(CheckResultShapeOK(result); CheckResultIDOK(CheckResultID(result)); CheckMethodKnown(CheckResultMethod(result)); CheckStatusKnown(CheckResultStatus(result)))
 
 CheckCustomResult(id; demand; capacity; utilization; warning_threshold; status) = _
 $block{
@@ -72,6 +73,7 @@ CheckResultRegistryAddStatus(registry; result) = switch(
 
 CheckResultRegistryAdd(registry; result) = if(CheckResultRegistryAddStatus(registry; result) ≡ CHECK_REG_OK; stack(registry; result); registry)
 
+'<!-- The synthetic fallback prevents zero-length vector operations; it is discarded whenever the registry has no real rows. -->
 CheckResultRegistryValues(registry; column) = _
 $block{
     value_count = CheckResultRegistryCount(registry);

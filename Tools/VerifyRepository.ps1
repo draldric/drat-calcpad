@@ -277,6 +277,106 @@ function Test-GitWhitespace {
     Write-Output '[PASS] Working-tree diff contains no whitespace errors.'
 }
 
+function Test-ArtifactConventions {
+    $startingFailureCount = $script:verificationFailures.Count
+    $pascalCaseName = '^[A-Z][A-Za-z0-9]*\.cpd$'
+
+    $artifactRoots = @('Examples', 'Templates', 'Tests')
+    foreach ($artifactRoot in $artifactRoots) {
+        $rootPath = Join-Path $script:repositoryRoot $artifactRoot
+        foreach ($file in Get-ChildItem -LiteralPath $rootPath -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
+            if ($file.Name -cnotmatch $pascalCaseName) {
+                Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName) does not use a PascalCase worksheet filename."
+            }
+        }
+    }
+
+    $exampleRequirements = [ordered]@{
+        'Markdown mode' = '(?m)^#md on\s*$'
+        'Organization' = '(?m)^#def\s+Organization\$\s*=\s*\S'
+        'Client' = '(?m)^#def\s+Client\$\s*=\s*\S'
+        'Project' = '(?m)^#def\s+Project\$\s*=\s*\S'
+        'Title' = '(?m)^#def\s+Title\$\s*=\s*\S'
+        'Purpose' = '(?m)^#def\s+Purpose\$\s*=\s*\S'
+        'Scope' = '(?m)^#def\s+Scope\$\s*=\s*\S'
+        'Calculation number' = '(?m)^#def\s+Calculation\$\s*=\s*\S'
+        'Standard header' = '(?m)^CreateHeader\$\s*$'
+        'Standard title' = '(?m)^CreateTitle\$\s*$'
+        'Purpose block' = '(?m)^CreatePurpose\$\s*$'
+        'Scope block' = '(?m)^CreateScope\$\s*$'
+        'Revision history' = '(?m)^BeginRevisions\$\s*$'
+        'Conclusions section' = '(?m)^(?:BeginConclusions\$|"Conclusions|''##\s+Conclusions)\s*$'
+    }
+
+    $exampleFiles = Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Examples') -File -Filter '*.cpd' | Sort-Object Name
+    foreach ($file in $exampleFiles) {
+        $relativePath = Get-RepositoryRelativePath -Path $file.FullName
+        $sourceText = [System.IO.File]::ReadAllText($file.FullName)
+        foreach ($requirement in $exampleRequirements.GetEnumerator()) {
+            if (-not [regex]::IsMatch($sourceText, $requirement.Value)) {
+                Add-VerificationFailure -Message "$relativePath is missing its $($requirement.Key)."
+            }
+        }
+        if ([regex]::IsMatch($sourceText, '(?i)<h[1-6](?:\s|>)')) {
+            Add-VerificationFailure -Message "$relativePath uses raw HTML headings instead of the standard Markdown report hierarchy."
+        }
+        if ([regex]::IsMatch($sourceText, '(?m)^#def\s+(?:Title|Purpose|Scope)\$\s*=.*''')) {
+            Add-VerificationFailure -Message "$relativePath uses an apostrophe in document text defined by #def; CalcPad may parse the remainder as formatted output."
+        }
+    }
+
+    $testFiles = Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests') -Recurse -File -Filter '*.cpd' | Sort-Object FullName
+    foreach ($file in $testFiles) {
+        $relativePath = Get-RepositoryRelativePath -Path $file.FullName
+        $sourceText = [System.IO.File]::ReadAllText($file.FullName)
+        if (-not $sourceText.Contains('TEST PURPOSE:')) {
+            Add-VerificationFailure -Message "$relativePath does not state the maintained behavior it verifies."
+        }
+
+        $definesAssertion = [regex]::IsMatch($sourceText, '(?m)^\s*all_tests\s*=')
+        $isBrowserDiagnostic = $sourceText.Contains('TEST TYPE: BROWSER DIAGNOSTIC')
+        if (-not $definesAssertion -and -not $isBrowserDiagnostic) {
+            Add-VerificationFailure -Message "$relativePath must define all_tests or explicitly declare itself a browser diagnostic."
+        }
+    }
+
+    $generalTemplate = Join-Path $script:repositoryRoot 'Templates\EngineeringCalculationTemplate.cpd'
+    $topLevelTemplates = Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Templates') -File -Filter '*.cpd'
+    foreach ($file in $topLevelTemplates) {
+        if (-not $file.FullName.Equals($generalTemplate, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName) must be placed in a calculation- or library-specific template category."
+        }
+    }
+
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Templates') -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
+        if (-not [System.IO.File]::ReadAllText($file.FullName).Contains('TEMPLATE PURPOSE:')) {
+            Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName) does not state its intended use."
+        }
+    }
+
+    $generalTemplateText = [System.IO.File]::ReadAllText($generalTemplate)
+    $generalTemplateRequirements = @(
+        'BeginReferences$',
+        'BeginDesignCriteria$',
+        'BeginAssumptions$',
+        'BeginLimitations$',
+        'BeginVariables$',
+        'BeginValidationSummary$',
+        'BeginCheckRegistry$',
+        'ShowDocumentReviewSummary$',
+        'BeginConclusions$'
+    )
+    foreach ($requiredMacro in $generalTemplateRequirements) {
+        if (-not $generalTemplateText.Contains($requiredMacro)) {
+            Add-VerificationFailure -Message "Templates\EngineeringCalculationTemplate.cpd is missing required workflow macro $requiredMacro."
+        }
+    }
+
+    if ($script:verificationFailures.Count -eq $startingFailureCount) {
+        Write-Output "[PASS] Artifact conventions for $($exampleFiles.Count) examples, $($testFiles.Count) tests, and $((Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Templates') -Recurse -File -Filter '*.cpd').Count) templates."
+    }
+}
+
 function Resolve-CalcPadCli {
     if (-not [string]::IsNullOrWhiteSpace($script:CalcPadCli)) {
         return [System.IO.Path]::GetFullPath($script:CalcPadCli)
@@ -395,6 +495,7 @@ Write-Output "Verifying $repositoryRoot"
 Test-CoreBundle
 Test-ApiVersions
 Test-IncludeGraph
+Test-ArtifactConventions
 Test-GitWhitespace
 Test-DistributionTooling
 

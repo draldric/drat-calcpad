@@ -85,6 +85,7 @@ ShowValidationIssues$
 It shares the `DB_*` status codes and missing-value sentinel defined by `DataWrapper.cpd`.
 
 Focused regression worksheets are organized under `Tests/Core/` and `Tests/Libraries/`.
+See [`Tests/README.md`](Tests/README.md) for the maintained purpose of each test group and the browser-diagnostic exception.
 
 ## Starting a calculation
 
@@ -94,6 +95,9 @@ The template deliberately uses explicit CalcPad assignments instead of browser c
 Its standard structure covers purpose and scope, references, design criteria, input sources, assumptions, limitations, saved inputs, validation, methodology, calculations, results, engineering checks, and conclusions.
 Numbered H3 sections begin on new pages when printed or exported to PDF; H4 and H5 headings remain numbered subsections on the current page.
 Required organization, client, project, calculation, and preparation metadata uses direct, readable placeholders, while unchecked and unapproved states remain visible in the document header.
+Specialized templates are categorized by purpose; see [`Templates/README.md`](Templates/README.md).
+
+The focused example catalog is maintained in [`Examples/README.md`](Examples/README.md).
 
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
 `Examples/ReportingRegistriesDemo.cpd` demonstrates structured references, linked design criteria, assumptions, limitations, registry queries, and aggregate reporting status without requiring a discipline-specific calculation.

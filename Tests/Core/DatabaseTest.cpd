@@ -2,6 +2,8 @@
 
 #include ../../Core/DratCore.cpd
 
+'<!-- TEST PURPOSE: Verify safe database columns, lookups, missing-value status, fallbacks, and registry helpers. -->
+
 TestDatabase = [101; 10; 1|102; 20; 2|103; DB_MISSING; 3]
 TestMetadata = [101; 7; 1|102; 8; 2]
 TestRegistry = [101; 102; 103]

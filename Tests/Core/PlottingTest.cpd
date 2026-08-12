@@ -1,0 +1,15 @@
+#include ../../Core/DratCore.cpd
+
+'<!-- TEST PURPOSE: Verify that the minimal plotting workflow accepts deterministic vectors and emits a chart without CalcPad errors. -->
+
+"Minimal Plot Test
+
+x = [0;1;2;3;4]
+y = [0;1;4;9;16]
+
+figure$(testPlot)
+plot$(testPlot; x; y; #337ab7; Quadratic)
+render$(testPlot; Minimal Plot; X; Y)
+
+all_tests = and(len(x) ≡ 5; len(y) ≡ 5; sum(y) ≡ 30)
+all_tests

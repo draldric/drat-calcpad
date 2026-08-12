@@ -1,7 +1,30 @@
+#md on
 #include ../Core/DratCore.cpd
 #include ../Libraries/Materials/EngineeringMaterials.cpd
 
-"Common Engineering Materials Library Demonstration
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = ENGINEERING MATERIALS WORKFLOW DEMONSTRATION
+#def Title$ = ENGINEERING MATERIAL DISCOVERY AND SCREENING
+#def Purpose$ = DEMONSTRATE MATERIAL-DATASET DISCOVERY, PROPERTY-BASED SCREENING, RANKING, COMPARISON, PLOTTING, AND TRACEABLE PROPERTY LOOKUPS.
+#def Scope$ = USE REPRESENTATIVE MATERIAL RECORDS FOR PRELIMINARY SCREENING ONLY. PROJECT-CERTIFIED DESIGN ALLOWABLES AND FINAL MATERIAL SELECTION ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-MATLIB-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial focused material-library demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
 
 'Representative screening values only. Verify project-specific design data.
 
@@ -65,3 +88,7 @@ ShowMatPROP$(STAINLESS_316L; MAT_P_THERMAL_CONDUCTIVITY)
 ShowMatPROP$(COMPOSITE_CFRP_UD; MAT_P_YOUNGS_MODULUS)
 ShowMatPROP$(CONCRETE_NORMAL_40MPA; MAT_P_COMPRESSIVE_STRENGTH)
 ShowMatPROP$(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH)
+
+"Conclusions
+
+'The library supports transparent discovery and screening, but the reported records must be checked against project material specifications before design use.

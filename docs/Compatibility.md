@@ -5,18 +5,18 @@ This table summarizes the currently supported package combination.
 
 | Package | Version or API | Requires |
 | --- | ---: | --- |
-| DRAT generated Core | 4.1.0 / `40100` | CalcPad CE worksheet evaluation |
-| Definitions | `20000` | Bundled with Core 4.1.0 |
-| Stylesheet | `10800` | Bundled with Core 4.1.0 |
-| DataWrapper | `302` | Bundled with Core 4.1.0 |
-| Engineering Checks | `20000` | Bundled with Core 4.1.0 |
-| Check Registry | `10000` | Bundled with Core 4.1.0 |
-| Database | `10000` | Bundled with Core 4.1.0 |
-| Validation | `20000` | Bundled with Core 4.1.0 |
-| Calculation Status | `20000` | Bundled with Core 4.1.0 |
-| Reporting | `20000` | Bundled with Core 4.1.0 |
-| Review Summary | `10000` | Bundled with Core 4.1.0 |
-| Plotting | `30200` | Bundled with Core 4.1.0 and network access for Plotly |
+| DRAT generated Core | 4.1.1 / `40101` | CalcPad CE worksheet evaluation |
+| Definitions | `20000` | Bundled with Core 4.1.1 |
+| Stylesheet | `10800` | Bundled with Core 4.1.1 |
+| DataWrapper | `303` | Bundled with Core 4.1.1 |
+| Engineering Checks | `20000` | Bundled with Core 4.1.1 |
+| Check Registry | `10000` | Bundled with Core 4.1.1 |
+| Database | `10000` | Bundled with Core 4.1.1 |
+| Validation | `20000` | Bundled with Core 4.1.1 |
+| Calculation Status | `20000` | Bundled with Core 4.1.1 |
+| Reporting | `20000` | Bundled with Core 4.1.1 |
+| Review Summary | `10000` | Bundled with Core 4.1.1 |
+| Plotting | `30200` | Bundled with Core 4.1.1 and network access for Plotly |
 | Engineering Materials | 1.4.0 | Core `10000–49999`, DataWrapper `302–999`, Plotting `30200–39999` |
 
 Library compatibility guards are evaluated by CalcPad when the library is loaded.

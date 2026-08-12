@@ -1,6 +1,8 @@
 #include ../../../Core/DratCore.cpd
 #include ../../../Libraries/Materials/EngineeringMaterials.cpd
 
+'<!-- TEST PURPOSE: Verify material catalog integrity, classifications, provenance, aliases, selection, ranking, and thresholds. -->
+
 "Engineering Materials Discovery and Classification Test
 
 expected_category_counts = [27; 27; 25; 7; 3; 13; 5; 9; 10]

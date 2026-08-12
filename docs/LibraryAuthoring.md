@@ -1,6 +1,6 @@
 # Library-authoring guide
 
-Use `Templates/PropertyLibraryTemplate.cpd` as the starting point for a numeric property library.
+Use `Templates/Libraries/PropertyLibraryTemplate.cpd` as the starting point for a numeric property library.
 
 ## Loading contract
 

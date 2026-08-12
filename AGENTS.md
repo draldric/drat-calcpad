@@ -12,8 +12,8 @@ The project has no package manager or automated command-line build. Open workshe
 - `rg "#include" Core Examples Templates Tests` audits include paths after moving files.
 - `pwsh Tools/BuildCore.ps1` regenerates `Core/DratCore.cpd` from `Core/Src/`.
 - `pwsh Tools/BuildCore.ps1 -Check` confirms the committed core bundle is current.
-- Open `Examples/PLOTTING_DEMO.cpd` to exercise the plotting API end to end.
-- Open `Tests/Core/DATA_WRAPPER_TEST.cpd` and confirm `all_tests` evaluates true.
+- Open `Examples/PlottingDemo.cpd` to exercise the plotting API end to end.
+- Open `Tests/Core/DataWrapperTest.cpd` and confirm `all_tests` evaluates true.
 - Open the two `PLOTTING_*_TEST.cpd` worksheets and verify the chart and JavaScript diagnostic render without errors.
 
 Plotting loads Plotly from a CDN, so those checks require network access.
@@ -123,7 +123,7 @@ Tests under `Tests/Core` are two directories below the root:
 
 ```text
 #include ../../Core/DratCore.cpd
-#include ../../Templates/PropertyLibraryTemplate.cpd
+#include ../../Templates/Libraries/PropertyLibraryTemplate.cpd
 ```
 
 Libraries and templates must not include core files or other dependencies. Top-level worksheets load `DratCore.cpd` first, then directly include the optional libraries they require. Each library must guard its complete body with compatible core and component API checks and render an inline-styled load error when requirements are not satisfied.

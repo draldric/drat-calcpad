@@ -2,6 +2,8 @@
 
 #include ../../Core/DratCore.cpd
 
+'<!-- TEST PURPOSE: Verify engineering-check utilization, classification, aggregation, gating, units, and registry helpers. -->
+
 upper_utilization = CheckUpperUtilization(80; 100)
 lower_utilization = CheckLowerUtilization(120; 100)
 
@@ -67,7 +69,8 @@ result_tests = and(CheckResultShapeOK(upper_result); CheckResultID(upper_result)
 registry_tests_1 = and(CheckResultRegistryShapeOK(test_check_registry); CheckResultRegistryCount(test_check_registry) ≡ 3; CheckResultRegistryEntryExists(test_check_registry; 102); CheckResultRegistryAddStatus(test_check_registry; upper_result) ≡ CHECK_REG_ERR_DUPLICATE_ID; CheckResultRegistryAddStatus(test_check_registry; CheckUpperResult(0; 1kN; 2kN; 0.9; 1)) ≡ CHECK_REG_ERR_BAD_ID)
 registry_tests_2 = and(len(CheckResultRegistryIDs(test_check_registry)) ≡ 3; take(1; CheckResultRegistryIDs(test_check_registry)) ≡ 101; take(2; CheckResultRegistryStatuses(test_check_registry)) ≡ CHK_PASS; CheckResultRegistryGoverningIndex(test_check_registry) ≡ 2; CheckResultRegistryGoverningID(test_check_registry) ≡ 102; abs(CheckResultRegistryGoverningUtilization(test_check_registry) - 5/6) < 1*10^-12)
 registry_tests_3 = and(CheckRegistryErrorCount([CHECK_REG_OK; CHECK_REG_OK]) ≡ 0; CheckRegistryErrorCount([CHECK_REG_OK; CHECK_REG_ERR_BAD_ID]) ≡ 1; CheckResultRegistrySummaryStatus(test_check_registry; [CHECK_REG_OK]) ≡ CHK_PASS; CheckResultRegistrySummaryStatus(test_check_registry; [CHECK_REG_OK; CHECK_REG_ERR_DUPLICATE_ID]) ≡ CHK_ERROR; CheckResultRegistryIssueCount(test_check_registry; [CHECK_REG_OK]) ≡ 0)
-registry_tests = and(result_tests; registry_tests_1; registry_tests_2; registry_tests_3)
+registry_accessor_tests = and(take(1; CheckResultRegistryMethods(test_check_registry)) ≡ CHECK_METHOD_UPPER; take(1; CheckResultRegistryDemands(test_check_registry)) ≡ 80kN; take(1; CheckResultRegistryCapacities(test_check_registry)) ≡ 100kN; take(1; CheckResultRegistryWarnings(test_check_registry)) ≡ 0.9)
+registry_tests = and(result_tests; registry_tests_1; registry_tests_2; registry_tests_3; registry_accessor_tests)
 
 all_tests_1 = and(utilization_tests; classification_tests; error_tests; aggregation_tests; predicate_tests; unit_tests; registry_tests)
 all_tests_2 = and(count_tests; unknown_tests; overall_tests; summary_data_tests; governing_tests; empty_tests; gating_tests)

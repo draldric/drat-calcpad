@@ -1,6 +1,7 @@
 #md on
 #include ../Core/DratCore.cpd
 
+'<!-- TEMPLATE PURPOSE: General auditable engineering calculation with document control, reporting registries, validation, checks, review, and conclusions. -->
 '<!-- Replace the document-control values before issuing the worksheet. -->
 #def Organization$ = ORGANIZATION NAME
 #def Client$ = CLIENT NAME
@@ -59,6 +60,15 @@ EndLimitations$
 
 ShowReportingSummary$
 
+"Definitions and Variables
+
+'Replace the unitless demonstration entries with the symbols and units used by the calculation.
+BeginVariables$
+AddVariable$(demand; Applied demand; 1)
+AddVariable$(capacity; Available capacity; 1)
+AddVariable$(warning_threshold; Warning threshold; 1)
+EndVariables$
+
 "Inputs
 
 '#### Saved Inputs
@@ -110,15 +120,12 @@ calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; In
 
 "Results
 
-#novar
-AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry))
-#equ
-
 ShowCalculationStatusFromRegistries$
 ShowDocumentReviewSummary$
 
 BeginConclusions$
 #novar
+AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry))
 AddCalculationStatusConclusion$(Document calculation status; calculation_status)
 AddValidationConclusion$(Overall input validation; input_validation)
 AddCheckConclusion$(Overall check status; overall_check_status)

@@ -1,11 +1,11 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 40100
+DRAT_CORE_API = 40101
 DRAT_DEFINITIONS_API = 20000
 DRAT_STYLESHEET_API = 10800
 DRAT_PLOTTING_API = 30200
-DRAT_DATA_WRAPPER_API = 302
+DRAT_DATA_WRAPPER_API = 303
 DRAT_CHECKS_API = 20000
 DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 20000
@@ -15,7 +15,7 @@ DRAT_REPORTING_API = 20000
 DRAT_REVIEW_SUMMARY_API = 10000
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 4.1.0
+#def DRATCoreVersion$ = 4.1.1
 #show
 #hide
 '<!-- Shared worksheet stylesheet. Version 1.8.0. -->
@@ -25,6 +25,7 @@ DRAT_REVIEW_SUMMARY_API = 10000
 '<style>h1,h2,h3,h4,h5,h6{text-transform:uppercase;font-family:courier new;}</style>
 '<style>h1{font-size:16pt;}</style>
 '<style>h2{font-size:12pt;}</style>
+'<!-- H3 is reserved for numbered major sections and starts a new printed page; H4 and H5 remain numbered subsections on the current page. -->
 '<style>h3{font-size:16pt;counter-reset:h4counter;counter-increment:h3counter;border-bottom:1.5px solid #999;padding-bottom:5px;margin-bottom:15px;}</style>
 '<style>h4{font-size:14pt;counter-reset:h5counter;counter-increment:h4counter;}</style>
 '<style>h5{font-size:12pt;counter-reset:h6counter;counter-increment:h5counter;}</style>
@@ -98,22 +99,22 @@ DRAT_REVIEW_SUMMARY_API = 10000
 #hide
 '<!-- Worksheet formatting definitions. Version 2.0.0. -->
 
-'<!-----------------------------|PDF FORMATTING|------------------------------!>
+'<!-- Print and spacing helpers. -->
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
 #def tab$ = '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 
-'<!--------------------------------|MESSAGES|---------------------------------!>
+'<!-- Inline report-message styles. -->
 #def err$(msg$) = '<span class="err">msg$</span>
 #def ok$(msg$) = '<span class="ok">msg$</span>
 #def desc$(msg$) = '<span class="note">msg$</span>
 #def ref$(msg$) = '<span class="ref">msg$</span>
 
-'<!----------------------------|MATHCAD UTILITIES|----------------------------!>
+'<!-- Compatibility utilities for imported worksheet patterns. -->
 #def cmt$(c$) = '<!--'c$'-->'
 #def shide$ = '<!--'
 #def ehide$ = '-->'
 
-'<!------------------------------------||-------------------------------------!>
+'<!-- Render one of two text paragraphs from a CalcPad condition. -->
 #def if$(cond$; true$; false$)
     #if cond$
         '<p>'true$'</p>
@@ -122,7 +123,7 @@ DRAT_REVIEW_SUMMARY_API = 10000
     #end if
 #end def
 
-'<!--------------------------|WORKSHEET FORMATTING|---------------------------!>
+'<!-- Standard document-control and engineering-report structure. -->
 #def CreateHeader$
     '<div class="document-header">
     '<div class="document-identity">
@@ -224,10 +225,10 @@ DRAT_REVIEW_SUMMARY_API = 10000
 #end def
 #show
 #hide
-'<!-- Generic numeric property-wrapper core. Version 0.3.2. -->
+'<!-- Generic numeric property-wrapper core. Version 0.3.3. -->
 
-#def DBWrapperName$ = Apple
-#def DBWrapperVersion$ = 0.3.2
+#def DBWrapperName$ = DRAT Data Wrapper
+#def DBWrapperVersion$ = 0.3.3
 
 DB_OK = 0
 DB_ERR_NAME = 10
@@ -252,7 +253,9 @@ DB_STRICT = 0
 DB_CLAMP = 1
 DB_EXTRAPOLATE = 2
 
+'<!-- DB_MISSING is a reserved finite scalar so mixed-unit numeric tables can carry explicit missing data without relying on undefined values. -->
 DB_MISSING = -9.87654321*10^307
+'<!-- Property IDs must remain below this factor so DBKey produces a unique item-property key. -->
 DB_PROPERTY_FACTOR = 1000
 
 DBKey(item; property) = item*DB_PROPERTY_FACTOR + property
@@ -263,6 +266,7 @@ DBIsWarning(status) = status ≥ DB_WARN_CLAMP_LOW
 DBMethodOK(method) = or(method ≡ DB_NEAREST; method ≡ DB_LINEAR)
 DBPolicyOK(bounds_policy) = or(bounds_policy ≡ DB_STRICT; bounds_policy ≡ DB_CLAMP; bounds_policy ≡ DB_EXTRAPOLATE)
 
+'<!-- Clamp the lookup column before vlookup because CalcPad may evaluate function arguments even when a later status rejects the request. -->
 DBTableStatus(table; item; property_column) = _
 $block{
     safe_column = min(max(round(property_column); 1); n_cols(table)); 
@@ -405,6 +409,7 @@ CHK_FAIL = 20
 CHK_ERROR = 30
 
 CHK_DEFAULT_WARNING = 0.9
+'<!-- This guard rejects NaN and overflow-like results while remaining far beyond practical engineering utilizations. -->
 CHK_FINITE_LIMIT = 1*10^300
 
 CheckStatusKnown(status) = or(status ≡ CHK_PASS; status ≡ CHK_WARN; status ≡ CHK_FAIL; status ≡ CHK_ERROR)
@@ -496,6 +501,7 @@ CheckAllPass(statuses) = CheckOverallStatus(statuses) ≡ CHK_PASS
 
 DBColumnOK(table; column) = and(column ≡ round(column); column ≥ 1; column ≤ n_cols(table))
 
+'<!-- Clamp before vlookup so an invalid requested column returns a status instead of causing an eager-evaluation error. -->
 DBLookupExists(table; key; key_column) = _
 $block{
     safe_key_column = min(max(round(key_column); 1); n_cols(table));
@@ -591,6 +597,7 @@ VAL_RULE_VECTOR_DEFINED = 29
 VAL_RULE_VECTOR_NEGATIVE = 30
 VAL_RULE_VECTOR_NONPOSITIVE = 31
 
+'<!-- Validation results use [status; value; rule; data_1; data_2]; each rule defines whether the final fields are bounds, dimensions, a set ID, or VAL_EMPTY. -->
 VAL_RESULT_STATUS = 1
 VAL_RESULT_VALUE = 2
 VAL_RESULT_RULE = 3
@@ -604,6 +611,7 @@ VAL_REG_ERR_BAD_RESULT = 20
 VAL_REG_ERR_BAD_ID = 30
 VAL_REG_ERR_DUPLICATE_ID = 40
 
+'<!-- Registry rows prepend a stable input ID to the five-field validation result. The first sentinel row preserves a predictable six-column matrix when empty. -->
 VAL_REG_ID = 1
 VAL_REG_STATUS = 2
 VAL_REG_VALUE = 3
@@ -615,6 +623,7 @@ VAL_REG_EMPTY = 0
 
 VAL_EMPTY = DB_MISSING
 
+'<!-- Finite and integer guards are unit-neutral after clrunits; the tolerance absorbs ordinary floating-point roundoff only. -->
 VAL_FINITE_LIMIT = 1*10^300
 VAL_INTEGER_TOLERANCE = 1*10^-9
 
@@ -804,7 +813,6 @@ ValidationResultRecordData1(record) = take(VAL_REG_DATA_1; record)
 ValidationResultRecordData2(record) = take(VAL_REG_DATA_2; record)
 ValidationResultRecordResult(record) = [ValidationResultRecordStatus(record); ValidationResultRecordValue(record); ValidationResultRecordRule(record); ValidationResultRecordData1(record); ValidationResultRecordData2(record)]
 ValidationResultRecordIDOK(id) = and(ValidationIsInteger(id); id > VAL_REG_EMPTY)
-ValidationResultRecordDataOK(record) = and(ValidationResultRecordShapeOK(record); ValidationResultRecordIDOK(ValidationResultRecordID(record)); ValidationStatusKnown(ValidationResultRecordStatus(record)); ValidationRuleKnown(ValidationResultRecordRule(record)))
 
 ValidationResultRegistryEmpty = join_rows([VAL_REG_EMPTY; VAL_ERR_BAD_RESULT; 0; 0; VAL_EMPTY; VAL_EMPTY])
 ValidationResultRegistryShapeOK(registry) = and(n_cols(registry) ≡ VAL_REG_COLUMNS; n_rows(registry) ≥ 1; take(1; col(registry; VAL_REG_ID)) ≡ VAL_REG_EMPTY)
@@ -997,12 +1005,6 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     '<tr><th>Input</th><th>Value</th><th>Permitted</th><th>Status</th></tr>
     '</thead>
     '<tbody>
-#end def
-
-#def AddValidationRow$(label$; value$; permitted$; status$)
-    '<tr><td>label$</td><td>'value$'</td><td>permitted$</td><td class="status-cell">
-    ValidationStatus$(status$)
-    '</td></tr>
 #end def
 
 #def ValidationPermitted$(result$)
@@ -1230,6 +1232,7 @@ CHECK_METHOD_UPPER = 1
 CHECK_METHOD_LOWER = 2
 CHECK_METHOD_CUSTOM = 3
 
+'<!-- Every result row is [id; method; demand; capacity; utilization; warning threshold; status]. Demand and capacity may retain different engineering units across rows. -->
 CHECK_RESULT_ID = 1
 CHECK_RESULT_METHOD = 2
 CHECK_RESULT_DEMAND = 3
@@ -1239,6 +1242,7 @@ CHECK_RESULT_WARNING = 6
 CHECK_RESULT_STATUS = 7
 CHECK_RESULT_COLUMNS = 7
 
+'<!-- The sentinel first row fixes the registry shape; public counts and value accessors intentionally exclude it. -->
 CHECK_REG_EMPTY = 0
 CheckResultRegistryEmpty = join_rows([CHECK_REG_EMPTY; CHECK_METHOD_CUSTOM; 0; 0; 0; 0; CHK_ERROR])
 
@@ -1253,7 +1257,6 @@ CheckResultUtilization(result) = CheckResultColumn(result; CHECK_RESULT_UTILIZAT
 CheckResultWarning(result) = CheckResultColumn(result; CHECK_RESULT_WARNING)
 CheckResultStatus(result) = CheckResultColumn(result; CHECK_RESULT_STATUS)
 CheckResultIDOK(id) = and(ValidationIsInteger(id); id > CHECK_REG_EMPTY)
-CheckResultDataOK(result) = and(CheckResultShapeOK(result); CheckResultIDOK(CheckResultID(result)); CheckMethodKnown(CheckResultMethod(result)); CheckStatusKnown(CheckResultStatus(result)))
 
 CheckCustomResult(id; demand; capacity; utilization; warning_threshold; status) = _
 $block{
@@ -1290,6 +1293,7 @@ CheckResultRegistryAddStatus(registry; result) = switch(
 
 CheckResultRegistryAdd(registry; result) = if(CheckResultRegistryAddStatus(registry; result) ≡ CHECK_REG_OK; stack(registry; result); registry)
 
+'<!-- The synthetic fallback prevents zero-length vector operations; it is discarded whenever the registry has no real rows. -->
 CheckResultRegistryValues(registry; column) = _
 $block{
     value_count = CheckResultRegistryCount(registry);
@@ -1614,6 +1618,7 @@ RPT_ENTRY_CRITERION = 2
 RPT_ENTRY_ASSUMPTION = 3
 RPT_ENTRY_LIMITATION = 4
 
+'<!-- CalcPad registries are numeric: report text stays in the rendered macro call while these attempt rows preserve type, stable ID, status, and source sequence. -->
 RPT_ATTEMPT_TYPE = 1
 RPT_ATTEMPT_ID = 2
 RPT_ATTEMPT_STATUS = 3
@@ -1621,6 +1626,7 @@ RPT_ATTEMPT_SEQUENCE = 4
 RPT_ATTEMPT_COLUMNS = 4
 
 ReportRegistryEmpty = [RPT_EMPTY]
+'<!-- Linked rows store [entry ID; reference ID]. A zero reference is allowed only where the calling macro declares the source optional. -->
 ReportLinkedRegistryEmpty = join_rows([RPT_EMPTY; RPT_NO_REFERENCE])
 
 ReportRegistryShapeOK(registry) = and(n_cols(registry) ≡ 1; n_rows(registry) ≥ 1; take(1; col(registry; 1)) ≡ RPT_EMPTY)
@@ -1655,6 +1661,7 @@ ReportLinkedRegistryReference(registry; id) = if(ReportLinkedRegistryShapeOK(reg
 
 ReportEntryTypeKnown(entry_type) = or(entry_type ≡ RPT_ENTRY_REFERENCE; entry_type ≡ RPT_ENTRY_CRITERION; entry_type ≡ RPT_ENTRY_ASSUMPTION; entry_type ≡ RPT_ENTRY_LIMITATION)
 ReportErrorRegistryEmpty = join_rows([0; 0; RPT_OK; 0])
+'<!-- Attempt records include successful and failed calls so error links can return to the exact rendered source row rather than only the entry ID. -->
 ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; RPT_ATTEMPT_SEQUENCE)) ≡ 0)
 ReportErrorRegistryAttemptCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - 1; 0)
 ReportErrorRecord(entry_type; id; status; sequence) = join_rows([entry_type; id; status; sequence])
@@ -1916,6 +1923,7 @@ REVIEW_ATTENTION = 10
 REVIEW_BLOCKED = 20
 REVIEW_ERROR = 30
 
+'<!-- Warnings permit independent checking but not issue; failed or incomplete calculations block both, and registry corruption is a review error. -->
 ReviewStatusKnown(status) = or(status ≡ REVIEW_READY; status ≡ REVIEW_ATTENTION; status ≡ REVIEW_BLOCKED; status ≡ REVIEW_ERROR)
 ReviewValidationIssueCount(validation_registry; validation_errors) = ValidationResultRegistryIssueCount(validation_registry; validation_errors)
 ReviewCheckIssueCount(check_registry; check_errors) = CheckResultRegistryIssueCount(check_registry; check_errors)
@@ -2057,6 +2065,7 @@ ReviewReadyForIssue(status) = status ≡ REVIEW_READY
 #show
 #hide
 '<!-- DRAT Plotting Wrapper 3.2.0. Online Plotly build. -->
+'<!-- Plot macros emit JavaScript into the rendered worksheet and share configuration through window.TSPlots; plot IDs must therefore be unique within one document. -->
 #show
 '<style>
 '.ts-plot{

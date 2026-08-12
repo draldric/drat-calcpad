@@ -15,6 +15,7 @@ RPT_ENTRY_CRITERION = 2
 RPT_ENTRY_ASSUMPTION = 3
 RPT_ENTRY_LIMITATION = 4
 
+'<!-- CalcPad registries are numeric: report text stays in the rendered macro call while these attempt rows preserve type, stable ID, status, and source sequence. -->
 RPT_ATTEMPT_TYPE = 1
 RPT_ATTEMPT_ID = 2
 RPT_ATTEMPT_STATUS = 3
@@ -22,6 +23,7 @@ RPT_ATTEMPT_SEQUENCE = 4
 RPT_ATTEMPT_COLUMNS = 4
 
 ReportRegistryEmpty = [RPT_EMPTY]
+'<!-- Linked rows store [entry ID; reference ID]. A zero reference is allowed only where the calling macro declares the source optional. -->
 ReportLinkedRegistryEmpty = join_rows([RPT_EMPTY; RPT_NO_REFERENCE])
 
 ReportRegistryShapeOK(registry) = and(n_cols(registry) ≡ 1; n_rows(registry) ≥ 1; take(1; col(registry; 1)) ≡ RPT_EMPTY)
@@ -56,6 +58,7 @@ ReportLinkedRegistryReference(registry; id) = if(ReportLinkedRegistryShapeOK(reg
 
 ReportEntryTypeKnown(entry_type) = or(entry_type ≡ RPT_ENTRY_REFERENCE; entry_type ≡ RPT_ENTRY_CRITERION; entry_type ≡ RPT_ENTRY_ASSUMPTION; entry_type ≡ RPT_ENTRY_LIMITATION)
 ReportErrorRegistryEmpty = join_rows([0; 0; RPT_OK; 0])
+'<!-- Attempt records include successful and failed calls so error links can return to the exact rendered source row rather than only the entry ID. -->
 ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; RPT_ATTEMPT_SEQUENCE)) ≡ 0)
 ReportErrorRegistryAttemptCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - 1; 0)
 ReportErrorRecord(entry_type; id; status; sequence) = join_rows([entry_type; id; status; sequence])

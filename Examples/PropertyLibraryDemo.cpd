@@ -1,0 +1,49 @@
+#md on
+#include ../Core/DratCore.cpd
+#include ../Templates/Libraries/PropertyLibraryTemplate.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = PROPERTY LIBRARY AUTHORING DEMONSTRATION
+#def Title$ = TEMPERATURE-DEPENDENT PROPERTY LOOKUPS
+#def Purpose$ = DEMONSTRATE THE PROPERTY-LIBRARY TEMPLATE API FOR ALIASES, UNIT-AWARE LOOKUPS, STATUS REPORTING, INTERPOLATION, CLAMPING, AND EXTRAPOLATION POLICIES.
+#def Scope$ = QUERY THE SYNTHETIC TEMPLATE DATASET AT REPRESENTATIVE TEMPERATURES. REAL ENGINEERING PROPERTY DATA AND PROJECT DESIGN DECISIONS ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-PROPERTY-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-11
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial focused property-library demonstration; EXAMPLE AUTHOR; 2026-08-11)
+EndRevisions$
+
+"Library Metadata
+
+ShowExampleLibraryInfo$
+
+"Alias and Unit-Aware Lookups
+
+ExamplePROPWithUnits$(ρ_1; MATERIAL_A; P_DENSITY; 25°C)
+ExamplePROPWithUnits$(ρ_2; material_b; DENSITY; 25°C)
+ExamplePROPWithUnits$(ρ_3; MAT_A; RHO; 25°C)
+
+"Bounds-Policy Reporting
+
+ShowExamplePROP$(MATERIAL_A; P_CP; 75°C; DB_LINEAR; DB_STRICT)
+ShowExamplePROP$(MATERIAL_A; P_DENSITY; 120°C; DB_LINEAR; DB_STRICT)
+ShowExamplePROP$(MATERIAL_A; P_DENSITY; 120°C; DB_LINEAR; DB_CLAMP)
+ShowExamplePROP$(MATERIAL_A; P_DENSITY; 120°C; DB_LINEAR; DB_EXTRAPOLATE)
+ShowExamplePROP$(MATERIAL_B; P_VISCOSITY; 40°C; DB_LINEAR; DB_STRICT)
+
+"Conclusions
+
+'The same template API exposes the lookup value and its data-quality status so a consuming worksheet can distinguish valid interpolation from rejected, clamped, or extrapolated requests.
