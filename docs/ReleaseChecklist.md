@@ -19,6 +19,8 @@
 - [ ] Confirm all includes are direct, relative, repository-local, and exact-case.
 - [ ] Confirm generated HTML and PDF files are not staged.
 - [ ] Run `git diff --check`.
+- [ ] Confirm `Repository verification / Windows static and distribution verification` passes for the release commit.
+- [ ] Confirm the hosted workflow summary states that CalcPad CE execution was skipped.
 
 ## CalcPad verification
 

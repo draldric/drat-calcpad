@@ -161,6 +161,26 @@ function Test-ApiVersions {
         }
     }
 
+    $coreApiDocumentationPath = Join-Path $script:repositoryRoot 'docs\CoreApi.md'
+    if (-not (Test-Path -LiteralPath $coreApiDocumentationPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'docs\CoreApi.md is missing.'
+    }
+    else {
+        $coreApiDocumentation = [System.IO.File]::ReadAllText($coreApiDocumentationPath)
+        foreach ($apiName in $apiValues.Keys | Sort-Object) {
+            $documentedApiMatch = [regex]::Match(
+                $coreApiDocumentation,
+                '(?m)^\|\s*`' + [regex]::Escape($apiName) + '`\s*\|\s*`(?<value>\d+)`\s*\|'
+            )
+            if (-not $documentedApiMatch.Success) {
+                Add-VerificationFailure -Message "docs\CoreApi.md does not document $apiName in the compatibility table."
+            }
+            elseif ([int]$documentedApiMatch.Groups['value'].Value -ne $apiValues[$apiName]) {
+                Add-VerificationFailure -Message "docs\CoreApi.md lists $apiName as $($documentedApiMatch.Groups['value'].Value), but CoreManifest.cpd declares $($apiValues[$apiName])."
+            }
+        }
+    }
+
     if ($script:verificationFailures.Count -eq $startingFailureCount) {
         Write-Output "[PASS] Core and component API declarations are consistent ($($componentApis.Count + 1) checked)."
     }
@@ -354,6 +374,40 @@ function Test-ArtifactConventions {
         }
     }
 
+    $unresolvedPlaceholders = @(
+        'ORGANIZATION NAME',
+        'CLIENT NAME',
+        'PROJECT NAME',
+        'ENGINEERING CALCULATION TITLE',
+        'STATE THE PURPOSE AND REQUIRED DECISION.',
+        'DEFINE WHAT THE CALCULATION INCLUDES AND EXCLUDES.',
+        'CALCULATION NUMBER',
+        'PREPARER NAME',
+        'YYYY-MM-DD',
+        'GOVERNING STANDARD',
+        'STANDARD TITLE',
+        'EDITION / REVISION',
+        'APPLICABLE CLAUSE',
+        'PRIMARY DESIGN CRITERION',
+        'STATE THE REQUIRED LIMIT OR ACCEPTANCE CONDITION.',
+        'STATE THE ENGINEERING ASSUMPTION.',
+        'STATE THE BOUND, EXCLUSION, OR CONDITION OF USE.'
+    )
+    $templatePrefix = (Join-Path $script:repositoryRoot 'Templates').TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    $artifactPrefix = (Join-Path $script:repositoryRoot 'artifacts').TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    foreach ($file in Get-ChildItem -LiteralPath $script:repositoryRoot -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
+        if ($file.FullName.StartsWith($templatePrefix, [System.StringComparison]::OrdinalIgnoreCase) -or
+            $file.FullName.StartsWith($artifactPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            continue
+        }
+        $sourceText = [System.IO.File]::ReadAllText($file.FullName)
+        foreach ($placeholder in $unresolvedPlaceholders) {
+            if ($sourceText.Contains($placeholder, [System.StringComparison]::Ordinal)) {
+                Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName) contains unresolved template placeholder '$placeholder'."
+            }
+        }
+    }
+
     $generalTemplateText = [System.IO.File]::ReadAllText($generalTemplate)
     $generalTemplateRequirements = @(
         'BeginReferences$',
@@ -374,6 +428,62 @@ function Test-ArtifactConventions {
 
     if ($script:verificationFailures.Count -eq $startingFailureCount) {
         Write-Output "[PASS] Artifact conventions for $($exampleFiles.Count) examples, $($testFiles.Count) tests, and $((Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Templates') -Recurse -File -Filter '*.cpd').Count) templates."
+    }
+}
+
+function Test-CiConfiguration {
+    $startingFailureCount = $script:verificationFailures.Count
+    $workflowPath = Join-Path $script:repositoryRoot '.github\workflows\verify.yml'
+    if (-not (Test-Path -LiteralPath $workflowPath -PathType Leaf)) {
+        Add-VerificationFailure -Message '.github\workflows\verify.yml is missing.'
+        return
+    }
+
+    $workflowText = [System.IO.File]::ReadAllText($workflowPath)
+    $requirements = [ordered]@{
+        'pull-request trigger' = '(?m)^\s{2}pull_request:\s*$'
+        'push trigger' = '(?m)^\s{2}push:\s*$'
+        'manual trigger' = '(?m)^\s{2}workflow_dispatch:\s*$'
+        'develop branch' = '(?m)^\s{6}- develop\s*$'
+        'main branch' = '(?m)^\s{6}- main\s*$'
+        'read-only contents permission' = '(?ms)^permissions:\s*\r?\n\s{2}contents:\s*read\s*$'
+        'stable job ID' = '(?m)^\s{2}static-verification:\s*$'
+        'stable job name' = '(?m)^\s{4}name:\s*Windows static and distribution verification\s*$'
+        'Windows hosted runner' = '(?m)^\s{4}runs-on:\s*windows-latest\s*$'
+        'full checkout history' = '(?m)^\s{10}fetch-depth:\s*0\s*$'
+        'immutable checkout pin' = '(?m)^\s{8}uses:\s*actions/checkout@[0-9a-f]{40}\s+#\s+v\d+\.\d+\.\d+\s*$'
+        'changed-file whitespace check' = 'git diff --check'
+        'hosted verifier command' = '(?m)^\s*\./Tools/VerifyRepository\.ps1\s+-SkipCalcPad\s*$'
+        'job summary boundary' = 'GITHUB_STEP_SUMMARY'
+        'CalcPad skip disclosure' = 'It did not execute CalcPad CE'
+    }
+    foreach ($requirement in $requirements.GetEnumerator()) {
+        if (-not [regex]::IsMatch($workflowText, $requirement.Value)) {
+            Add-VerificationFailure -Message ".github\workflows\verify.yml is missing its $($requirement.Key)."
+        }
+    }
+
+    foreach ($line in [System.IO.File]::ReadAllLines($workflowPath)) {
+        if ($line.Contains('VerifyRepository.ps1', [System.StringComparison]::Ordinal) -and -not $line.Contains('-SkipCalcPad', [System.StringComparison]::Ordinal)) {
+            Add-VerificationFailure -Message '.github\workflows\verify.yml invokes VerifyRepository.ps1 without the explicit -SkipCalcPad boundary.'
+        }
+    }
+
+    $automationDocumentationPath = Join-Path $script:repositoryRoot 'docs\Automation.md'
+    if (-not (Test-Path -LiteralPath $automationDocumentationPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'docs\Automation.md is missing.'
+    }
+    else {
+        $automationDocumentation = [System.IO.File]::ReadAllText($automationDocumentationPath)
+        foreach ($requiredText in @('Windows static and distribution verification', 'VerifyRepository.ps1 -SkipCalcPad', 'does not install or execute CalcPad CE', 'self-hosted Windows runner')) {
+            if (-not $automationDocumentation.Contains($requiredText, [System.StringComparison]::Ordinal)) {
+                Add-VerificationFailure -Message "docs\Automation.md is missing required boundary text '$requiredText'."
+            }
+        }
+    }
+
+    if ($script:verificationFailures.Count -eq $startingFailureCount) {
+        Write-Output '[PASS] GitHub Actions runs pinned Windows static verification and documents the CalcPad qualification boundary.'
     }
 }
 
@@ -732,6 +842,7 @@ Test-ApiVersions
 Test-IncludeGraph
 Test-ArtifactConventions
 Test-PublicApi
+Test-CiConfiguration
 Test-GitWhitespace
 Test-DistributionTooling
 

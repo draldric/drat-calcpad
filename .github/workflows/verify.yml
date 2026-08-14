@@ -1,0 +1,73 @@
+name: Repository verification
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+  push:
+    branches:
+      - develop
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-verification-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-verification:
+    name: Windows static and distribution verification
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Check changed-file whitespace
+        shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:EVENT_NAME -eq 'pull_request') {
+              git diff --check "$env:BASE_SHA...$env:HEAD_SHA"
+          }
+          elseif (-not [string]::IsNullOrWhiteSpace($env:BEFORE_SHA) -and $env:BEFORE_SHA -notmatch '^0+$') {
+              git diff --check "$env:BEFORE_SHA..$env:HEAD_SHA"
+          }
+          else {
+              git diff --check HEAD^..HEAD
+          }
+          if ($LASTEXITCODE -ne 0) {
+              throw 'Changed-file whitespace verification failed.'
+          }
+
+      - name: Run hosted repository verification
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          ./Tools/VerifyRepository.ps1 -SkipCalcPad
+          if ($LASTEXITCODE -ne 0) {
+              throw 'Hosted repository verification failed.'
+          }
+
+      - name: Record CalcPad qualification boundary
+        shell: pwsh
+        run: |
+          @'
+          ### CalcPad CE qualification
+
+          This hosted job ran `Tools/VerifyRepository.ps1 -SkipCalcPad`.
+          It did not execute CalcPad CE, browser JavaScript, print preview, or PDF layout checks.
+          Complete those checks locally or on an approved self-hosted Windows runner before release.
+          '@ >> $env:GITHUB_STEP_SUMMARY

@@ -50,6 +50,16 @@ Before changing a public function, macro, constant, status, data ID, or unit map
 
 ## Verification
 
+Every pull request targeting `develop` or `main` runs the Windows `Repository verification` workflow.
+Its hosted job performs changed-file whitespace checks and runs:
+
+```powershell
+pwsh -NoProfile -File Tools/VerifyRepository.ps1 -SkipCalcPad
+```
+
+The hosted workflow does not install or execute CalcPad CE.
+See the [automation guide](docs/Automation.md) for its exact coverage and the stable check name used by branch protection.
+
 Run the complete verifier before opening or updating a pull request:
 
 ```powershell
@@ -64,7 +74,7 @@ If the CalcPad CLI is unavailable, static checks can be run with:
 pwsh -File Tools/VerifyRepository.ps1 -SkipCalcPad
 ```
 
-State clearly in the pull request when CalcPad execution was skipped.
+State clearly in the pull request when local CalcPad execution was skipped, even when the hosted workflow passes.
 Static checks do not replace manual GUI review.
 
 ## Pull-request description
