@@ -377,6 +377,141 @@ function Test-ArtifactConventions {
     }
 }
 
+function Test-PublicApi {
+    $startingFailureCount = $script:verificationFailures.Count
+    $configurationPath = Join-Path $script:repositoryRoot 'Tools\PublicApiAudit.psd1'
+    if (-not (Test-Path -LiteralPath $configurationPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'Tools\PublicApiAudit.psd1 is missing.'
+        return
+    }
+
+    try {
+        $configuration = Import-PowerShellDataFile -LiteralPath $configurationPath
+    }
+    catch {
+        Add-VerificationFailure -Message "Tools\PublicApiAudit.psd1 could not be loaded: $($_.Exception.Message)"
+        return
+    }
+
+    $internalHelpers = $configuration.InternalHelpers
+    $definitionOnlyHelpers = $configuration.DefinitionOnlyPublicHelpers
+    if ($internalHelpers -isnot [System.Collections.IDictionary]) {
+        Add-VerificationFailure -Message 'PublicApiAudit.psd1 must define an InternalHelpers dictionary.'
+        return
+    }
+    if ($definitionOnlyHelpers -isnot [System.Collections.IDictionary]) {
+        Add-VerificationFailure -Message 'PublicApiAudit.psd1 must define a DefinitionOnlyPublicHelpers dictionary.'
+        return
+    }
+
+    $definitions = [System.Collections.Generic.List[object]]::new()
+    $sourceRoot = Join-Path $script:repositoryRoot 'Core\Src'
+    foreach ($file in Get-ChildItem -LiteralPath $sourceRoot -File -Filter '*.cpd' | Sort-Object Name) {
+        $lines = [System.IO.File]::ReadAllLines($file.FullName)
+        for ($lineIndex = 0; $lineIndex -lt $lines.Count; $lineIndex++) {
+            $line = $lines[$lineIndex]
+            $functionMatch = [regex]::Match($line, '^\s*(?<name>[A-Z][A-Za-z0-9_]*)\s*\([^)]*\)\s*=')
+            if ($functionMatch.Success) {
+                $definitions.Add([pscustomobject]@{
+                    Name = $functionMatch.Groups['name'].Value
+                    Kind = 'function'
+                    Source = Get-RepositoryRelativePath -Path $file.FullName
+                    Line = $lineIndex + 1
+                })
+                continue
+            }
+
+            $macroMatch = [regex]::Match($line, '^\s*#def\s+(?<name>[A-Za-z][A-Za-z0-9_]*\$)(?:\s*\([^)]*\))?(?:\s*=|\s*$)')
+            if ($macroMatch.Success) {
+                $definitions.Add([pscustomobject]@{
+                    Name = $macroMatch.Groups['name'].Value
+                    Kind = 'macro'
+                    Source = Get-RepositoryRelativePath -Path $file.FullName
+                    Line = $lineIndex + 1
+                })
+            }
+        }
+    }
+
+    foreach ($duplicate in $definitions | Group-Object Name | Where-Object Count -gt 1 | Sort-Object Name) {
+        $locations = ($duplicate.Group | ForEach-Object { "$($_.Source):$($_.Line)" }) -join ', '
+        Add-VerificationFailure -Message "Public helper $($duplicate.Name) is defined more than once: $locations"
+    }
+
+    $definitionByName = @{}
+    foreach ($definition in $definitions) {
+        $definitionByName[$definition.Name] = $definition
+    }
+
+    foreach ($entry in $internalHelpers.GetEnumerator() | Sort-Object Key) {
+        if ([string]::IsNullOrWhiteSpace([string]$entry.Value)) {
+            Add-VerificationFailure -Message "Internal helper $($entry.Key) has no implementation-purpose explanation."
+        }
+        if (-not $definitionByName.ContainsKey([string]$entry.Key)) {
+            Add-VerificationFailure -Message "Internal helper inventory contains unknown name $($entry.Key)."
+        }
+    }
+
+    $publicDefinitions = @($definitions | Where-Object { -not $internalHelpers.Contains($_.Name) } | Sort-Object Name)
+    $codeFiles = @(
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Core\Src') -Recurse -File -Filter '*.cpd'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Libraries') -Recurse -File -Filter '*.cpd'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Examples') -Recurse -File -Filter '*.cpd'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Templates') -Recurse -File -Filter '*.cpd'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests') -Recurse -File -Filter '*.cpd'
+    ) | Sort-Object FullName -Unique
+    $documentationFiles = @(
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'docs') -Recurse -File -Filter '*.md'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Examples') -Recurse -File -Filter '*.cpd'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Templates') -Recurse -File -Filter '*.cpd'
+    ) | Sort-Object FullName -Unique
+
+    $codeText = [string]::Join("`n", @($codeFiles | ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }))
+    $documentationText = [string]::Join("`n", @($documentationFiles | ForEach-Object { [System.IO.File]::ReadAllText($_.FullName) }))
+    $actualDefinitionOnly = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+
+    foreach ($definition in $publicDefinitions) {
+        $pattern = '(?<![A-Za-z0-9_])' + [regex]::Escape($definition.Name) + '(?![A-Za-z0-9_])'
+        $codeOccurrences = [regex]::Matches($codeText, $pattern).Count
+        $documentationOccurrences = [regex]::Matches($documentationText, $pattern).Count
+
+        if ($documentationOccurrences -eq 0) {
+            Add-VerificationFailure -Message "$($definition.Source):$($definition.Line) public $($definition.Kind) $($definition.Name) is not documented or demonstrated."
+        }
+
+        if ($codeOccurrences -eq 1) {
+            $null = $actualDefinitionOnly.Add($definition.Name)
+            if (-not $definitionOnlyHelpers.Contains($definition.Name)) {
+                Add-VerificationFailure -Message "$($definition.Source):$($definition.Line) public $($definition.Kind) $($definition.Name) has no maintained call site and is not allowlisted."
+            }
+        }
+    }
+
+    foreach ($entry in $definitionOnlyHelpers.GetEnumerator() | Sort-Object Key) {
+        $name = [string]$entry.Key
+        if ([string]::IsNullOrWhiteSpace([string]$entry.Value)) {
+            Add-VerificationFailure -Message "Definition-only helper $name has no documented end-user purpose."
+        }
+        if (-not $definitionByName.ContainsKey($name)) {
+            Add-VerificationFailure -Message "Definition-only helper allowlist contains unknown name $name."
+            continue
+        }
+        if (-not $actualDefinitionOnly.Contains($name)) {
+            Add-VerificationFailure -Message "Definition-only helper allowlist contains stale entry $name."
+        }
+
+        $pattern = '(?<![A-Za-z0-9_])' + [regex]::Escape($name) + '(?![A-Za-z0-9_])'
+        $documentationOccurrences = [regex]::Matches($documentationText, $pattern).Count
+        if ($documentationOccurrences -eq 0) {
+            Add-VerificationFailure -Message "Definition-only helper $name is allowlisted but has no documentation or demonstration."
+        }
+    }
+
+    if ($script:verificationFailures.Count -eq $startingFailureCount) {
+        Write-Output "[PASS] Public API audit found $($publicDefinitions.Count) documented helpers; $($internalHelpers.Count) implementation helpers and $($definitionOnlyHelpers.Count) intentional definition-only entry points are explained."
+    }
+}
+
 function Resolve-CalcPadCli {
     if (-not [string]::IsNullOrWhiteSpace($script:CalcPadCli)) {
         return [System.IO.Path]::GetFullPath($script:CalcPadCli)
@@ -496,6 +631,7 @@ Test-CoreBundle
 Test-ApiVersions
 Test-IncludeGraph
 Test-ArtifactConventions
+Test-PublicApi
 Test-GitWhitespace
 Test-DistributionTooling
 

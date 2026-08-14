@@ -49,5 +49,7 @@ Calculation templates follow the trusted calculation flow and clearly separate d
 
 ## Enforcement
 
-`Tools/VerifyRepository.ps1` checks filenames, required example report elements, test-purpose declarations, automated assertions or browser-diagnostic classification, and template organization.
+`Tools/VerifyRepository.ps1` checks filenames, required example report elements, test-purpose declarations, automated assertions or browser-diagnostic classification, template organization, and the documented public Core surface.
+`Tools/PublicApiAudit.psd1` records implementation-only helpers and the exceptional public entry points that are intentionally available to worksheet authors without an internal call site.
+Every entry requires an explanatory purpose, and every public helper must appear by exact name in documentation, a demo, or a template.
 The verifier complements engineering review; it cannot determine whether an equation, source, or acceptance criterion is technically appropriate.

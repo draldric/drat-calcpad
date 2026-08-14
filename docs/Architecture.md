@@ -107,5 +107,6 @@ See the [library-authoring guide](LibraryAuthoring.md) for the full contract.
 - Example report structure and focused-purpose metadata.
 - Test-purpose declarations and explicit browser-diagnostic exceptions.
 - PascalCase artifact names and categorized template placement.
+- Public Core helper documentation, implementation-helper inventory, and intentional definition-only entry points.
 
 Manual CalcPad CE GUI review remains necessary for print layout, pagination, table alignment, browser controls, and Plotly behavior.
