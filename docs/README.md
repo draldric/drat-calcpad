@@ -8,6 +8,7 @@ Use these guides according to the work you are doing:
 - [Core API reference](CoreApi.md) lists the supported constants, functions, and reporting macros.
 - [Structural Sections library](StructuralSections.md) documents AISC W-shape lookup, screening, and reporting helpers.
 - [Static beam analysis library](BeamAnalysis.md) documents supported beam cases, response equations, and screening helpers.
+- [Beam-analysis benchmark basis](BeamBenchmarks.md) records the independent equations, sign conventions, cases, and tolerances used for release qualification.
 - [Status-code reference](StatusCodes.md) defines check, validation, and database outcomes.
 - [Library-authoring guide](LibraryAuthoring.md) defines dependency guards, data contracts, and source reporting.
 - [Versioning policy](Versioning.md) explains Core, component, library, and API versions.

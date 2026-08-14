@@ -24,6 +24,7 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Core/ReviewSummaryTest.cpd` | Unified review status, readiness, issue counts, and summary rendering. |
 | `Core/ValidationTest.cpd` | Scalar, vector, matrix, set, registry, and unit-aware validation. |
 | `Libraries/Analysis/BeamAnalysisTest.cpd` | Beam models, load cases, reactions, responses, extrema, diagrams, and screening helpers. |
+| `Libraries/Analysis/BeamAnalysisBenchmarkTest.cpd` | Independent equilibrium and Euler-Bernoulli benchmarks for reactions, shear, moment, rotation, deflection, sign conventions, and unit conversion. |
 | `Libraries/Materials/EngineeringMaterialsTest.cpd` | Material data integrity, classification, provenance, discovery, ranking, and thresholds. |
 | `Libraries/Materials/EngineeringMaterialsPlottingTest.cpd` | Material comparison and trade-off plotting inputs. |
 | `Libraries/Steel/StructuralSectionsTest.cpd` | W-section data, aliases, property lookup, and selection. |
