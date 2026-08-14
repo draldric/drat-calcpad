@@ -13,6 +13,7 @@ Use these guides according to the work you are doing:
 - [Versioning policy](Versioning.md) explains Core, component, library, and API versions.
 - [Compatibility matrix](Compatibility.md) summarizes supported Core and library combinations.
 - [Distribution and installation](Distribution.md) covers release bundles, managed installations, and portable projects.
+- [Repository automation](Automation.md) defines hosted verification, branch-protection checks, and the CalcPad qualification boundary.
 - [Release checklist](ReleaseChecklist.md) covers verification and packaging of a release.
 
 Repository changes are covered by the root [contributor guide](../CONTRIBUTING.md), and notable changes are recorded in the root [changelog](../CHANGELOG.md).

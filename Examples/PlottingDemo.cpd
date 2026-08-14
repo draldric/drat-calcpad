@@ -36,7 +36,7 @@ sampleData$(x_points; y_points; Measured; 0; 10; 21)
 sampleData$(x_power; y_power; Power; 0; 10; 51)
 
 "Plot Configuration
-
+#md off
 figure$(performancePlot)
 figureSize$(performancePlot; 900; 480)
 plot$(performancePlot; x_line; y_line; #d9534f; Design Trend)
@@ -47,6 +47,7 @@ hline$(performancePlot; 32; #d9534f; Design Limit)
 yBand$(performancePlot; 32; 38; rgba(217,83,79,0.12); Warning Zone)
 hoverUnified$(performancePlot)
 render$(performancePlot; Performance Comparison; Time (min); Response (mm))
+#md on
 
 "Conclusions
 
