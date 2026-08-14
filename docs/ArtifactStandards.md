@@ -13,6 +13,8 @@ Every artifact must have a defined user or verification purpose and must be remo
 - Avoid apostrophes inside `#def` text values because CalcPad can interpret the remainder as formatted worksheet output.
 - Do not add comments that only restate a clear function name or equation.
 - Remove obsolete and duplicated public helpers before the first release instead of preserving accidental compatibility.
+- Prefix every temporary variable and iterator inside a multiline macro as `ζMODULE_name`, using the module prefix inventoried in `Tools/PublicApiAudit.psd1`.
+- Write an unprefixed worksheet-global variable from a macro only when it is an intentional registry mutation inventoried with its exact source macro and purpose.
 
 ## Tests
 
@@ -50,6 +52,7 @@ Calculation templates follow the trusted calculation flow and clearly separate d
 ## Enforcement
 
 `Tools/VerifyRepository.ps1` checks filenames, required example report elements, test-purpose declarations, automated assertions or browser-diagnostic classification, template organization, and the documented public Core surface.
-`Tools/PublicApiAudit.psd1` records implementation-only helpers and the exceptional public entry points that are intentionally available to worksheet authors without an internal call site.
-Every entry requires an explanatory purpose, and every public helper must appear by exact name in documentation, a demo, or a template.
+`Tools/PublicApiAudit.psd1` records module-local prefixes, approved global registry mutations, implementation-only helpers, and the exceptional public entry points that are intentionally available to worksheet authors without an internal call site.
+Every exception requires an explanatory purpose, and every public helper must appear by exact name in documentation, a demo, or a template.
+`Tests/Tooling/PublicApiAuditTest.ps1` protects the multiline-macro parser and namespace classification rules.
 The verifier complements engineering review; it cannot determine whether an equation, source, or acceptance criterion is technically appropriate.

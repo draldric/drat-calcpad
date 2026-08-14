@@ -1,4 +1,71 @@
 @{
+    # Every module containing multiline macro assignments owns one local prefix.
+    # Paths use repository-relative forward slashes for deterministic comparison.
+    MacroLocalPrefixes = @{
+        'Core/Src/CalculationStatus.cpd' = 'CALC'
+        'Core/Src/CheckRegistry.cpd' = 'CHECK'
+        'Core/Src/Plotting.cpd' = 'PLOT'
+        'Core/Src/Reporting.cpd' = 'RPT'
+        'Core/Src/ReviewSummary.cpd' = 'REVIEW'
+        'Core/Src/Validation.cpd' = 'VAL'
+        'Libraries/Analysis/BeamAnalysis.cpd' = 'BEAM'
+        'Libraries/Materials/EngineeringMaterials.cpd' = 'MAT'
+        'Libraries/Steel/AiscAngleSections.cpd' = 'AISC'
+        'Libraries/Steel/AiscChannelSections.cpd' = 'AISC'
+        'Libraries/Steel/AiscHssSections.cpd' = 'AISC'
+        'Libraries/Steel/StructuralSections.cpd' = 'AISC'
+    }
+
+    # These assignments intentionally update worksheet-global registries.
+    # All other assignments inside macros must use the owning module prefix.
+    ApprovedGlobalMacroAssignments = @{
+        'EngineeringCheckRegistry' = @{
+            Source = 'Core/Src/CheckRegistry.cpd'
+            Macros = @('AddCheckResult$')
+            Purpose = 'Stores successfully registered engineering checks for document aggregation.'
+        }
+        'EngineeringCheckRegistryErrors' = @{
+            Source = 'Core/Src/CheckRegistry.cpd'
+            Macros = @('AddCheckResult$')
+            Purpose = 'Stores every engineering-check registration result for integrity reporting.'
+        }
+        'InputValidationRegistry' = @{
+            Source = 'Core/Src/Validation.cpd'
+            Macros = @('AddValidationResult$')
+            Purpose = 'Stores successfully registered input validations for document aggregation.'
+        }
+        'InputValidationRegistryErrors' = @{
+            Source = 'Core/Src/Validation.cpd'
+            Macros = @('AddValidationResult$')
+            Purpose = 'Stores every input-validation registration result for integrity reporting.'
+        }
+        'ReportReferences' = @{
+            Source = 'Core/Src/Reporting.cpd'
+            Macros = @('AddReference$')
+            Purpose = 'Stores registered document references.'
+        }
+        'ReportDesignCriteria' = @{
+            Source = 'Core/Src/Reporting.cpd'
+            Macros = @('AddDesignCriterion$')
+            Purpose = 'Stores registered design criteria and their reference links.'
+        }
+        'ReportAssumptions' = @{
+            Source = 'Core/Src/Reporting.cpd'
+            Macros = @('AddAssumption$')
+            Purpose = 'Stores registered assumptions and their optional reference links.'
+        }
+        'ReportLimitations' = @{
+            Source = 'Core/Src/Reporting.cpd'
+            Macros = @('AddLimitation$')
+            Purpose = 'Stores registered limitations and their optional reference links.'
+        }
+        'ReportRegistryErrors' = @{
+            Source = 'Core/Src/Reporting.cpd'
+            Macros = @('AddReference$', 'AddDesignCriterion$', 'AddAssumption$', 'AddLimitation$')
+            Purpose = 'Stores every reporting-registry attempt for integrity reporting and source links.'
+        }
+    }
+
     # These helpers support public implementations but are not part of the worksheet API.
     # Keep the reason beside the name so an exception cannot become unexplained debt.
     InternalHelpers = @{

@@ -380,21 +380,37 @@ function Test-ArtifactConventions {
 function Test-PublicApi {
     $startingFailureCount = $script:verificationFailures.Count
     $configurationPath = Join-Path $script:repositoryRoot 'Tools\PublicApiAudit.psd1'
+    $rulesPath = Join-Path $script:repositoryRoot 'Tools\PublicApiAuditRules.ps1'
     if (-not (Test-Path -LiteralPath $configurationPath -PathType Leaf)) {
         Add-VerificationFailure -Message 'Tools\PublicApiAudit.psd1 is missing.'
+        return
+    }
+    if (-not (Test-Path -LiteralPath $rulesPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'Tools\PublicApiAuditRules.ps1 is missing.'
         return
     }
 
     try {
         $configuration = Import-PowerShellDataFile -LiteralPath $configurationPath
+        . $rulesPath
     }
     catch {
-        Add-VerificationFailure -Message "Tools\PublicApiAudit.psd1 could not be loaded: $($_.Exception.Message)"
+        Add-VerificationFailure -Message "Public API audit configuration or rules could not be loaded: $($_.Exception.Message)"
         return
     }
 
+    $macroLocalPrefixes = $configuration.MacroLocalPrefixes
+    $approvedGlobalAssignments = $configuration.ApprovedGlobalMacroAssignments
     $internalHelpers = $configuration.InternalHelpers
     $definitionOnlyHelpers = $configuration.DefinitionOnlyPublicHelpers
+    if ($macroLocalPrefixes -isnot [System.Collections.IDictionary]) {
+        Add-VerificationFailure -Message 'PublicApiAudit.psd1 must define a MacroLocalPrefixes dictionary.'
+        return
+    }
+    if ($approvedGlobalAssignments -isnot [System.Collections.IDictionary]) {
+        Add-VerificationFailure -Message 'PublicApiAudit.psd1 must define an ApprovedGlobalMacroAssignments dictionary.'
+        return
+    }
     if ($internalHelpers -isnot [System.Collections.IDictionary]) {
         Add-VerificationFailure -Message 'PublicApiAudit.psd1 must define an InternalHelpers dictionary.'
         return
@@ -402,6 +418,89 @@ function Test-PublicApi {
     if ($definitionOnlyHelpers -isnot [System.Collections.IDictionary]) {
         Add-VerificationFailure -Message 'PublicApiAudit.psd1 must define a DefinitionOnlyPublicHelpers dictionary.'
         return
+    }
+
+    $ruleTestPath = Join-Path $script:repositoryRoot 'Tests\Tooling\PublicApiAuditTest.ps1'
+    if (-not (Test-Path -LiteralPath $ruleTestPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'Tests\Tooling\PublicApiAuditTest.ps1 is missing.'
+    }
+    else {
+        $powerShellPath = (Get-Process -Id $PID).Path
+        $ruleTestOutput = & $powerShellPath -NoProfile -File $ruleTestPath 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Add-VerificationFailure -Message ('Public API audit rule tests failed: ' + (($ruleTestOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        }
+    }
+
+    $macroFiles = @(
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Core\Src') -Recurse -File -Filter '*.cpd'
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Libraries') -Recurse -File -Filter '*.cpd'
+    ) | Sort-Object FullName -Unique
+    $macroAssignments = [System.Collections.Generic.List[object]]::new()
+    foreach ($file in $macroFiles) {
+        $source = (Get-RepositoryRelativePath -Path $file.FullName).Replace('\', '/')
+        foreach ($assignment in Get-CalcPadMacroAssignments -Lines ([System.IO.File]::ReadAllLines($file.FullName)) -Source $source) {
+            $macroAssignments.Add($assignment)
+        }
+    }
+
+    $assignmentKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    $approvedAssignmentCount = 0
+    foreach ($assignment in $macroAssignments) {
+        $null = $assignmentKeys.Add("$($assignment.Name)|$($assignment.Source)|$($assignment.Macro)")
+        if (-not $macroLocalPrefixes.Contains($assignment.Source)) {
+            Add-VerificationFailure -Message "$($assignment.Source):$($assignment.Line) assigns $($assignment.Name) inside $($assignment.Macro), but the module has no macro-local namespace prefix."
+            continue
+        }
+
+        if ($approvedGlobalAssignments.Contains($assignment.Name)) {
+            $approval = $approvedGlobalAssignments[$assignment.Name]
+            if (-not (Test-CalcPadApprovedGlobalAssignment -Assignment $assignment -Approval $approval)) {
+                Add-VerificationFailure -Message "$($assignment.Source):$($assignment.Line) writes global $($assignment.Name) from unapproved macro $($assignment.Macro)."
+            }
+            else {
+                $approvedAssignmentCount++
+            }
+            continue
+        }
+
+        $prefix = [string]$macroLocalPrefixes[$assignment.Source]
+        if (-not (Test-CalcPadMacroLocalName -Name $assignment.Name -Prefix $prefix)) {
+            Add-VerificationFailure -Message "$($assignment.Source):$($assignment.Line) macro-local $($assignment.Kind) $($assignment.Name) must use the ζ${prefix}_name namespace."
+        }
+    }
+
+    foreach ($entry in $macroLocalPrefixes.GetEnumerator() | Sort-Object Key) {
+        $source = [string]$entry.Key
+        $prefix = [string]$entry.Value
+        if ([string]::IsNullOrWhiteSpace($prefix) -or $prefix -cnotmatch '^[A-Z][A-Z0-9]*$') {
+            Add-VerificationFailure -Message "Macro namespace inventory has invalid prefix '$prefix' for $source."
+        }
+        $sourcePath = Join-Path $script:repositoryRoot $source.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+        if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+            Add-VerificationFailure -Message "Macro namespace inventory contains missing source $source."
+        }
+        if (($macroAssignments | Where-Object Source -CEQ $source).Count -eq 0) {
+            Add-VerificationFailure -Message "Macro namespace inventory contains stale source $source with no multiline macro assignments."
+        }
+    }
+
+    foreach ($entry in $approvedGlobalAssignments.GetEnumerator() | Sort-Object Key) {
+        $name = [string]$entry.Key
+        $approval = $entry.Value
+        if ([string]::IsNullOrWhiteSpace([string]$approval.Purpose)) {
+            Add-VerificationFailure -Message "Approved global macro assignment $name has no purpose."
+        }
+        if ([string]::IsNullOrWhiteSpace([string]$approval.Source) -or @($approval.Macros).Count -eq 0) {
+            Add-VerificationFailure -Message "Approved global macro assignment $name has no complete source and macro inventory."
+            continue
+        }
+        foreach ($macro in @($approval.Macros)) {
+            $key = "$name|$($approval.Source)|$macro"
+            if (-not $assignmentKeys.Contains($key)) {
+                Add-VerificationFailure -Message "Approved global macro assignment inventory contains stale entry $key."
+            }
+        }
     }
 
     $definitions = [System.Collections.Generic.List[object]]::new()
@@ -508,7 +607,8 @@ function Test-PublicApi {
     }
 
     if ($script:verificationFailures.Count -eq $startingFailureCount) {
-        Write-Output "[PASS] Public API audit found $($publicDefinitions.Count) documented helpers; $($internalHelpers.Count) implementation helpers and $($definitionOnlyHelpers.Count) intentional definition-only entry points are explained."
+        $localAssignmentCount = $macroAssignments.Count - $approvedAssignmentCount
+        Write-Output "[PASS] Public API audit found $($publicDefinitions.Count) documented helpers; $($internalHelpers.Count) implementation helpers and $($definitionOnlyHelpers.Count) intentional definition-only entry points are explained. $localAssignmentCount macro locals use module namespaces; $approvedAssignmentCount global registry writes are approved."
     }
 }
 

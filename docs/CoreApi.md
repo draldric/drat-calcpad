@@ -3,6 +3,7 @@
 This reference summarizes the supported public surface in `Core/DratCore.cpd`.
 Internal block variables, names beginning with `ζ`, and the implementation helpers inventoried in `Tools/PublicApiAudit.psd1` are not part of the supported worksheet API.
 The repository verifier extracts the remaining Core functions and macros, requires an exact documentation or demonstration reference, and rejects public helpers that have no maintained call site unless they are purposeful worksheet entry points in the documented allowlist.
+Temporary variables and iterators inside multiline macros use `ζMODULE_name`; only the explicitly inventoried validation, check, and reporting registry writes may assign unprefixed worksheet-global names.
 
 Function arguments are separated with semicolons in CalcPad syntax.
 Macro names end with `$`.

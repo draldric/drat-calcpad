@@ -328,31 +328,31 @@
 
 #def sampleData$(x_vals$; y_vals$; function$; x_start$; x_end$; points$)
 	    #hide
-	    ζn = max(2; round(points$))
-	    ζx_data = vector(ζn)
-	    ζy_data = vector(ζn)
-	    #for ζi = 1 : ζn
-		        ζx = x_start$ + (ζi - 1)*(x_end$ - x_start$)/(ζn - 1)
-		        ζx_data.ζi = ζx
-		        ζy_data.ζi = function$(ζx)
+	    ζPLOT_sample_count = max(2; round(points$))
+	    ζPLOT_x_data = vector(ζPLOT_sample_count)
+	    ζPLOT_y_data = vector(ζPLOT_sample_count)
+	    #for ζPLOT_sample_index = 1 : ζPLOT_sample_count
+		        ζPLOT_x = x_start$ + (ζPLOT_sample_index - 1)*(x_end$ - x_start$)/(ζPLOT_sample_count - 1)
+		        ζPLOT_x_data.ζPLOT_sample_index = ζPLOT_x
+		        ζPLOT_y_data.ζPLOT_sample_index = function$(ζPLOT_x)
 	    #loop
-	    x_vals$ = ζx_data
-	    y_vals$ = ζy_data
+	    x_vals$ = ζPLOT_x_data
+	    y_vals$ = ζPLOT_y_data
 	    #show
 #end def
 
 #def sampleParametric$(x_vals$; y_vals$; x_function$; y_function$; t_start$; t_end$; points$)
 	    #hide
-	    ζn = max(2; round(points$))
-	    ζx_data = vector(ζn)
-	    ζy_data = vector(ζn)
-	    #for ζi = 1 : ζn
-		        ζt = t_start$ + (ζi - 1)*(t_end$ - t_start$)/(ζn - 1)
-		        ζx_data.ζi = x_function$(ζt)
-		        ζy_data.ζi = y_function$(ζt)
+	    ζPLOT_sample_count = max(2; round(points$))
+	    ζPLOT_x_data = vector(ζPLOT_sample_count)
+	    ζPLOT_y_data = vector(ζPLOT_sample_count)
+	    #for ζPLOT_sample_index = 1 : ζPLOT_sample_count
+		        ζPLOT_parameter = t_start$ + (ζPLOT_sample_index - 1)*(t_end$ - t_start$)/(ζPLOT_sample_count - 1)
+		        ζPLOT_x_data.ζPLOT_sample_index = x_function$(ζPLOT_parameter)
+		        ζPLOT_y_data.ζPLOT_sample_index = y_function$(ζPLOT_parameter)
 	    #loop
-	    x_vals$ = ζx_data
-	    y_vals$ = ζy_data
+	    x_vals$ = ζPLOT_x_data
+	    y_vals$ = ζPLOT_y_data
 	    #show
 #end def
 
