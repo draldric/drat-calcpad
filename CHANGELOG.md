@@ -7,6 +7,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Deterministic public-Core API audit that rejects undocumented, duplicated, or unexplained definition-only helpers, inventories implementation-only helpers, and enforces module-prefixed macro locals with explicit global-registry exceptions.
 - Unified document-review status combining calculation results and reporting integrity, with separate readiness-for-check and readiness-for-issue decisions.
 - Consolidated linked review summary for validation, engineering-check, and reporting issues, with a dedicated demo and regression worksheet.
 - Structured engineering check-result registry with stable IDs, upper-limit, lower-limit, and custom constructors, automatic aggregation, governing selection, issue summaries, and document-status integration.

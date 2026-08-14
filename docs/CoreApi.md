@@ -1,7 +1,9 @@
 # Core API reference
 
 This reference summarizes the supported public surface in `Core/DratCore.cpd`.
-Internal block variables and names beginning with `ζ` are implementation details.
+Internal block variables, names beginning with `ζ`, and the implementation helpers inventoried in `Tools/PublicApiAudit.psd1` are not part of the supported worksheet API.
+The repository verifier extracts the remaining Core functions and macros, requires an exact documentation or demonstration reference, and rejects public helpers that have no maintained call site unless they are purposeful worksheet entry points in the documented allowlist.
+Temporary variables and iterators inside multiline macros use `ζMODULE_name`; only the explicitly inventoried validation, check, and reporting registry writes may assign unprefixed worksheet-global names.
 
 Function arguments are separated with semicolons in CalcPad syntax.
 Macro names end with `$`.
@@ -111,10 +113,12 @@ ShowReportingSummary$
 
 The public calculation helpers include:
 
+- `ReportRegistryShapeOK`, `ReportLinkedRegistryShapeOK`, and `ReportErrorRegistryShapeOK` for validating registry structure;
+- `ReportIDOK` for validating caller-supplied positive entry IDs;
 - `ReportRegistryAddStatus`, `ReportRegistryAdd`, `ReportRegistryEntryExists`, and `ReportRegistryCount` for one-column reference registries;
 - `ReportLinkedRegistryAddStatus`, `ReportLinkedRegistryAdd`, `ReportLinkedRegistryReference`, and `ReportLinkedRegistryCount` for linked registries;
 - `ReportReferenceKnown` for optional and required source-reference checks;
-- `ReportErrorRegistryAttemptCount`, `ReportErrorRegistryCount`, and `ReportRegistriesStatus` for aggregate reporting integrity;
+- `ReportErrorRegistryAdd`, `ReportErrorRegistryAttemptCount`, `ReportErrorRegistryCount`, `ReportErrorRegistryStatus`, `ReportRegistriesCount`, and `ReportRegistriesStatus` for attempted registrations and aggregate reporting integrity;
 - `ReportErrorRegistryTypeAt`, `ReportErrorRegistryIDAt`, `ReportErrorRegistryStatusAt`, and `ReportErrorRegistrySequenceAt` for attempted-registration details; and
 - `ReportStatus$`, `ReportEntryLink$`, and `ShowReportingSummary$` for status and linked-entry rendering.
 
@@ -137,11 +141,13 @@ Its precedence distinguishes incomplete inputs from a completed calculation that
 | `CALC_ERROR` | Validation/check statuses are unknown or a completed check contains an evaluation error |
 
 Use `CalculationStatus$` for an inline label.
+`CalculationStatusMessage$` renders the corresponding explanatory text, while `CalculationStatusKnown` validates a status before it is used.
 Use `ShowCalculationStatusFromRegistries$` for the standard document banner derived from the global validation and check registries.
 `ShowCalculationStatus$` remains available when explicit status vectors are required.
 `AddCalculationStatusConclusion$` adds the same status to an open conclusions block.
 `CalculationCanBeIssued` returns true for pass and warning statuses; the checker must still decide whether each warning is acceptable before issue.
 `CalculationValidationStatusesOK`, `CalculationInputsComplete`, and `CalculationChecksComplete` expose the completeness checks used by the aggregate.
+The direct predicates `CalculationIsPass`, `CalculationHasWarning`, `CalculationHasFailure`, `CalculationIsIncomplete`, and `CalculationHasError` classify a completed aggregate status.
 
 ## Unified document review
 
@@ -157,6 +163,7 @@ Its precedence is registry or calculation error, blocked calculation, warning re
 
 `ReviewValidationIssueCount`, `ReviewCheckIssueCount`, `ReviewReportingIssueCount`, and `ReviewTotalIssueCount` provide auditable issue counts.
 `ReviewReadyForCheck` accepts ready and attention states; `ReviewReadyForIssue` accepts only the ready state.
+`ReviewStatusKnown` validates the aggregate status, while `ReviewStatus$` and `ReviewReadiness$` render the status and yes/no readiness labels used by report macros.
 `ShowDocumentReviewSummary$` derives all inputs from the global registries, renders both readiness decisions, and links each stored issue back to its source row.
 See [`Examples/UnifiedReviewSummaryDemo.cpd`](../Examples/UnifiedReviewSummaryDemo.cpd) and [`Tests/Core/ReviewSummaryTest.cpd`](../Tests/Core/ReviewSummaryTest.cpd).
 
@@ -241,7 +248,11 @@ ShowCalculationStatusFromRegistries$
 `EndCheckRegistry$` closes the table without an aggregate footer; `EndCheckRegistryWithSummary$` adds counts, overall status, and a link to the governing check.
 `ShowCheckIssues$` lists warnings, failures, and errors with links back to their registered rows.
 
-Registry query helpers include `CheckResultRegistryCount`, `CheckResultRegistryEntryExists`, the `CheckResultRegistry*` vector accessors, `CheckResultRegistrySummaryStatus`, `CheckResultRegistryIssueCount`, and the governing-index, governing-ID, and governing-utilization functions.
+`CheckResultShapeOK` and `CheckResultRegistryShapeOK` validate the row and registry layouts.
+`CheckResultRegistryAddStatus` reports why a record cannot be stored, and `CheckResultRegistryAdd` returns the updated explicit registry for callers that do not use the global registration macros.
+The vector query helpers are `CheckResultRegistryValues`, `CheckResultRegistryIDs`, `CheckResultRegistryMethods`, `CheckResultRegistryDemands`, `CheckResultRegistryCapacities`, `CheckResultRegistryUtilizations`, `CheckResultRegistryWarnings`, and `CheckResultRegistryStatuses`.
+The indexed query helpers are `CheckResultRegistryIDAt`, `CheckResultRegistryUtilizationAt`, and `CheckResultRegistryStatusAt`.
+Additional registry queries include `CheckResultRegistryCount`, `CheckResultRegistryEntryExists`, `CheckResultRegistrySummaryStatus`, `CheckResultRegistryIssueCount`, `CheckResultRegistryGoverningIndex`, `CheckResultRegistryGoverningID`, and `CheckResultRegistryGoverningUtilization`.
 `CheckResultRegistryEffectiveStatuses` adds `CHK_ERROR` when any attempted registration failed, ensuring registry-integrity failures propagate into calculation status.
 When utilizations tie, the first registered row governs.
 
@@ -345,12 +356,19 @@ EndValidationResults$
 ShowValidationIssues$
 ```
 
-`EndValidationResults$` derives warning and error counts from the registry.
+`EndValidationSummary$` closes the table with a status-vector summary for the explicit legacy flow.
+`EndValidationResults$` derives warning and error counts from the structured registry.
 `ShowValidationIssues$` links each warning or error back to its registered input row.
 `ValidationResultRegistryInputsValid` supplies the gate for downstream engineering checks.
 
-Registry helpers include `ValidationResultRecord`, the `ValidationResultRecord*` accessors, `ValidationResultRegistryAddStatus`, `ValidationResultRegistryAdd`, `ValidationResultRegistryCount`, `ValidationResultRegistryEntryExists`, the `ValidationResultRegistry*` vector accessors, `ValidationResultRegistryIssueCount`, and `ValidationResultRegistrySummaryStatus`.
+`ValidationResultRecordShapeOK` validates one stored record.
+Its accessors are `ValidationResultRecordID`, `ValidationResultRecordStatus`, `ValidationResultRecordValue`, `ValidationResultRecordRule`, `ValidationResultRecordData1`, `ValidationResultRecordData2`, and `ValidationResultRecordResult`.
+`ValidationResultRegistryShapeOK` validates the complete registry before aggregation.
+The registry-vector accessors are `ValidationResultRegistryIDs`, `ValidationResultRegistryStatuses`, `ValidationResultRegistryValuesStored`, and `ValidationResultRegistryRules`.
+The indexed accessors are `ValidationResultRegistryIDAt`, `ValidationResultRegistryStatusAt`, `ValidationResultRegistryValueAt`, `ValidationResultRegistryRuleAt`, `ValidationResultRegistryData1At`, `ValidationResultRegistryData2At`, and `ValidationResultRegistryResultAt`.
+Additional registry helpers include `ValidationResultRecord`, `ValidationResultRegistryAddStatus`, `ValidationResultRegistryAdd`, `ValidationResultRegistryCount`, `ValidationResultRegistryEntryExists`, `ValidationResultRegistryIssueCount`, and `ValidationResultRegistrySummaryStatus`.
 Registration errors contribute an effective `VAL_ERR_BAD_RESULT` and propagate to document calculation status.
+`ValidationResultRegistryEffectiveStatuses` exposes the status vector with that synthetic registry-error result included.
 
 The lower-level `ValidationResultsStatuses`, `ValidationHasErrors`, `ValidationWarningCount`, `ValidationErrorCount`, and `ValidationOverallStatus` helpers remain available for explicit result matrices.
 `ShowValidation$` renders one standalone result table.
