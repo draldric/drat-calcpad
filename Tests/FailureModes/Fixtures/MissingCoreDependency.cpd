@@ -1,0 +1,4 @@
+'<!-- TEST PURPOSE: Verify omitting Core produces a deterministic missing-dependency error and does not load a library body. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+#include ../../../Libraries/Materials/EngineeringMaterials.cpd

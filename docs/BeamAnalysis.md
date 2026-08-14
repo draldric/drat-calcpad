@@ -18,6 +18,8 @@ The current release supports:
 The equations are closed-form Euler-Bernoulli elastic beam equations for static, small-deflection response.
 The modular functions use linear superposition of the supported load families, so each load vector must contain one physical quantity only.
 The caller supplies span, load, elastic modulus, and second moment of area with units.
+Empty load-family vectors are invalid; use the documented one-element zero vectors for an unused family.
+Malformed, incompatible-version, and otherwise invalid model records return a non-OK `BeamModelStatus`, and high-level reactions, responses, sample positions, and series return undefined values instead of plausible results.
 
 The library does not provide code capacities, factored load combinations, lateral-torsional buckling, shear-deformation, plastic, dynamic, or stability analysis.
 Those decisions remain worksheet- and code-specific.
@@ -43,7 +45,11 @@ ShowBeamDiagrams$(beam_plot; beam)
 ```
 
 `BeamModel(...)` returns a model with the supplied beam properties, zero-valued defaults for every load family, and a default sample count of 121.
+Model sample counts must be unitless integers from 2 through 10,000.
+Encoded load-family counts are bounded before they can affect record offsets, so non-finite, negative, or extreme corrupt counts cannot trigger unbounded indexing or allocation.
+CalcPad cannot safely inspect whether an otherwise numeric count carries physical units; a unit-bearing count therefore stops with the native `Inconsistent units` diagnostic and does not produce a model status.
 Each `BeamWith...` function returns an updated model, so assign the result back to the beam variable as shown above.
+Every modifier first requires `BeamModelStatus(model) = DB_OK`; an incompatible-version or corrupt input record is returned unchanged and cannot be rebuilt into an apparently current model.
 The update functions replace one load family without repeating the beam properties:
 
 - `BeamWithPointLoad(model; load; position)` or `BeamWithPointLoads(model; loads; positions)`;

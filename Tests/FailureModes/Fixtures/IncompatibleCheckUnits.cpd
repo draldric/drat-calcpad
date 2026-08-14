@@ -1,0 +1,6 @@
+'<!-- TEST PURPOSE: Verify CalcPad rejects incompatible demand and capacity units before a check can appear to pass. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+#include ../../../Core/DratCore.cpd
+
+unit_check_status = CheckUpperStatus(5kN; 10m; CHK_DEFAULT_WARNING)

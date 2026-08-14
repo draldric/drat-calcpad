@@ -1,0 +1,12 @@
+'<!-- TEST PURPOSE: Verify maintained libraries reject an incompatible DataWrapper API and identify the required dependency. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+DRAT_CORE_API = 10000
+DRAT_DATA_WRAPPER_API = 301
+
+#include ../../../Libraries/Materials/EngineeringMaterials.cpd
+#include ../../../Libraries/Steel/StructuralSections.cpd
+#include ../../../Libraries/Steel/AiscHssSections.cpd
+#include ../../../Libraries/Steel/AiscChannelSections.cpd
+#include ../../../Libraries/Steel/AiscAngleSections.cpd
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd

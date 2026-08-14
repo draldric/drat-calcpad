@@ -1,0 +1,134 @@
+#include ../../Core/DratCore.cpd
+
+'<!-- TEST PURPOSE: Verify invalid, incomplete, corrupt, and extreme Core inputs produce explicit non-passing statuses. -->
+
+"Core Boundary and Failure-Mode Test
+
+empty_values = find_eq([0]; 1; 1)
+#hide
+undefined_value = 0/0
+#show
+
+failure_database = [1; 0|2; DB_MISSING]
+zero_lookup_status = DBLookupStatus(failure_database; 1; 1; 2)
+missing_lookup_status = DBLookupStatus(failure_database; 2; 1; 2)
+
+database_failure_tests = and(
+    zero_lookup_status ≡ DB_OK;
+    DBLookupRaw(failure_database; 1; 1; 2) ≡ 0;
+    not(DBIsMissing(0));
+    missing_lookup_status ≡ DB_ERR_MISSING;
+    DBIsMissing(DB_MISSING);
+    DBLookupStatus(failure_database; 999; 1; 2) ≡ DB_ERR_NAME;
+    DBLookupStatus(failure_database; 1; 0; 2) ≡ DB_ERR_BAD_COLUMN;
+    DBRangeStatus(5; 10; 1; DB_STRICT) ≡ DB_ERR_BAD_RANGE;
+    DBRangeStatus(5; 1; 10; 999) ≡ DB_ERR_BAD_POLICY)
+
+malformed_validation_result = [VAL_OK; 1]
+unknown_validation_status_result = [999; 1; VAL_RULE_POSITIVE; VAL_EMPTY; VAL_EMPTY]
+unknown_validation_rule_result = [VAL_OK; 1; 999; VAL_EMPTY; VAL_EMPTY]
+valid_validation_record = ValidationResultRecord(101; ValidationPositiveResult(1))
+validation_registry = ValidationResultRegistryAdd(ValidationResultRegistryEmpty; valid_validation_record)
+corrupt_validation_registry = join_rows([0; 0])
+
+validation_failure_tests = and(
+    ValidationLengthStatus(empty_values; 1; 2) ≡ VAL_ERR_LENGTH;
+    ValidationVectorDefinedStatus(empty_values) ≡ VAL_ERR_LENGTH;
+    ValidationRangeStatus(5; 10; 1) ≡ VAL_ERR_BAD_RANGE;
+    ValidationDefinedStatus(undefined_value) ≡ VAL_ERR_UNDEFINED;
+    ValidationResultStatus(malformed_validation_result) ≡ VAL_ERR_BAD_RESULT;
+    ValidationResultStatus(unknown_validation_status_result) ≡ VAL_ERR_BAD_RESULT;
+    ValidationResultStatus(unknown_validation_rule_result) ≡ VAL_ERR_BAD_RESULT;
+    ValidationResultRegistryAddStatus(validation_registry; valid_validation_record) ≡ VAL_REG_ERR_DUPLICATE_ID;
+    ValidationResultRegistryAddStatus(ValidationResultRegistryEmpty; ValidationResultRecord(0; ValidationPositiveResult(1))) ≡ VAL_REG_ERR_BAD_ID;
+    ValidationResultRegistryAddStatus(corrupt_validation_registry; valid_validation_record) ≡ VAL_REG_ERR_BAD_REGISTRY;
+    ValidationResultRegistrySummaryStatus(ValidationResultRegistryEmpty; [VAL_REG_OK]) ≡ VAL_ERR_UNKNOWN)
+
+malformed_check_result = [1; 2]
+bad_method_result = join_rows([102; 999; 1; 2; 0.5; 0.9; CHK_PASS])
+unknown_check_status_result = join_rows([103; CHECK_METHOD_CUSTOM; 1; 2; 0.5; 0.9; 999])
+valid_check_result = CheckUpperResult(201; 5kN; 10kN; CHK_DEFAULT_WARNING; 1)
+check_registry = CheckResultRegistryAdd(CheckResultRegistryEmpty; valid_check_result)
+corrupt_check_registry = [0]
+
+check_failure_statuses = [
+    CheckUpperStatus(5kN; 0kN; CHK_DEFAULT_WARNING);
+    CheckUpperStatus(5kN; -10kN; CHK_DEFAULT_WARNING);
+    CheckLowerStatus(0kN; 5kN; CHK_DEFAULT_WARNING);
+    CheckStatus(0.5; -0.1);
+    CheckStatus(0.5; 1.1);
+    CheckStatus(-0.1; CHK_DEFAULT_WARNING);
+    CheckStatus(undefined_value; CHK_DEFAULT_WARNING);
+    CheckGatedStatus(0; CHK_PASS)]
+
+check_failure_tests = and(
+    CheckOverallStatus(check_failure_statuses) ≡ CHK_ERROR;
+    CheckPassCount(check_failure_statuses) ≡ 0;
+    CheckResultRegistryAddStatus(CheckResultRegistryEmpty; malformed_check_result) ≡ CHECK_REG_ERR_BAD_RESULT;
+    CheckResultRegistryAddStatus(CheckResultRegistryEmpty; bad_method_result) ≡ CHECK_REG_ERR_BAD_METHOD;
+    CheckResultRegistryAddStatus(CheckResultRegistryEmpty; unknown_check_status_result) ≡ CHECK_REG_ERR_BAD_RESULT;
+    CheckResultRegistryAddStatus(check_registry; valid_check_result) ≡ CHECK_REG_ERR_DUPLICATE_ID;
+    CheckResultRegistryAddStatus(CheckResultRegistryEmpty; CheckUpperResult(0; 1kN; 2kN; 0.9; 1)) ≡ CHECK_REG_ERR_BAD_ID;
+    CheckResultRegistryAddStatus(corrupt_check_registry; valid_check_result) ≡ CHECK_REG_ERR_BAD_REGISTRY;
+    CheckResultRegistrySummaryStatus(CheckResultRegistryEmpty; [CHECK_REG_OK]) ≡ CHK_ERROR)
+
+references = ReportRegistryAdd(ReportRegistryEmpty; 301)
+criteria = ReportLinkedRegistryAdd(ReportLinkedRegistryEmpty; 401; 301; references; 1)
+corrupt_reference_registry = join_rows([0; 0])
+corrupt_linked_registry = [0]
+corrupt_report_errors = [0]
+
+reporting_failure_tests = and(
+    ReportRegistryAddStatus(references; 301) ≡ RPT_ERR_DUPLICATE_ID;
+    ReportRegistryAddStatus(references; 0) ≡ RPT_ERR_BAD_ID;
+    ReportLinkedRegistryAddStatus(criteria; 402; 999; references; 1) ≡ RPT_ERR_UNKNOWN_REFERENCE;
+    ReportLinkedRegistryAddStatus(criteria; 402; RPT_NO_REFERENCE; references; 1) ≡ RPT_ERR_UNKNOWN_REFERENCE;
+    ReportLinkedRegistryAddStatus(corrupt_linked_registry; 402; 301; references; 1) ≡ RPT_ERR_BAD_REGISTRY;
+    ReportRegistriesStatus(corrupt_reference_registry; criteria; ReportLinkedRegistryEmpty; ReportLinkedRegistryEmpty; ReportErrorRegistryEmpty) ≡ RPT_ERR_BAD_REGISTRY;
+    ReportRegistriesStatus(references; criteria; ReportLinkedRegistryEmpty; ReportLinkedRegistryEmpty; corrupt_report_errors) ≡ RPT_ERR_BAD_REGISTRY)
+
+validation_registry_error_status = CalculationStatusFromRegistries(corrupt_validation_registry; [VAL_REG_OK]; check_registry; [CHECK_REG_OK])
+check_registry_error_status = CalculationStatusFromRegistries(validation_registry; [VAL_REG_OK]; corrupt_check_registry; [CHECK_REG_OK])
+registration_error_status = CalculationStatusFromRegistries(validation_registry; [VAL_REG_OK; VAL_REG_ERR_DUPLICATE_ID]; check_registry; [CHECK_REG_OK])
+
+review_failure_tests = and(
+    validation_registry_error_status ≡ CALC_ERROR;
+    check_registry_error_status ≡ CALC_ERROR;
+    registration_error_status ≡ CALC_ERROR;
+    ReviewStatus(validation_registry_error_status; RPT_OK) ≡ REVIEW_ERROR;
+    ReviewStatus(CALC_PASS; RPT_ERR_BAD_REGISTRY) ≡ REVIEW_ERROR;
+    not(ReviewReadyForCheck(REVIEW_ERROR));
+    not(ReviewReadyForIssue(REVIEW_ERROR)))
+
+all_tests = and(database_failure_tests; validation_failure_tests; check_failure_tests; reporting_failure_tests; review_failure_tests)
+all_tests
+
+'The rendered failures below verify that affected input, check, and reporting IDs remain visible to a reviewer.
+
+BeginReferences$
+AddReference$(501; Failure-mode reference; Deterministic invalid-registration test; 1; Clause 1; First registration is valid.)
+AddReference$(501; Duplicate failure-mode reference; Duplicate ID must remain visible.; 1; Clause 1; Intentional duplicate.)
+EndReferences$
+
+BeginDesignCriteria$
+AddDesignCriterion$(502; Missing linked reference; Must identify the affected criterion.; 999; Clause 1; Intentional unknown reference.)
+EndDesignCriteria$
+
+BeginValidationSummary$
+AddValidationResult$(601; Span outside permitted range; ValidationRangeResult(12m; 1m; 10m))
+AddValidationResult$(601; Duplicate span input ID; ValidationPositiveResult(6m))
+EndValidationResults$
+
+BeginCheckRegistry$
+AddUpperCheck$(701; Zero-capacity engineering check; 5kN; 0kN; CHK_DEFAULT_WARNING; Capacity must be positive.; 1)
+AddUpperCheck$(701; Duplicate engineering check ID; 5kN; 10kN; CHK_DEFAULT_WARNING; Duplicate ID must be rejected.; 1)
+EndCheckRegistryWithSummary$
+
+ShowDocumentReviewSummary$
+
+'The review macro must render registry corruption as an explicit blocking error rather than stopping evaluation.
+'<div id="failure-mode-corrupt-review-marker">Corrupted reporting registry review evidence</div>
+#hide
+ReportRegistryErrors = corrupt_report_errors
+#show
+ShowDocumentReviewSummary$

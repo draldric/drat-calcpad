@@ -1,0 +1,8 @@
+'<!-- TEST PURPOSE: Verify Beam Analysis rejects an incompatible Checks API and identifies the required dependency. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+#include ../../../Core/DratCore.cpd
+
+DRAT_CHECKS_API = 10199
+
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd

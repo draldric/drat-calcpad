@@ -14,7 +14,7 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `40101` | Complete generated-Core API |
+| `DRAT_CORE_API` | `40102` | Complete generated-Core API |
 | `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
 | `DRAT_STYLESHEET_API` | `10800` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
@@ -24,7 +24,7 @@ Macro names end with `$`.
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
 | `DRAT_VALIDATION_API` | `20000` | Structured input validation and result registry |
 | `DRAT_CALCULATION_STATUS_API` | `20000` | Document-level calculation status |
-| `DRAT_REPORTING_API` | `20000` | Structured report registries |
+| `DRAT_REPORTING_API` | `20001` | Structured report registries |
 | `DRAT_REVIEW_SUMMARY_API` | `10000` | Unified document-review summary |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.

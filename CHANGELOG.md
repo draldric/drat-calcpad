@@ -7,6 +7,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Deterministic boundary and failure-mode coverage for empty and malformed registries, missing versus zero data, invalid beam records, modifiers, and extrema, incompatible Core/component/Plotting APIs, missing dependencies, rendered error evidence, and native CalcPad unit errors.
 - Independent equilibrium and Euler-Bernoulli beam benchmarks covering point loads, uniform and triangular distributed loads, applied moments, support conditions, sign conventions, and alternate units.
 - Windows GitHub Actions verification for generated Core, APIs, includes, artifact conventions, public-helper integrity, and distribution workflows, with an explicit CalcPad CE qualification boundary.
 - Deterministic public-Core API audit that rejects undocumented, duplicated, or unexplained definition-only helpers, inventories implementation-only helpers, and enforces module-prefixed macro locals with explicit global-registry exceptions.
@@ -40,7 +41,8 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
-- Core is versioned as 4.1.1 with release-hardening standards for tests, examples, templates, and maintainability comments.
+- Core is versioned as 4.1.2 with shape-safe reporting registries and release-hardening standards for tests, examples, templates, and maintainability comments.
+- Beam Analysis 0.6.1 rejects empty load families and prevents invalid model records from producing plausible high-level reactions, responses, or series.
 - DataWrapper 0.3.3 identifies itself as the DRAT Data Wrapper instead of retaining stale template metadata.
 - Examples use one focused purpose, explicit scope, standard document control, revision history, and conclusions.
 - Tests use PascalCase names and state the maintained behavior or browser diagnostic they protect.

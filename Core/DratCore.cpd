@@ -1,7 +1,7 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 40101
+DRAT_CORE_API = 40102
 DRAT_DEFINITIONS_API = 20000
 DRAT_STYLESHEET_API = 10800
 DRAT_PLOTTING_API = 30200
@@ -11,11 +11,11 @@ DRAT_DATABASE_API = 10000
 DRAT_VALIDATION_API = 20000
 DRAT_CHECK_REGISTRY_API = 10000
 DRAT_CALCULATION_STATUS_API = 20000
-DRAT_REPORTING_API = 20000
+DRAT_REPORTING_API = 20001
 DRAT_REVIEW_SUMMARY_API = 10000
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 4.1.1
+#def DRATCoreVersion$ = 4.1.2
 #show
 #hide
 '<!-- Shared worksheet stylesheet. Version 1.8.0. -->
@@ -421,6 +421,7 @@ CheckUtilizationOK(utilization) = and(utilization ≡ utilization; utilization �
 
 CheckStatus(utilization; warning_threshold) = switch(not(CheckWarningThresholdOK(warning_threshold)); CHK_ERROR; not(CheckUtilizationOK(utilization)); CHK_ERROR; utilization > 1; CHK_FAIL; utilization ≥ warning_threshold; CHK_WARN; CHK_PASS)
 
+'<!-- CalcPad raises incompatible-unit errors while forming demand/capacity; getunits does not provide a safely comparable dimension token, so that engine error cannot be converted to CHK_ERROR inside these functions. -->
 CheckUpperUtilization(demand; capacity) = if(clrunits(capacity) > 0; abs(demand)/capacity; 0/0)
 CheckUpperStatus(demand; capacity; warning_threshold) = if(clrunits(capacity) > 0; CheckStatus(CheckUpperUtilization(demand; capacity); warning_threshold); CHK_ERROR)
 
@@ -1602,7 +1603,7 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
 #end def
 #show
 #hide
-'<!-- Structured engineering-report registries. Version 2.0.0. -->
+'<!-- Structured engineering-report registries. Version 2.0.1. -->
 
 RPT_OK = 0
 RPT_ERR_BAD_REGISTRY = 10
@@ -1662,12 +1663,18 @@ ReportLinkedRegistryReference(registry; id) = if(ReportLinkedRegistryShapeOK(reg
 ReportEntryTypeKnown(entry_type) = or(entry_type ≡ RPT_ENTRY_REFERENCE; entry_type ≡ RPT_ENTRY_CRITERION; entry_type ≡ RPT_ENTRY_ASSUMPTION; entry_type ≡ RPT_ENTRY_LIMITATION)
 ReportErrorRegistryEmpty = join_rows([0; 0; RPT_OK; 0])
 '<!-- Attempt records include successful and failed calls so error links can return to the exact rendered source row rather than only the entry ID. -->
-ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; RPT_ATTEMPT_SEQUENCE)) ≡ 0)
+ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; min(n_cols(errors); RPT_ATTEMPT_SEQUENCE))) ≡ 0)
 ReportErrorRegistryAttemptCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - 1; 0)
 ReportErrorRecord(entry_type; id; status; sequence) = join_rows([entry_type; id; status; sequence])
 ReportErrorRegistryAdd(errors; entry_type; id; status) = stack(errors; ReportErrorRecord(entry_type; id; status; ReportErrorRegistryAttemptCount(errors) + 1))
 ReportErrorRegistryCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - count(col(errors; RPT_ATTEMPT_STATUS); RPT_OK; 1); 1)
-ReportErrorRegistryStatus(errors) = if(ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(col(errors; RPT_ATTEMPT_STATUS)))
+ReportErrorRegistryStatus(errors) = _
+$block{
+    safe_status_column = min(max(RPT_ATTEMPT_STATUS; 1); n_cols(errors));
+    safe_statuses = col(errors; safe_status_column);
+    status = switch(not(ReportErrorRegistryShapeOK(errors)); RPT_ERR_BAD_REGISTRY; ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(safe_statuses));
+    status;
+}
 ReportErrorRegistryTypeAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_TYPE); max(ReportErrorRegistryAttemptCount(errors); 1)))
 ReportErrorRegistryIDAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_ID); max(ReportErrorRegistryAttemptCount(errors); 1)))
 ReportErrorRegistryStatusAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_STATUS); max(ReportErrorRegistryAttemptCount(errors); 1)))

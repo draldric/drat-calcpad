@@ -1,0 +1,141 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd
+
+'<!-- TEST PURPOSE: Verify invalid and extreme beam definitions return explicit errors and cannot produce valid responses or checks. -->
+
+"Beam Analysis Boundary and Failure-Mode Test
+
+empty_values = find_eq([0]; 1; 1)
+BeamFailureReplaceElement(model; index; value) = join(first(model; index - 1); join([value]; last(model; len(model) - index)))
+#hide
+undefined_force = setunits(0/0; kN)
+#show
+
+valid_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+bad_version_beam = join(BEAM_MODEL_VERSION + 1; last(valid_beam; len(valid_beam) - 1))
+bad_samples_beam = BeamWithSampleCount(valid_beam; 1)
+fractional_samples_beam = BeamWithSampleCount(valid_beam; 10.5)
+bad_point_position_beam = BeamWithPointLoad(valid_beam; 10kN; 7m)
+bad_udl_segment_beam = BeamWithDistributedLoads(valid_beam; [5m]; [4m]; [2kN/m])
+bad_varying_lengths_beam = BeamWithVaryingDistributedLoads(valid_beam; [0m]; [6m]; [0kN/m]; [2kN/m; 3kN/m])
+bad_moment_lengths_beam = BeamWithMoments(valid_beam; [2m]; [5kN*m; 6kN*m])
+malformed_beam = [BEAM_MODEL_VERSION; BEAM_SIMPLE_SUPPORTED]
+nan_count_beam = BeamFailureReplaceElement(valid_beam; BEAM_MODEL_HEADER_LENGTH + 1; 0/0)
+negative_count_beam = BeamFailureReplaceElement(valid_beam; BEAM_MODEL_HEADER_LENGTH + 1; -1)
+huge_count_beam = BeamFailureReplaceElement(valid_beam; BEAM_MODEL_HEADER_LENGTH + 1; 1*10^50)
+
+empty_vector_tests = and(
+    BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; empty_values; empty_values; [0m]; [6m]; [0N/m]; 200GPa; 8*10^-6m^4) ≡ DB_ERR_BAD_RANGE;
+    BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; [0N]; [0m]; empty_values; empty_values; empty_values; 200GPa; 8*10^-6m^4) ≡ DB_ERR_BAD_RANGE;
+    BeamVaryingLoadSetStatus(6m; empty_values; empty_values; empty_values; empty_values) ≡ DB_ERR_BAD_RANGE;
+    BeamMomentSetStatus(6m; empty_values; empty_values) ≡ DB_ERR_BAD_RANGE)
+
+unknown_support_status = BeamAnalyzeStatus(999; 6m; [0N]; [0m]; [0m]; [6m]; [0N/m]; 200GPa; 8*10^-6m^4)
+zero_span_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 0m; [0N]; [0m]; [0m]; [0m]; [0N/m]; 200GPa; 8*10^-6m^4)
+negative_span_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; -6m; [0N]; [0m]; [0m]; [1m]; [0N/m]; 200GPa; 8*10^-6m^4)
+mismatched_point_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; [0N; 1kN]; [0m]; [0m]; [6m]; [0N/m]; 200GPa; 8*10^-6m^4)
+outside_point_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; [0N]; [7m]; [0m]; [6m]; [0N/m]; 200GPa; 8*10^-6m^4)
+nonfinite_load_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; [undefined_force]; [0m]; [0m]; [6m]; [0N/m]; 200GPa; 8*10^-6m^4)
+zero_modulus_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; [0N]; [0m]; [0m]; [6m]; [0N/m]; 0Pa; 8*10^-6m^4)
+zero_inertia_status = BeamAnalyzeStatus(BEAM_SIMPLE_SUPPORTED; 6m; [0N]; [0m]; [0m]; [6m]; [0N/m]; 200GPa; 0m^4)
+
+definition_failure_tests = and(
+    unknown_support_status ≡ DB_ERR_BAD_METHOD;
+    zero_span_status ≡ DB_ERR_BAD_RANGE;
+    negative_span_status ≡ DB_ERR_BAD_RANGE;
+    mismatched_point_status ≡ DB_ERR_BAD_RANGE;
+    outside_point_status ≡ DB_ERR_BAD_RANGE;
+    nonfinite_load_status ≡ DB_ERR_BAD_RANGE;
+    zero_modulus_status ≡ DB_ERR_BAD_RANGE;
+    zero_inertia_status ≡ DB_ERR_BAD_RANGE)
+
+model_failure_tests = and(
+    BeamModelStatus(bad_version_beam) ≡ DB_ERR_BAD_METHOD;
+    BeamModelStatus(bad_samples_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(fractional_samples_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(bad_point_position_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(bad_udl_segment_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(bad_varying_lengths_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(bad_moment_lengths_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(malformed_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(nan_count_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(negative_count_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelStatus(huge_count_beam) ≡ DB_ERR_BAD_RANGE;
+    BeamModelResponseStatus(valid_beam; -1m) ≡ DB_ERR_BELOW_RANGE;
+    BeamModelResponseStatus(valid_beam; 7m) ≡ DB_ERR_ABOVE_RANGE)
+
+#hide
+point_loads_modifier_status = BeamModelStatus(BeamWithPointLoads(bad_version_beam; [10kN]; [3m]))
+point_load_modifier_status = BeamModelStatus(BeamWithPointLoad(bad_version_beam; 10kN; 3m))
+distributed_loads_modifier_status = BeamModelStatus(BeamWithDistributedLoads(bad_version_beam; [0m]; [6m]; [2kN/m]))
+udl_modifier_status = BeamModelStatus(BeamWithUDL(bad_version_beam; 2kN/m))
+varying_loads_modifier_status = BeamModelStatus(BeamWithVaryingDistributedLoads(bad_version_beam; [0m]; [6m]; [1kN/m]; [2kN/m]))
+varying_load_modifier_status = BeamModelStatus(BeamWithVaryingDistributedLoad(bad_version_beam; 0m; 6m; 1kN/m; 2kN/m))
+axial_point_modifier_status = BeamModelStatus(BeamWithAxialPointLoads(bad_version_beam; [10kN]; [3m]))
+axial_distributed_modifier_status = BeamModelStatus(BeamWithAxialDistributedLoads(bad_version_beam; [0m]; [6m]; [2kN/m]))
+moments_modifier_status = BeamModelStatus(BeamWithMoments(bad_version_beam; [3m]; [5kN*m]))
+moment_modifier_status = BeamModelStatus(BeamWithMoment(bad_version_beam; 3m; 5kN*m))
+diagram_moments_modifier_status = BeamModelStatus(BeamWithDiagramMoments(bad_version_beam; [3m]; [5kN*m]))
+sample_count_modifier_status = BeamModelStatus(BeamWithSampleCount(bad_version_beam; 51))
+malformed_modifier_status = BeamModelStatus(BeamWithUDL(malformed_beam; 2kN/m))
+invalid_modifier_peak = BeamPeakMoment(BeamWithPointLoad(bad_version_beam; 10kN; 3m))
+#show
+
+modifier_failure_tests = and(
+    point_loads_modifier_status ≡ DB_ERR_BAD_METHOD;
+    point_load_modifier_status ≡ DB_ERR_BAD_METHOD;
+    distributed_loads_modifier_status ≡ DB_ERR_BAD_METHOD;
+    udl_modifier_status ≡ DB_ERR_BAD_METHOD;
+    varying_loads_modifier_status ≡ DB_ERR_BAD_METHOD;
+    varying_load_modifier_status ≡ DB_ERR_BAD_METHOD;
+    axial_point_modifier_status ≡ DB_ERR_BAD_METHOD;
+    axial_distributed_modifier_status ≡ DB_ERR_BAD_METHOD;
+    moments_modifier_status ≡ DB_ERR_BAD_METHOD;
+    moment_modifier_status ≡ DB_ERR_BAD_METHOD;
+    diagram_moments_modifier_status ≡ DB_ERR_BAD_METHOD;
+    sample_count_modifier_status ≡ DB_ERR_BAD_METHOD;
+    malformed_modifier_status ≡ DB_ERR_BAD_RANGE;
+    not(BeamFinite(invalid_modifier_peak)))
+
+invalid_accessor_tests = and(
+    not(BeamFinite(BeamAxial(bad_version_beam; 3m)));
+    not(BeamFinite(BeamLeftReaction(bad_version_beam)));
+    not(BeamFinite(BeamRightReaction(bad_version_beam)));
+    not(BeamFinite(BeamFixedEndMoment(bad_version_beam)));
+    not(BeamFinite(BeamPeakShear(bad_version_beam)));
+    not(BeamFinite(BeamPeakMoment(bad_version_beam)));
+    not(BeamFinite(BeamPeakRotation(bad_version_beam)));
+    not(BeamFinite(BeamPeakDeflection(bad_version_beam)));
+    not(BeamFinite(BeamVectorElement(BeamSamplePositions(bad_version_beam); 1)));
+    not(BeamFinite(BeamVectorElement(BeamAxialSeries(bad_version_beam); 1)));
+    not(BeamFinite(BeamAxial(bad_version_beam; 3m) + 1N));
+    not(BeamFinite(BeamLeftReaction(bad_version_beam) + 1N));
+    not(BeamFinite(BeamFixedEndMoment(bad_version_beam) + 1N*m));
+    not(BeamFinite(BeamPeakShear(bad_version_beam) + 1N));
+    not(BeamFinite(BeamPeakMoment(bad_version_beam) + 1N*m));
+    not(BeamFinite(BeamPeakDeflection(bad_version_beam) + 1m));
+    not(BeamFinite(BeamVectorElement(BeamSamplePositions(bad_version_beam); 1) + 1m));
+    not(BeamFinite(BeamVectorElement(BeamAxialSeries(bad_version_beam); 1) + 1N));
+    not(BeamFinite(BeamAxial(malformed_beam; 0m)));
+    not(BeamFinite(BeamLeftReaction(malformed_beam)));
+    not(BeamFinite(BeamVectorElement(BeamSamplePositions(malformed_beam); 1))))
+
+screening_failure_statuses = [
+    BeamBendingStatus(10kN*m; 0m^3; 250MPa; CHK_DEFAULT_WARNING);
+    BeamBendingStatus(10kN*m; -100cm^3; 250MPa; CHK_DEFAULT_WARNING);
+    BeamShearStatus(10kN; 0m^2; 100MPa; CHK_DEFAULT_WARNING);
+    BeamShearStatus(10kN; 1000mm^2; -100MPa; CHK_DEFAULT_WARNING);
+    BeamDeflectionStatus(5mm; 0mm; CHK_DEFAULT_WARNING);
+    BeamDeflectionStatus(5mm; 10mm; 1.1)]
+
+screening_failure_tests = and(
+    CheckOverallStatus(screening_failure_statuses) ≡ CHK_ERROR;
+    CheckPassCount(screening_failure_statuses) ≡ 0)
+
+all_tests = and(empty_vector_tests; definition_failure_tests; model_failure_tests; modifier_failure_tests; invalid_accessor_tests; screening_failure_tests)
+all_tests
+
+'The model-report macros must render explicit errors without evaluating invalid peaks into plausible screening results.
+'<div id="failure-mode-invalid-beam-marker">Invalid beam model report evidence</div>
+ShowBeamExtrema$(bad_version_beam)
+ShowBeamScreening$(bad_version_beam; 600cm^3; 2000mm^2; 250MPa; 20mm)

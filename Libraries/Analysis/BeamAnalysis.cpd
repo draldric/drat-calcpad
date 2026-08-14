@@ -2,10 +2,10 @@
 #if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)
 #if and(DRAT_CHECKS_API ≥ 10200; DRAT_CHECKS_API < 30000)
 #hide
-'<!-- Static beam-response, diagram, and screening library. Version 0.6.0. -->
+'<!-- Static beam-response, diagram, and screening library. Version 0.6.1. -->
 #def BeamAnalysisLibraryName$ = DRAT Static Beam Analysis Library
-#def BeamAnalysisLibraryRevision$ = 0.6.0
-#def BeamAnalysisLibraryDate$ = 2026-08-11
+#def BeamAnalysisLibraryRevision$ = 0.6.1
+#def BeamAnalysisLibraryDate$ = 2026-08-14
 #def BeamAnalysisLibrarySource$ = Modular closed-form Euler-Bernoulli beam equations and Plotting-wrapper diagram helpers for prismatic members.
 #def BeamAnalysisLibraryScope$ = Simply supported and cantilever beams with composable point, uniform, linearly varying, axial, and concentrated-moment load families, sampled shear, moment, rotation, axial-force, displacement, and loading-schematic diagrams. Linear elastic, small-deflection, static response only. This library does not provide code capacities, load combinations, lateral-torsional buckling, shear-deformation, plastic, dynamic, or stability analysis.
 #show
@@ -28,6 +28,11 @@ BeamLoadTypeKnown(load_type) = or(load_type ≡ BEAM_POINT_LOAD; load_type ≡ B
 BeamFinite(value) = and(value ≡ value; abs(clrunits(value)) < 1*10^300)
 BeamPositive(value) = and(BeamFinite(value); clrunits(value) > 0)
 BeamPositionOK(x; span) = and(BeamFinite(x); BeamPositive(span); x ≥ 0*span; x ≤ span)
+BeamUndefinedResponse(response_type) = switch(
+    response_type ≡ BEAM_RESPONSE_SHEAR; setunits(0/0; N);
+    response_type ≡ BEAM_RESPONSE_MOMENT; setunits(0/0; N*m);
+    response_type ≡ BEAM_RESPONSE_DEFLECTION; setunits(0/0; m);
+    0/0)
 
 'Use this argument order for every response function:
 'support; load type; span; point load; point-load position; full-span UDL; elastic modulus; second moment of area.
@@ -196,6 +201,8 @@ $block{
         not(BeamPositive(span)); DB_ERR_BAD_RANGE;
         not(BeamPositive(modulus)); DB_ERR_BAD_RANGE;
         not(BeamPositive(inertia)); DB_ERR_BAD_RANGE;
+        or(point_count < 1; point_position_count < 1); DB_ERR_BAD_RANGE;
+        or(udl_start_count < 1; udl_end_count < 1; udl_value_count < 1); DB_ERR_BAD_RANGE;
         point_count ≠ point_position_count; DB_ERR_BAD_RANGE;
         and(udl_start_count ≠ udl_end_count; 1); DB_ERR_BAD_RANGE;
         and(udl_start_count ≠ udl_value_count; 1); DB_ERR_BAD_RANGE;
@@ -205,7 +212,7 @@ $block{
     udl_position_status = fill(resize([0]; max(udl_pair_count; 1)); 1);
     $Repeat{point_position_status.i = if(BeamPositionOK(BeamLengthElement(point_positions; i); span); 1; 0) @ i = 1 : point_pair_count};
     $Repeat{udl_position_status.i = if(BeamSegmentOK(BeamLengthElement(udl_starts; i); BeamLengthElement(udl_ends; i); span); 1; 0) @ i = 1 : udl_pair_count};
-    status = if(and(status ≡ DB_OK; min(point_position_status) ≡ 1; min(udl_position_status) ≡ 1); DB_OK; DB_ERR_BAD_RANGE);
+    status = if(status ≠ DB_OK; status; if(and(min(point_position_status) ≡ 1; min(udl_position_status) ≡ 1); DB_OK; DB_ERR_BAD_RANGE));
     status;
 }
 
@@ -336,6 +343,7 @@ $block{
     $Repeat{position_terms.i = if(and(BeamSegmentOK(BeamLengthElement(starts; i); BeamLengthElement(ends; i); span); BeamLengthElement(ends; i) > BeamLengthElement(starts; i)); 1; 0) @ i = 1 : pair_count};
     switch(
         not(BeamPositive(span)); DB_ERR_BAD_RANGE;
+        pair_count < 1; DB_ERR_BAD_RANGE;
         len(starts) ≠ len(ends); DB_ERR_BAD_RANGE;
         len(starts) ≠ len(start_values); DB_ERR_BAD_RANGE;
         len(starts) ≠ len(end_values); DB_ERR_BAD_RANGE;
@@ -521,12 +529,13 @@ BeamAxialStatus(span; axial_loads; axial_positions; axial_starts; axial_ends; ax
 BeamMomentSetStatus(span; moment_positions; moment_values) = _
 $block{
     pair_count = min(len(moment_positions); len(moment_values));
-    finite_terms = vector(pair_count);
-    position_terms = vector(pair_count);
+    finite_terms = fill(resize([0]; max(pair_count; 1)); 1);
+    position_terms = fill(resize([0]; max(pair_count; 1)); 1);
     $Repeat{finite_terms.i = and(BeamFinite(BeamLengthElement(moment_positions; i)); BeamFinite(BeamMomentElement(moment_values; i))) @ i = 1 : pair_count};
     $Repeat{position_terms.i = if(BeamPositionOK(BeamLengthElement(moment_positions; i); span); 1; 0) @ i = 1 : pair_count};
     status = switch(
         not(BeamPositive(span)); DB_ERR_BAD_RANGE;
+        pair_count < 1; DB_ERR_BAD_RANGE;
         len(moment_positions) ≠ len(moment_values); DB_ERR_BAD_RANGE;
         min(finite_terms) < 1; DB_ERR_BAD_RANGE;
         min(position_terms) < 1; DB_ERR_BAD_RANGE;
@@ -633,17 +642,37 @@ BeamDeflectionStatus(deflection; allowable_deflection; warning_threshold) = if(B
 'High-level mixed-unit vector record API.
 BEAM_MODEL_VERSION = 2
 BEAM_MODEL_HEADER_LENGTH = 6
+BEAM_MODEL_MIN_LENGTH = 22
 BEAM_MODEL_DEFAULT_SAMPLES = 121
+BEAM_MODEL_MAX_SAMPLES = 10000
 
-BeamRecordElement(model; index) = take(index; model)
-BeamRecordSlice(model; start; count) = first(last(model; len(model) - start + 1); count)
+'Bounds-safe access prevents malformed model records from crashing status evaluation.
+BeamRecordElement(model; index) = take(min(max(round(index); 1); len(model) + 1); join(model; [0]))
+BeamRecordSlice(model; start; count) = _
+$block{
+    safe_model = join(model; [0]);
+    safe_start = min(max(round(start); 1); len(model) + 1);
+    available_count = max(len(model) - safe_start + 1; 0);
+    value_count = min(max(round(count); 0); available_count);
+    safe_tail = last(safe_model; len(safe_model) - safe_start + 1);
+    safe_values = first(safe_tail; max(value_count; 1));
+    values = if(value_count > 0; safe_values; find_eq([0]; 1; 1));
+    values;
+}
 
 BeamModelVersion(model) = round(BeamRecordElement(model; 1))
 BeamModelSupport(model) = round(BeamRecordElement(model; 2))
 BeamModelSpan(model) = BeamRecordElement(model; 3) + 0m
 BeamModelModulus(model) = BeamRecordElement(model; 4) + 0Pa
 BeamModelInertia(model) = BeamRecordElement(model; 5) + 0m^4
-BeamModelSampleCount(model) = round(BeamRecordElement(model; 6))
+BeamModelSampleCountRaw(model) = BeamRecordElement(model; 6)
+BeamSafeInteger(value; minimum; maximum; fallback) = _
+$block{
+    numeric_value = clrunits(value);
+    safe_value = if(and(BeamFinite(numeric_value); numeric_value ≡ round(numeric_value); numeric_value ≥ minimum; numeric_value ≤ maximum); round(numeric_value); fallback);
+    safe_value;
+}
+BeamModelSampleCount(model) = BeamSafeInteger(BeamModelSampleCountRaw(model); 2; BEAM_MODEL_MAX_SAMPLES; 2)
 BeamModelProperties(model) = [BeamModelSupport(model); BeamModelSpan(model); BeamModelModulus(model); BeamModelInertia(model); BeamModelSampleCount(model)]
 
 BeamPointLoadData(loads; positions) = join(join([len(loads); len(positions)]; loads); positions)
@@ -652,44 +681,46 @@ BeamMomentData(positions; moments) = join(join([len(positions); len(moments)]; p
 BeamVaryingLoadData(starts; ends; start_values; end_values) = join(join(join(join([len(starts); len(ends); len(start_values); len(end_values)]; starts); ends); start_values); end_values)
 
 BeamModelPointDataStart(model) = BEAM_MODEL_HEADER_LENGTH + 1
-BeamModelPointLoadCount(model) = round(BeamRecordElement(model; BeamModelPointDataStart(model)))
-BeamModelPointPositionCount(model) = round(BeamRecordElement(model; BeamModelPointDataStart(model) + 1))
+'Only sanitized counts can affect record offsets. Invalid raw counts fall back to one sentinel row and are rejected separately by BeamModelStatus.
+BeamModelSafeCountAt(model; index) = BeamSafeInteger(BeamRecordElement(model; index); 1; max(len(model); 1); 1)
+BeamModelPointLoadCount(model) = BeamModelSafeCountAt(model; BeamModelPointDataStart(model))
+BeamModelPointPositionCount(model) = BeamModelSafeCountAt(model; BeamModelPointDataStart(model) + 1)
 BeamModelPointLoadsStart(model) = BeamModelPointDataStart(model) + 2
 BeamModelPointPositionsStart(model) = BeamModelPointLoadsStart(model) + BeamModelPointLoadCount(model)
 
 BeamModelUDLDataStart(model) = BeamModelPointPositionsStart(model) + BeamModelPointPositionCount(model)
-BeamModelUDLStartCount(model) = round(BeamRecordElement(model; BeamModelUDLDataStart(model)))
-BeamModelUDLEndCount(model) = round(BeamRecordElement(model; BeamModelUDLDataStart(model) + 1))
-BeamModelUDLValueCount(model) = round(BeamRecordElement(model; BeamModelUDLDataStart(model) + 2))
+BeamModelUDLStartCount(model) = BeamModelSafeCountAt(model; BeamModelUDLDataStart(model))
+BeamModelUDLEndCount(model) = BeamModelSafeCountAt(model; BeamModelUDLDataStart(model) + 1)
+BeamModelUDLValueCount(model) = BeamModelSafeCountAt(model; BeamModelUDLDataStart(model) + 2)
 BeamModelUDLStartsStart(model) = BeamModelUDLDataStart(model) + 3
 BeamModelUDLEndsStart(model) = BeamModelUDLStartsStart(model) + BeamModelUDLStartCount(model)
 BeamModelUDLValuesStart(model) = BeamModelUDLEndsStart(model) + BeamModelUDLEndCount(model)
 
 BeamModelAxialPointDataStart(model) = BeamModelUDLValuesStart(model) + BeamModelUDLValueCount(model)
-BeamModelAxialLoadCount(model) = round(BeamRecordElement(model; BeamModelAxialPointDataStart(model)))
-BeamModelAxialPositionCount(model) = round(BeamRecordElement(model; BeamModelAxialPointDataStart(model) + 1))
+BeamModelAxialLoadCount(model) = BeamModelSafeCountAt(model; BeamModelAxialPointDataStart(model))
+BeamModelAxialPositionCount(model) = BeamModelSafeCountAt(model; BeamModelAxialPointDataStart(model) + 1)
 BeamModelAxialLoadsStart(model) = BeamModelAxialPointDataStart(model) + 2
 BeamModelAxialPositionsStart(model) = BeamModelAxialLoadsStart(model) + BeamModelAxialLoadCount(model)
 
 BeamModelAxialUDLDataStart(model) = BeamModelAxialPositionsStart(model) + BeamModelAxialPositionCount(model)
-BeamModelAxialStartCount(model) = round(BeamRecordElement(model; BeamModelAxialUDLDataStart(model)))
-BeamModelAxialEndCount(model) = round(BeamRecordElement(model; BeamModelAxialUDLDataStart(model) + 1))
-BeamModelAxialValueCount(model) = round(BeamRecordElement(model; BeamModelAxialUDLDataStart(model) + 2))
+BeamModelAxialStartCount(model) = BeamModelSafeCountAt(model; BeamModelAxialUDLDataStart(model))
+BeamModelAxialEndCount(model) = BeamModelSafeCountAt(model; BeamModelAxialUDLDataStart(model) + 1)
+BeamModelAxialValueCount(model) = BeamModelSafeCountAt(model; BeamModelAxialUDLDataStart(model) + 2)
 BeamModelAxialStartsStart(model) = BeamModelAxialUDLDataStart(model) + 3
 BeamModelAxialEndsStart(model) = BeamModelAxialStartsStart(model) + BeamModelAxialStartCount(model)
 BeamModelAxialValuesStart(model) = BeamModelAxialEndsStart(model) + BeamModelAxialEndCount(model)
 
 BeamModelMomentDataStart(model) = BeamModelAxialValuesStart(model) + BeamModelAxialValueCount(model)
-BeamModelMomentPositionCount(model) = round(BeamRecordElement(model; BeamModelMomentDataStart(model)))
-BeamModelMomentValueCount(model) = round(BeamRecordElement(model; BeamModelMomentDataStart(model) + 1))
+BeamModelMomentPositionCount(model) = BeamModelSafeCountAt(model; BeamModelMomentDataStart(model))
+BeamModelMomentValueCount(model) = BeamModelSafeCountAt(model; BeamModelMomentDataStart(model) + 1)
 BeamModelMomentPositionsStart(model) = BeamModelMomentDataStart(model) + 2
 BeamModelMomentValuesStart(model) = BeamModelMomentPositionsStart(model) + BeamModelMomentPositionCount(model)
 
 BeamModelVaryingDataStart(model) = BeamModelMomentValuesStart(model) + BeamModelMomentValueCount(model)
-BeamModelVaryingStartCount(model) = round(BeamRecordElement(model; BeamModelVaryingDataStart(model)))
-BeamModelVaryingEndCount(model) = round(BeamRecordElement(model; BeamModelVaryingDataStart(model) + 1))
-BeamModelVaryingStartValueCount(model) = round(BeamRecordElement(model; BeamModelVaryingDataStart(model) + 2))
-BeamModelVaryingEndValueCount(model) = round(BeamRecordElement(model; BeamModelVaryingDataStart(model) + 3))
+BeamModelVaryingStartCount(model) = BeamModelSafeCountAt(model; BeamModelVaryingDataStart(model))
+BeamModelVaryingEndCount(model) = BeamModelSafeCountAt(model; BeamModelVaryingDataStart(model) + 1)
+BeamModelVaryingStartValueCount(model) = BeamModelSafeCountAt(model; BeamModelVaryingDataStart(model) + 2)
+BeamModelVaryingEndValueCount(model) = BeamModelSafeCountAt(model; BeamModelVaryingDataStart(model) + 3)
 BeamModelVaryingStartsStart(model) = BeamModelVaryingDataStart(model) + 4
 BeamModelVaryingEndsStart(model) = BeamModelVaryingStartsStart(model) + BeamModelVaryingStartCount(model)
 BeamModelVaryingStartValuesStart(model) = BeamModelVaryingEndsStart(model) + BeamModelVaryingEndCount(model)
@@ -712,6 +743,26 @@ BeamModelVaryingEnds(model) = BeamRecordSlice(model; BeamModelVaryingEndsStart(m
 BeamModelVaryingStartValues(model) = BeamRecordSlice(model; BeamModelVaryingStartValuesStart(model); BeamModelVaryingStartValueCount(model))
 BeamModelVaryingEndValues(model) = BeamRecordSlice(model; BeamModelVaryingEndValuesStart(model); BeamModelVaryingEndValueCount(model))
 
+'Every encoded load family keeps at least one zero-valued row when unused.
+BeamModelCountOK(count; minimum; maximum) = and(BeamFinite(count); count ≡ round(count); count ≥ minimum; count ≤ maximum)
+BeamModelCountFieldsOK(model) = and(
+    BeamModelCountOK(BeamRecordElement(model; BeamModelPointDataStart(model)); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelPointDataStart(model) + 1); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelUDLDataStart(model)); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelUDLDataStart(model) + 1); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelUDLDataStart(model) + 2); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelAxialPointDataStart(model)); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelAxialPointDataStart(model) + 1); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelAxialUDLDataStart(model)); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelAxialUDLDataStart(model) + 1); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelAxialUDLDataStart(model) + 2); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelMomentDataStart(model)); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelMomentDataStart(model) + 1); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelVaryingDataStart(model)); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelVaryingDataStart(model) + 1); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelVaryingDataStart(model) + 2); 1; len(model));
+    BeamModelCountOK(BeamRecordElement(model; BeamModelVaryingDataStart(model) + 3); 1; len(model)))
+
 BeamModelPointData(model) = BeamRecordSlice(model; BeamModelPointDataStart(model); BeamModelUDLDataStart(model) - BeamModelPointDataStart(model))
 BeamModelUDLData(model) = BeamRecordSlice(model; BeamModelUDLDataStart(model); BeamModelAxialPointDataStart(model) - BeamModelUDLDataStart(model))
 BeamModelAxialPointData(model) = BeamRecordSlice(model; BeamModelAxialPointDataStart(model); BeamModelAxialUDLDataStart(model) - BeamModelAxialPointDataStart(model))
@@ -719,6 +770,7 @@ BeamModelAxialUDLData(model) = BeamRecordSlice(model; BeamModelAxialUDLDataStart
 BeamModelMomentData(model) = BeamRecordSlice(model; BeamModelMomentDataStart(model); BeamModelVaryingDataStart(model) - BeamModelMomentDataStart(model))
 BeamModelVaryingData(model) = BeamRecordSlice(model; BeamModelVaryingDataStart(model); len(model) - BeamModelVaryingDataStart(model) + 1)
 BeamModelExpectedLength(model) = BeamModelVaryingEndValuesStart(model) + BeamModelVaryingEndValueCount(model) - 1
+BeamModelStatus(model) = switch(len(model) < BEAM_MODEL_MIN_LENGTH; DB_ERR_BAD_RANGE; BeamModelVersion(model) ≠ BEAM_MODEL_VERSION; DB_ERR_BAD_METHOD; not(BeamModelCountFieldsOK(model)); DB_ERR_BAD_RANGE; len(model) ≠ BeamModelExpectedLength(model); DB_ERR_BAD_RANGE; not(BeamModelCountOK(BeamModelSampleCountRaw(model); 2; BEAM_MODEL_MAX_SAMPLES)); DB_ERR_BAD_RANGE; BeamModelInputStatus(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); BeamModelMomentPositions(model); BeamModelMomentValues(model); BeamModelModulus(model); BeamModelInertia(model)))
 
 BeamModelBuild(properties; point_data; udl_data; axial_point_data; axial_udl_data; moment_data; varying_data) = join(join(join(join(join(join([BEAM_MODEL_VERSION; BeamRecordElement(properties; 1); BeamRecordElement(properties; 2); BeamRecordElement(properties; 3); BeamRecordElement(properties; 4); BeamRecordElement(properties; 5)]; point_data); udl_data); axial_point_data); axial_udl_data); moment_data); varying_data)
 
@@ -734,52 +786,73 @@ $block{
     BeamModelBuild(properties; point_data; udl_data; axial_point_data; axial_udl_data; moment_data; varying_data);
 }
 
+'Modifiers preserve an invalid input record instead of rebuilding it with the current version header.
+BeamModifierSafeModel(model) = if(BeamModelStatus(model) ≡ DB_OK; model; BeamModel(BEAM_SIMPLE_SUPPORTED; 1m; 1Pa; 1m^4))
+BeamModifierResult(model; candidate) = if(BeamModelStatus(model) ≡ DB_OK; candidate; model)
+
 BeamWithPointLoads(model; loads; positions) = _
 $block{
-    properties = BeamModelProperties(model);
+    safe_model = BeamModifierSafeModel(model);
+    properties = BeamModelProperties(safe_model);
     point_data = BeamPointLoadData(loads; positions);
-    BeamModelBuild(properties; point_data; BeamModelUDLData(model); BeamModelAxialPointData(model); BeamModelAxialUDLData(model); BeamModelMomentData(model); BeamModelVaryingData(model));
+    candidate = BeamModelBuild(properties; point_data; BeamModelUDLData(safe_model); BeamModelAxialPointData(safe_model); BeamModelAxialUDLData(safe_model); BeamModelMomentData(safe_model); BeamModelVaryingData(safe_model));
+    BeamModifierResult(model; candidate);
 }
 
 BeamWithPointLoad(model; load; position) = BeamWithPointLoads(model; [load]; [position])
 
 BeamWithDistributedLoads(model; starts; ends; loads) = _
 $block{
-    properties = BeamModelProperties(model);
+    safe_model = BeamModifierSafeModel(model);
+    properties = BeamModelProperties(safe_model);
     udl_data = BeamDistributedLoadData(starts; ends; loads);
-    BeamModelBuild(properties; BeamModelPointData(model); udl_data; BeamModelAxialPointData(model); BeamModelAxialUDLData(model); BeamModelMomentData(model); BeamModelVaryingData(model));
+    candidate = BeamModelBuild(properties; BeamModelPointData(safe_model); udl_data; BeamModelAxialPointData(safe_model); BeamModelAxialUDLData(safe_model); BeamModelMomentData(safe_model); BeamModelVaryingData(safe_model));
+    BeamModifierResult(model; candidate);
 }
 
-BeamWithUDL(model; load) = BeamWithDistributedLoads(model; [0m]; [BeamModelSpan(model)]; [load])
+BeamWithUDL(model; load) = _
+$block{
+    safe_model = BeamModifierSafeModel(model);
+    candidate = BeamWithDistributedLoads(safe_model; [0m]; [BeamModelSpan(safe_model)]; [load]);
+    BeamModifierResult(model; candidate);
+}
 
 BeamWithVaryingDistributedLoads(model; starts; ends; start_values; end_values) = _
 $block{
-    properties = BeamModelProperties(model);
+    safe_model = BeamModifierSafeModel(model);
+    properties = BeamModelProperties(safe_model);
     varying_data = BeamVaryingLoadData(starts; ends; start_values; end_values);
-    BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); BeamModelAxialPointData(model); BeamModelAxialUDLData(model); BeamModelMomentData(model); varying_data);
+    candidate = BeamModelBuild(properties; BeamModelPointData(safe_model); BeamModelUDLData(safe_model); BeamModelAxialPointData(safe_model); BeamModelAxialUDLData(safe_model); BeamModelMomentData(safe_model); varying_data);
+    BeamModifierResult(model; candidate);
 }
 
 BeamWithVaryingDistributedLoad(model; start; finish; start_value; end_value) = BeamWithVaryingDistributedLoads(model; [start]; [finish]; [start_value]; [end_value])
 
 BeamWithAxialPointLoads(model; loads; positions) = _
 $block{
-    properties = BeamModelProperties(model);
+    safe_model = BeamModifierSafeModel(model);
+    properties = BeamModelProperties(safe_model);
     axial_point_data = BeamPointLoadData(loads; positions);
-    BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); axial_point_data; BeamModelAxialUDLData(model); BeamModelMomentData(model); BeamModelVaryingData(model));
+    candidate = BeamModelBuild(properties; BeamModelPointData(safe_model); BeamModelUDLData(safe_model); axial_point_data; BeamModelAxialUDLData(safe_model); BeamModelMomentData(safe_model); BeamModelVaryingData(safe_model));
+    BeamModifierResult(model; candidate);
 }
 
 BeamWithAxialDistributedLoads(model; starts; ends; loads) = _
 $block{
-    properties = BeamModelProperties(model);
+    safe_model = BeamModifierSafeModel(model);
+    properties = BeamModelProperties(safe_model);
     axial_udl_data = BeamDistributedLoadData(starts; ends; loads);
-    BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); BeamModelAxialPointData(model); axial_udl_data; BeamModelMomentData(model); BeamModelVaryingData(model));
+    candidate = BeamModelBuild(properties; BeamModelPointData(safe_model); BeamModelUDLData(safe_model); BeamModelAxialPointData(safe_model); axial_udl_data; BeamModelMomentData(safe_model); BeamModelVaryingData(safe_model));
+    BeamModifierResult(model; candidate);
 }
 
 BeamWithMoments(model; positions; moments) = _
 $block{
-    properties = BeamModelProperties(model);
+    safe_model = BeamModifierSafeModel(model);
+    properties = BeamModelProperties(safe_model);
     moment_data = BeamMomentData(positions; moments);
-    BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); BeamModelAxialPointData(model); BeamModelAxialUDLData(model); moment_data; BeamModelVaryingData(model));
+    candidate = BeamModelBuild(properties; BeamModelPointData(safe_model); BeamModelUDLData(safe_model); BeamModelAxialPointData(safe_model); BeamModelAxialUDLData(safe_model); moment_data; BeamModelVaryingData(safe_model));
+    BeamModifierResult(model; candidate);
 }
 
 BeamWithMoment(model; position; moment) = BeamWithMoments(model; [position]; [moment])
@@ -787,11 +860,12 @@ BeamWithDiagramMoments(model; positions; moments) = BeamWithMoments(model; posit
 
 BeamWithSampleCount(model; count) = _
 $block{
-    properties = [BeamModelSupport(model); BeamModelSpan(model); BeamModelModulus(model); BeamModelInertia(model); count];
-    BeamModelBuild(properties; BeamModelPointData(model); BeamModelUDLData(model); BeamModelAxialPointData(model); BeamModelAxialUDLData(model); BeamModelMomentData(model); BeamModelVaryingData(model));
+    safe_model = BeamModifierSafeModel(model);
+    properties = [BeamModelSupport(safe_model); BeamModelSpan(safe_model); BeamModelModulus(safe_model); BeamModelInertia(safe_model); count];
+    candidate = BeamModelBuild(properties; BeamModelPointData(safe_model); BeamModelUDLData(safe_model); BeamModelAxialPointData(safe_model); BeamModelAxialUDLData(safe_model); BeamModelMomentData(safe_model); BeamModelVaryingData(safe_model));
+    BeamModifierResult(model; candidate);
 }
 
-BeamModelStatus(model) = switch(BeamModelVersion(model) ≠ BEAM_MODEL_VERSION; DB_ERR_BAD_METHOD; len(model) ≠ BeamModelExpectedLength(model); DB_ERR_BAD_RANGE; not(and(BeamFinite(BeamModelSampleCount(model)); BeamModelSampleCount(model) ≥ 2)); DB_ERR_BAD_RANGE; BeamModelInputStatus(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); BeamModelMomentPositions(model); BeamModelMomentValues(model); BeamModelModulus(model); BeamModelInertia(model)))
 BeamModelResponseStatus(model; x) = switch(BeamModelStatus(model) ≠ DB_OK; BeamModelStatus(model); not(BeamFinite(x)); DB_ERR_BAD_RANGE; DBRangeStatus(x; 0m; BeamModelSpan(model); DB_STRICT))
 BeamModelResponseUnchecked(model; x; response_type) = _
 $block{
@@ -801,17 +875,17 @@ $block{
     transverse_response + varying_response + applied_moment_response;
 }
 
-BeamModelResponse(model; x; response_type) = if(BeamModelResponseStatus(model; x) ≡ DB_OK; BeamModelResponseUnchecked(model; x; response_type); 0/0)
+BeamModelResponse(model; x; response_type) = if(BeamModelResponseStatus(model; x) ≡ DB_OK; BeamModelResponseUnchecked(model; x; response_type); BeamUndefinedResponse(response_type))
 
 BeamShear(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_SHEAR)
 BeamMoment(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_MOMENT)
 BeamRotation(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_ROTATION)
 BeamDeflection(model; x) = BeamModelResponse(model; x; BEAM_RESPONSE_DEFLECTION)
-BeamAxial(model; x) = BeamAxialAtLoads(BeamModelSpan(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); x)
-BeamLeftReaction(model) = BeamReactionLeftLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamVaryingLeftReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model)) + BeamAppliedMomentLeftReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model))
-BeamRightReaction(model) = BeamReactionRightLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamVaryingRightReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model)) + BeamAppliedMomentRightReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model))
-BeamFixedEndMoment(model) = BeamReactionMomentLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamVaryingFixedReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model)) + BeamAppliedMomentFixedReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model))
-BeamSamplePositions(model) = BeamStations(BeamModelSpan(model); BeamModelSampleCount(model))
+BeamAxial(model; x) = if(BeamModelResponseStatus(model; x) ≡ DB_OK; BeamAxialAtLoads(BeamModelSpan(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); x); setunits(0/0; N))
+BeamLeftReaction(model) = if(BeamModelStatus(model) ≡ DB_OK; BeamReactionLeftLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamVaryingLeftReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model)) + BeamAppliedMomentLeftReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model)); setunits(0/0; N))
+BeamRightReaction(model) = if(BeamModelStatus(model) ≡ DB_OK; BeamReactionRightLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamVaryingRightReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model)) + BeamAppliedMomentRightReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model)); setunits(0/0; N))
+BeamFixedEndMoment(model) = if(BeamModelStatus(model) ≡ DB_OK; BeamReactionMomentLoads(BeamModelSupport(model); BeamModelSpan(model); BeamModelPointLoads(model); BeamModelPointPositions(model); BeamModelUDLStarts(model); BeamModelUDLEnds(model); BeamModelUDLValues(model); BeamModelModulus(model); BeamModelInertia(model)) + BeamVaryingFixedReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelVaryingStarts(model); BeamModelVaryingEnds(model); BeamModelVaryingStartValues(model); BeamModelVaryingEndValues(model)) + BeamAppliedMomentFixedReaction(BeamModelSupport(model); BeamModelSpan(model); BeamModelMomentPositions(model); BeamModelMomentValues(model)); setunits(0/0; N*m))
+BeamSamplePositions(model) = if(BeamModelStatus(model) ≡ DB_OK; BeamStations(BeamModelSpan(model); BeamModelSampleCount(model)); [setunits(0/0; m)])
 BeamModelResponseSeries(model; response_type) = _
 $block{
     status = BeamModelStatus(model);
@@ -836,7 +910,7 @@ $block{
         response_series.i = if(
             status ≡ DB_OK;
             BeamResponseAtLoadsUnchecked(support; span; point_loads; point_positions; udl_starts; udl_ends; udl_values; modulus; inertia; BeamLengthElement(samples; i); response_type) + BeamVaryingResponseUnchecked(support; span; varying_starts; varying_ends; varying_start_values; varying_end_values; modulus; inertia; BeamLengthElement(samples; i); response_type) + BeamAppliedMomentResponseUnchecked(support; span; moment_positions; moment_values; modulus; inertia; BeamLengthElement(samples; i); response_type);
-            0/0);
+            BeamUndefinedResponse(response_type));
         @ i = 1 : len(samples)};
     response_series;
 }
@@ -845,7 +919,7 @@ BeamShearSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_SHEAR)
 BeamMomentSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_MOMENT)
 BeamRotationSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_ROTATION)
 BeamDeflectionSeries(model) = BeamModelResponseSeries(model; BEAM_RESPONSE_DEFLECTION)
-BeamAxialSeries(model) = BeamAxialSampleSeries(BeamModelSpan(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); BeamSamplePositions(model))
+BeamAxialSeries(model) = if(BeamModelStatus(model) ≡ DB_OK; BeamAxialSampleSeries(BeamModelSpan(model); BeamModelAxialLoads(model); BeamModelAxialPositions(model); BeamModelAxialStarts(model); BeamModelAxialEnds(model); BeamModelAxialValues(model); BeamSamplePositions(model)); [setunits(0/0; N)])
 
 BeamAppliedMomentsAtPosition(model; x) = _
 $block{
@@ -858,10 +932,13 @@ BeamMomentLeftLimit(model; x) = BeamMoment(model; x) + if(BeamModelSupport(model
 
 BeamModelMaxResponse(model; response_type) = _
 $block{
-    response_terms = abs(BeamModelResponseSeries(model; response_type));
-    left_limit_terms = vector(len(BeamModelMomentValues(model)));
-    $Repeat{left_limit_terms.i = if(and(response_type ≡ BEAM_RESPONSE_MOMENT; BeamLengthElement(BeamModelMomentPositions(model); i) > 0m); abs(BeamMomentLeftLimit(model; BeamLengthElement(BeamModelMomentPositions(model); i))); 0*BeamVectorElement(response_terms; 1)) @ i = 1 : len(BeamModelMomentValues(model))};
-    max(max(response_terms); max(left_limit_terms));
+    status = BeamModelStatus(model);
+    safe_model = if(status ≡ DB_OK; model; BeamModel(BEAM_SIMPLE_SUPPORTED; 1m; 1Pa; 1m^4));
+    response_terms = abs(BeamModelResponseSeries(safe_model; response_type));
+    left_limit_terms = vector(len(BeamModelMomentValues(safe_model)));
+    $Repeat{left_limit_terms.i = if(and(response_type ≡ BEAM_RESPONSE_MOMENT; BeamLengthElement(BeamModelMomentPositions(safe_model); i) > 0m); abs(BeamMomentLeftLimit(safe_model; BeamLengthElement(BeamModelMomentPositions(safe_model); i))); 0*BeamVectorElement(response_terms; 1)) @ i = 1 : len(BeamModelMomentValues(safe_model))};
+    maximum_response = max(max(response_terms); max(left_limit_terms));
+    if(status ≡ DB_OK; maximum_response; BeamUndefinedResponse(response_type));
 }
 
 BeamPeakShear(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_SHEAR)
@@ -1169,23 +1246,27 @@ BeamPeakDeflection(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_DEFLECTION
 
 #def ShowBeamScreening$(model$; section_modulus$; shear_area$; allowable_stress$; allowable_deflection$)
     #hide
+    ζBEAM_screening_model_status = BeamModelStatus(model$)
     ζBEAM_screening_max_shear = BeamPeakShear(model$)
     ζBEAM_screening_max_moment = BeamPeakMoment(model$)
     ζBEAM_screening_max_deflection = BeamPeakDeflection(model$)
     ζBEAM_screening_bending_stress = BeamBendingStress(ζBEAM_screening_max_moment; section_modulus$)
     ζBEAM_screening_bending_utilization = BeamBendingUtilization(ζBEAM_screening_max_moment; section_modulus$; allowable_stress$)
-    ζBEAM_screening_bending_status = BeamBendingStatus(ζBEAM_screening_max_moment; section_modulus$; allowable_stress$; CHK_DEFAULT_WARNING)
+    ζBEAM_screening_bending_status = if(ζBEAM_screening_model_status ≡ DB_OK; BeamBendingStatus(ζBEAM_screening_max_moment; section_modulus$; allowable_stress$; CHK_DEFAULT_WARNING); CHK_ERROR)
     ζBEAM_screening_shear_stress = BeamShearStress(ζBEAM_screening_max_shear; shear_area$)
     ζBEAM_screening_shear_utilization = BeamShearUtilization(ζBEAM_screening_max_shear; shear_area$; allowable_stress$)
-    ζBEAM_screening_shear_status = BeamShearStatus(ζBEAM_screening_max_shear; shear_area$; allowable_stress$; CHK_DEFAULT_WARNING)
+    ζBEAM_screening_shear_status = if(ζBEAM_screening_model_status ≡ DB_OK; BeamShearStatus(ζBEAM_screening_max_shear; shear_area$; allowable_stress$; CHK_DEFAULT_WARNING); CHK_ERROR)
     ζBEAM_screening_deflection_utilization = BeamDeflectionUtilization(ζBEAM_screening_max_deflection; allowable_deflection$)
-    ζBEAM_screening_deflection_status = BeamDeflectionStatus(ζBEAM_screening_max_deflection; allowable_deflection$; CHK_DEFAULT_WARNING)
+    ζBEAM_screening_deflection_status = if(ζBEAM_screening_model_status ≡ DB_OK; BeamDeflectionStatus(ζBEAM_screening_max_deflection; allowable_deflection$; CHK_DEFAULT_WARNING); CHK_ERROR)
     ζBEAM_screening_overall_status = CheckOverallStatus([ζBEAM_screening_bending_status; ζBEAM_screening_shear_status; ζBEAM_screening_deflection_status])
     #show
     #novar
     '<table class="bordered data beam-response">
     '<thead><tr><th>Screening check</th><th>Value</th></tr></thead>
     '<tbody>
+    '<tr><td>Beam model status</td><td>
+    DBStatus$(ζBEAM_screening_model_status)
+    '</td></tr>
     '<tr><td>Maximum sampled moment</td><td>'ζBEAM_screening_max_moment'</td></tr>
     '<tr><td>Bending stress</td><td>'ζBEAM_screening_bending_stress'</td></tr>
     '<tr><td>Bending utilization</td><td>'ζBEAM_screening_bending_utilization'</td></tr>
@@ -1579,7 +1660,9 @@ BeamPeakDeflection(model) = BeamModelMaxResponse(model; BEAM_RESPONSE_DEFLECTION
 #end def
 
 #else
+#show
 '<div class="library-load-error"><strong>DRAT library load error:</strong> Beam diagram helpers require Plotting API 3.2.x.</div>
+#hide
 #end if
 #show
 #else
