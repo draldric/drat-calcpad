@@ -207,4 +207,4 @@ The model-level bending-moment plot adds a vertical trace at every applied-momen
 
 These report macros intentionally keep the calculation variables hidden while leaving the rendered value cells auditable.
 
-See [`Examples/BeamAnalysisDemo.cpd`](../Examples/BeamAnalysisDemo.cpd) and [`Tests/Libraries/Analysis/BeamAnalysisTest.cpd`](../Tests/Libraries/Analysis/BeamAnalysisTest.cpd).
+See [`Examples/BeamAnalysisDemo.cpd`](../Examples/BeamAnalysisDemo.cpd), [`Tests/Libraries/Analysis/BeamAnalysisTest.cpd`](../Tests/Libraries/Analysis/BeamAnalysisTest.cpd), and the independent [`beam benchmark basis`](BeamBenchmarks.md).

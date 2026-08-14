@@ -1,0 +1,132 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd
+
+'<!-- TEST PURPOSE: Independently benchmark beam reactions, shear, moment, rotation, and deflection against hand-derived equilibrium and Euler-Bernoulli solutions. -->
+
+"Beam Analysis Independent Benchmark Test
+
+benchmark_span = 6m
+benchmark_modulus = 200GPa
+benchmark_inertia = 8*10^-6m^4
+benchmark_point_load = 10kN
+benchmark_udl = 2kN/m
+benchmark_moment = 12kN*m
+benchmark_moment_position = 2m
+benchmark_triangular_peak = 3kN/m
+
+benchmark_force_tolerance = 1N
+benchmark_moment_tolerance = 1N*m
+benchmark_rotation_tolerance = 1*10^-9
+benchmark_displacement_tolerance = 1*10^-9m
+
+#hide
+simple_point_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; benchmark_span; benchmark_modulus; benchmark_inertia)
+simple_point_beam = BeamWithPointLoad(simple_point_beam; benchmark_point_load; benchmark_span/2)
+
+simple_udl_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; benchmark_span; benchmark_modulus; benchmark_inertia)
+simple_udl_beam = BeamWithUDL(simple_udl_beam; benchmark_udl)
+
+cantilever_point_beam = BeamModel(BEAM_CANTILEVER; benchmark_span; benchmark_modulus; benchmark_inertia)
+cantilever_point_beam = BeamWithPointLoad(cantilever_point_beam; benchmark_point_load; benchmark_span)
+
+cantilever_udl_beam = BeamModel(BEAM_CANTILEVER; benchmark_span; benchmark_modulus; benchmark_inertia)
+cantilever_udl_beam = BeamWithUDL(cantilever_udl_beam; benchmark_udl)
+
+simple_moment_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; benchmark_span; benchmark_modulus; benchmark_inertia)
+simple_moment_beam = BeamWithMoment(simple_moment_beam; benchmark_moment_position; benchmark_moment)
+
+simple_triangular_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; benchmark_span; benchmark_modulus; benchmark_inertia)
+simple_triangular_beam = BeamWithVaryingDistributedLoad(simple_triangular_beam; 0m; benchmark_span; 0kN/m; benchmark_triangular_peak)
+
+cantilever_triangular_beam = BeamModel(BEAM_CANTILEVER; benchmark_span; benchmark_modulus; benchmark_inertia)
+cantilever_triangular_beam = BeamWithVaryingDistributedLoad(cantilever_triangular_beam; 0m; benchmark_span; 0kN/m; benchmark_triangular_peak)
+
+alternate_unit_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6000mm; 200000MPa; 800cm^4)
+alternate_unit_beam = BeamWithPointLoad(alternate_unit_beam; 10000N; 3000mm)
+#show
+
+simple_point_tests = and(
+    abs(BeamLeftReaction(simple_point_beam) - benchmark_point_load/2) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_point_beam) - benchmark_point_load/2) < benchmark_force_tolerance;
+    abs(BeamLeftReaction(simple_point_beam) + BeamRightReaction(simple_point_beam) - benchmark_point_load) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_point_beam)*benchmark_span - benchmark_point_load*benchmark_span/2) < benchmark_moment_tolerance;
+    abs(BeamShear(simple_point_beam; benchmark_span/4) - benchmark_point_load/2) < benchmark_force_tolerance;
+    abs(BeamMoment(simple_point_beam; benchmark_span/2) - benchmark_point_load*benchmark_span/4) < benchmark_moment_tolerance;
+    abs(BeamRotation(simple_point_beam; 0m) - benchmark_point_load*benchmark_span^2/(16*benchmark_modulus*benchmark_inertia)) < benchmark_rotation_tolerance;
+    abs(BeamRotation(simple_point_beam; benchmark_span/2)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(simple_point_beam; benchmark_span/2) - benchmark_point_load*benchmark_span^3/(48*benchmark_modulus*benchmark_inertia)) < benchmark_displacement_tolerance;
+    abs(BeamDeflection(simple_point_beam; 0m)) < benchmark_displacement_tolerance;
+    abs(BeamDeflection(simple_point_beam; benchmark_span)) < benchmark_displacement_tolerance)
+
+simple_udl_tests = and(
+    abs(BeamLeftReaction(simple_udl_beam) - benchmark_udl*benchmark_span/2) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_udl_beam) - benchmark_udl*benchmark_span/2) < benchmark_force_tolerance;
+    abs(BeamLeftReaction(simple_udl_beam) + BeamRightReaction(simple_udl_beam) - benchmark_udl*benchmark_span) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_udl_beam)*benchmark_span - benchmark_udl*benchmark_span^2/2) < benchmark_moment_tolerance;
+    abs(BeamShear(simple_udl_beam; benchmark_span/2)) < benchmark_force_tolerance;
+    abs(BeamMoment(simple_udl_beam; benchmark_span/2) - benchmark_udl*benchmark_span^2/8) < benchmark_moment_tolerance;
+    abs(BeamRotation(simple_udl_beam; 0m) - benchmark_udl*benchmark_span^3/(24*benchmark_modulus*benchmark_inertia)) < benchmark_rotation_tolerance;
+    abs(BeamRotation(simple_udl_beam; benchmark_span/2)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(simple_udl_beam; benchmark_span/2) - 5*benchmark_udl*benchmark_span^4/(384*benchmark_modulus*benchmark_inertia)) < benchmark_displacement_tolerance)
+
+cantilever_point_tests = and(
+    abs(BeamLeftReaction(cantilever_point_beam) - benchmark_point_load) < benchmark_force_tolerance;
+    abs(BeamFixedEndMoment(cantilever_point_beam) - benchmark_point_load*benchmark_span) < benchmark_moment_tolerance;
+    abs(BeamShear(cantilever_point_beam; benchmark_span/2) - benchmark_point_load) < benchmark_force_tolerance;
+    abs(BeamMoment(cantilever_point_beam; benchmark_span/2) - benchmark_point_load*benchmark_span/2) < benchmark_moment_tolerance;
+    abs(BeamRotation(cantilever_point_beam; 0m)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(cantilever_point_beam; 0m)) < benchmark_displacement_tolerance;
+    abs(BeamRotation(cantilever_point_beam; benchmark_span) - benchmark_point_load*benchmark_span^2/(2*benchmark_modulus*benchmark_inertia)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(cantilever_point_beam; benchmark_span) - benchmark_point_load*benchmark_span^3/(3*benchmark_modulus*benchmark_inertia)) < benchmark_displacement_tolerance)
+
+cantilever_udl_tests = and(
+    abs(BeamLeftReaction(cantilever_udl_beam) - benchmark_udl*benchmark_span) < benchmark_force_tolerance;
+    abs(BeamFixedEndMoment(cantilever_udl_beam) - benchmark_udl*benchmark_span^2/2) < benchmark_moment_tolerance;
+    abs(BeamShear(cantilever_udl_beam; 0m) - benchmark_udl*benchmark_span) < benchmark_force_tolerance;
+    abs(BeamMoment(cantilever_udl_beam; 0m) - benchmark_udl*benchmark_span^2/2) < benchmark_moment_tolerance;
+    abs(BeamRotation(cantilever_udl_beam; benchmark_span) - benchmark_udl*benchmark_span^3/(6*benchmark_modulus*benchmark_inertia)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(cantilever_udl_beam; benchmark_span) - benchmark_udl*benchmark_span^4/(8*benchmark_modulus*benchmark_inertia)) < benchmark_displacement_tolerance)
+
+moment_reaction = benchmark_moment/benchmark_span
+moment_rotation_constant = benchmark_moment*benchmark_span/(6*benchmark_modulus*benchmark_inertia) - benchmark_moment*(benchmark_span - benchmark_moment_position)^2/(2*benchmark_modulus*benchmark_inertia*benchmark_span)
+
+simple_moment_tests = and(
+    abs(BeamLeftReaction(simple_moment_beam) - moment_reaction) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_moment_beam) + moment_reaction) < benchmark_force_tolerance;
+    abs(BeamLeftReaction(simple_moment_beam) + BeamRightReaction(simple_moment_beam)) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_moment_beam)*benchmark_span + benchmark_moment) < benchmark_moment_tolerance;
+    abs(BeamShear(simple_moment_beam; benchmark_moment_position/2) - moment_reaction) < benchmark_force_tolerance;
+    abs(BeamMomentLeftLimit(simple_moment_beam; benchmark_moment_position) - moment_reaction*benchmark_moment_position) < benchmark_moment_tolerance;
+    abs(BeamMoment(simple_moment_beam; benchmark_moment_position) - (moment_reaction*benchmark_moment_position - benchmark_moment)) < benchmark_moment_tolerance;
+    abs(BeamRotation(simple_moment_beam; 0m) - moment_rotation_constant) < benchmark_rotation_tolerance;
+    abs(BeamRotation(simple_moment_beam; benchmark_moment_position) - (moment_rotation_constant - moment_reaction*benchmark_moment_position^2/(2*benchmark_modulus*benchmark_inertia))) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(simple_moment_beam; benchmark_moment_position) - (moment_rotation_constant*benchmark_moment_position - moment_reaction*benchmark_moment_position^3/(6*benchmark_modulus*benchmark_inertia))) < benchmark_displacement_tolerance;
+    abs(BeamDeflection(simple_moment_beam; benchmark_span)) < benchmark_displacement_tolerance)
+
+simple_triangular_tests = and(
+    abs(BeamLeftReaction(simple_triangular_beam) - benchmark_triangular_peak*benchmark_span/6) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_triangular_beam) - benchmark_triangular_peak*benchmark_span/3) < benchmark_force_tolerance;
+    abs(BeamLeftReaction(simple_triangular_beam) + BeamRightReaction(simple_triangular_beam) - benchmark_triangular_peak*benchmark_span/2) < benchmark_force_tolerance;
+    abs(BeamRightReaction(simple_triangular_beam)*benchmark_span - benchmark_triangular_peak*benchmark_span^2/3) < benchmark_moment_tolerance;
+    abs(BeamShear(simple_triangular_beam; benchmark_span/2) - benchmark_triangular_peak*benchmark_span/24) < benchmark_force_tolerance;
+    abs(BeamMoment(simple_triangular_beam; benchmark_span/2) - benchmark_triangular_peak*benchmark_span^2/16) < benchmark_moment_tolerance;
+    abs(BeamRotation(simple_triangular_beam; 0m) - 7*benchmark_triangular_peak*benchmark_span^3/(360*benchmark_modulus*benchmark_inertia)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(simple_triangular_beam; benchmark_span/2) - 5*benchmark_triangular_peak*benchmark_span^4/(768*benchmark_modulus*benchmark_inertia)) < benchmark_displacement_tolerance)
+
+cantilever_triangular_tests = and(
+    abs(BeamLeftReaction(cantilever_triangular_beam) - benchmark_triangular_peak*benchmark_span/2) < benchmark_force_tolerance;
+    abs(BeamFixedEndMoment(cantilever_triangular_beam) - benchmark_triangular_peak*benchmark_span^2/3) < benchmark_moment_tolerance;
+    abs(BeamShear(cantilever_triangular_beam; 0m) - benchmark_triangular_peak*benchmark_span/2) < benchmark_force_tolerance;
+    abs(BeamMoment(cantilever_triangular_beam; 0m) - benchmark_triangular_peak*benchmark_span^2/3) < benchmark_moment_tolerance;
+    abs(BeamRotation(cantilever_triangular_beam; benchmark_span) - benchmark_triangular_peak*benchmark_span^3/(8*benchmark_modulus*benchmark_inertia)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(cantilever_triangular_beam; benchmark_span) - 11*benchmark_triangular_peak*benchmark_span^4/(120*benchmark_modulus*benchmark_inertia)) < benchmark_displacement_tolerance)
+
+alternate_unit_tests = and(
+    abs(BeamLeftReaction(alternate_unit_beam) - 5kN) < benchmark_force_tolerance;
+    abs(BeamMoment(alternate_unit_beam; 3000mm) - 15kN*m) < benchmark_moment_tolerance;
+    abs(BeamRotation(alternate_unit_beam; 3000mm)) < benchmark_rotation_tolerance;
+    abs(BeamDeflection(alternate_unit_beam; 3000mm) - 28.125mm) < benchmark_displacement_tolerance)
+
+all_tests_1 = and(simple_point_tests; simple_udl_tests; cantilever_point_tests; cantilever_udl_tests)
+all_tests_2 = and(simple_moment_tests; simple_triangular_tests; cantilever_triangular_tests; alternate_unit_tests)
+all_tests = and(all_tests_1; all_tests_2)
