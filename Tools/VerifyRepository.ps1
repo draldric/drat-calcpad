@@ -187,6 +187,7 @@ function Test-ApiVersions {
 }
 
 function Test-DistributionTooling {
+    $distributionPassMarker = '[PASS] Distribution archive, declaration-backed metadata and hashes, overlap rejection, retained update, stable Current path, and moved current-version projects.'
     $distributionTestPath = Join-Path $script:repositoryRoot 'Tests\Distribution\DISTRIBUTION_TEST.ps1'
     if (-not (Test-Path -LiteralPath $distributionTestPath -PathType Leaf)) {
         Add-VerificationFailure -Message 'Tests\Distribution\DISTRIBUTION_TEST.ps1 is missing.'
@@ -205,6 +206,11 @@ function Test-DistributionTooling {
     $testExitCode = $LASTEXITCODE
     if ($testExitCode -ne 0) {
         Add-VerificationFailure -Message ('Distribution verification failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+    $testOutputText = @($testOutput | ForEach-Object { $_.ToString() })
+    if (-not ($testOutputText -contains $distributionPassMarker)) {
+        Add-VerificationFailure -Message 'Distribution verification exited successfully without its final PASS marker.'
         return
     }
 
@@ -463,6 +469,7 @@ function Test-CiConfiguration {
         'full checkout history' = '(?m)^\s{10}fetch-depth:\s*0\s*$'
         'immutable checkout pin' = '(?m)^\s{8}uses:\s*actions/checkout@[0-9a-f]{40}\s+#\s+v\d+\.\d+\.\d+\s*$'
         'changed-file whitespace check' = 'git diff --check'
+        'clean-checkout guard' = 'git status --porcelain --untracked-files=all'
         'hosted verifier command' = '(?m)^\s*\./Tools/VerifyRepository\.ps1\s+-SkipCalcPad\s*$'
         'job summary boundary' = 'GITHUB_STEP_SUMMARY'
         'CalcPad skip disclosure' = 'It did not execute CalcPad CE'

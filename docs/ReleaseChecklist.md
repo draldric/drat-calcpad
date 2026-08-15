@@ -57,4 +57,9 @@
 - [ ] Publish release notes and the compatibility matrix.
 - [ ] Tag the merged release commit.
 - [ ] Run `Tests/Distribution/DISTRIBUTION_TEST.ps1`.
-- [ ] Test the archive installer and portable-project generator in a clean user-controlled directory.
+- [ ] Confirm the archive inventory and manifest cover every packaged file and library with matching SHA-256 hashes, Core and component APIs, identities, revisions, and required or optional compatibility ranges.
+- [ ] Confirm a prior version remains unchanged after update and the stable `Current` marker and manifest identify the new version.
+- [ ] Confirm build, package/install, and installation/project source-destination overlaps are rejected before copying, including junction aliases and uncreated descendants of aliased paths.
+- [ ] Generate Core-only and Materials-enabled projects from the newly installed `Current`, move both, and confirm neither worksheet nor metadata contains a development, installation, package, or absolute include path.
+- [ ] Confirm Materials project creation rejects a missing manifest entry or missing physical `EngineeringMaterials.cpd` before writing the project destination.
+- [ ] Run the distribution test with `-CalcPadCli` and confirm both moved projects render after their installation and extracted-package paths are unavailable.

@@ -24,6 +24,7 @@ This covers:
 - the workflow's own hosted-verification contract.
 
 Repository branch protection can require `Repository verification / Windows static and distribution verification` before merging into `develop` or `main`.
+The job rejects a checkout that is dirty before verification or becomes dirty during verification, so its distribution result is tied to the exact clean commit under review.
 
 ## CalcPad qualification boundary
 
