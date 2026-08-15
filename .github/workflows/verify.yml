@@ -56,9 +56,15 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) {
+              throw 'Hosted verification did not start from a clean checkout.'
+          }
           ./Tools/VerifyRepository.ps1 -SkipCalcPad
           if ($LASTEXITCODE -ne 0) {
               throw 'Hosted repository verification failed.'
+          }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) {
+              throw 'Hosted verification modified the clean checkout.'
           }
 
       - name: Record CalcPad qualification boundary

@@ -18,6 +18,13 @@ This table summarizes the currently supported package combination.
 | Review Summary | `10000` | Bundled with Core 4.1.2 |
 | Plotting | `30200` | Bundled with Core 4.1.2 and network access for Plotly |
 | Engineering Materials | 1.4.0 | Core `10000–49999`, DataWrapper `302–999`, Plotting `30200–39999` |
+| Beam Analysis | 0.6.0 | Core `10000–49999`, DataWrapper `302–999`, Checks `10200–29999`; Plotting `30200–39999` is optional and gates diagram helpers |
+| AISC W Shapes | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |
+| AISC HSS | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |
+| AISC Channels | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |
+| AISC Single Angles | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |
 
 Library compatibility guards are evaluated by CalcPad when the library is loaded.
 An incompatible library skips its body and renders a load error instead of continuing with undefined or incompatible helpers.
+Distribution manifest schema 2 records mandatory guards under each library's `requirements` object and feature-specific guards under `optional_requirements`.
+The installer and qualification test compare those ranges, component APIs, versions, library identities, and revisions against the packaged CalcPad declarations.

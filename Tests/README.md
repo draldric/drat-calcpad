@@ -6,7 +6,7 @@ CalcPad regression worksheets are grouped by the behavior they protect.
 - `Libraries/Analysis/` verifies reusable analysis models and response helpers.
 - `Libraries/Materials/` verifies engineering-material data integrity and selection behavior.
 - `Libraries/Steel/` verifies structural-section datasets and lookup contracts.
-- `Distribution/` verifies packaging, installation, updates, and portable projects.
+- `Distribution/` verifies exact archive and declaration-backed manifest contents, metadata and file tamper rejection, physical path-overlap rejection through junction aliases, optional-library preflight, retained version updates, the stable `Current` path, and moved current-version Core-only and optional-library projects.
 - `FailureModes/` verifies one-to-one expected CalcPad diagnostics for incompatible APIs, missing dependencies, and incompatible engineering units, including a temporary patched-Core mirror for Plotting-API guards.
 - `Tooling/` verifies repository-audit parsers and enforcement rules without requiring CalcPad.
 
@@ -36,6 +36,10 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Libraries/Steel/AiscAngleSectionsTest.cpd` | Single-angle data, property lookup, and selection. |
 | `Tooling/PublicApiAuditTest.ps1` | Multiline-macro assignment parsing and module-namespace classification. |
 | `FailureModes/FailureModeRuntimeTest.ps1` | Expected compatibility, dependency, and native incompatible-unit diagnostics from a one-to-one negative fixture specification. |
+
+`Distribution/DISTRIBUTION_TEST.ps1` is a PowerShell workflow test rather than a CalcPad worksheet.
+It uses only tools copied into the extracted package after the initial build and accepts `-CalcPadCli` to render both relocated portable-project variants.
+Native launch failures terminate the test, and repository verification requires the distribution test's final PASS marker.
 
 A test remains relevant only while it protects a maintained public behavior, dataset invariant, compatibility guard, or rendering boundary.
 When behavior is removed or consolidated, remove or consolidate its tests in the same change.
