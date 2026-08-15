@@ -1,5 +1,5 @@
 #hide
-'<!-- Worksheet formatting definitions. Version 2.0.0. -->
+'<!-- Worksheet formatting definitions. Version 2.1.0. -->
 
 '<!-- Print and spacing helpers. -->
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -78,7 +78,8 @@
     '</table>
 #end def
 #def BeginListSection$(heading$)
-    '#### heading$
+    '<section class="list-section">
+    '<div class="list-section-label"><strong>heading$</strong></div>
     '<ul>
 #end def
 #def AddListItem$(item$)
@@ -86,9 +87,9 @@
 #end def
 #def EndListSection$
     '</ul>
+    '</section>
 #end def
 #def BeginVariables$
-    '### List of Variables
     #noc
     '<table class="bordered" style="width:95%">
     '<thead>
@@ -106,7 +107,6 @@
 #end def
 
 #def BeginConclusions$
-    '### Conclusions
     '<div class="conclusions">
 #end def
 #def AddConclusion$(label$; value$)

@@ -29,7 +29,7 @@ This keeps an unfinished worksheet distinct from a valid calculation that fails 
 
 `ReviewStatus` combines calculation status with reporting status.
 `ReviewReadyForCheck` accepts `REVIEW_READY` and `REVIEW_ATTENTION`; `ReviewReadyForIssue` accepts only `REVIEW_READY`.
-`ShowDocumentReviewSummary$` renders the state, readiness flags, issue counts, and links back to stored issue rows.
+`ShowDocumentReviewSummary$` renders the state, readiness flags, issue counts, and links back to stored issue rows. The worksheet supplies its heading.
 
 ## Engineering checks
 

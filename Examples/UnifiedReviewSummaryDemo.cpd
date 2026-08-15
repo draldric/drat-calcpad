@@ -36,9 +36,13 @@ EndRevisions$
 
 "Design Basis
 
+'#### References
+
 BeginReferences$
 AddReference$(REF_STANDARD; Demonstration standard; Capacity requirements; 1; Clause 1; Valid source record.)
 EndReferences$
+
+'#### Design Criteria
 
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_CAPACITY; Capacity criterion; Demand must not exceed capacity.; 99; Clause 1; The unknown source link is intentional.)
@@ -77,6 +81,9 @@ EndCheckRegistryWithSummary$
 "Review and Issue Decision
 
 ShowCalculationStatusFromRegistries$
+
+'#### Document Review Summary
+
 ShowDocumentReviewSummary$
 
 "Conclusions

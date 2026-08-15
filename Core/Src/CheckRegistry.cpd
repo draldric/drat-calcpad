@@ -1,5 +1,5 @@
 #hide
-'<!-- Structured engineering check-result registry. Version 1.0.0. -->
+'<!-- Structured engineering check-result registry. Version 1.1.0. -->
 
 CHECK_REG_OK = 0
 CHECK_REG_ERR_BAD_REGISTRY = 10
@@ -234,7 +234,6 @@ EngineeringCheckRegistryErrors = [CHECK_REG_OK]
     ζCHECK_registry_count = CheckResultRegistryCount(EngineeringCheckRegistry)
     #show
     '<section class="check-issues">
-    '<h4>Items Requiring Review</h4>
     #if ζCHECK_issue_count ≡ 0
         '<p class="ok">No warning, failure, or error checks were registered.</p>
     #else

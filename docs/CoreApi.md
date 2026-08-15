@@ -14,18 +14,18 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `40102` | Complete generated-Core API |
-| `DRAT_DEFINITIONS_API` | `20000` | Worksheet reporting definitions |
-| `DRAT_STYLESHEET_API` | `10800` | Shared rendered styles |
+| `DRAT_CORE_API` | `40200` | Complete generated-Core API |
+| `DRAT_DEFINITIONS_API` | `20100` | Worksheet reporting definitions |
+| `DRAT_STYLESHEET_API` | `10900` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
 | `DRAT_DATA_WRAPPER_API` | `303` | Numeric property and curve wrapper |
 | `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
-| `DRAT_CHECK_REGISTRY_API` | `10000` | Structured engineering-check registry and reporting |
+| `DRAT_CHECK_REGISTRY_API` | `10100` | Structured engineering-check registry and reporting |
 | `DRAT_DATABASE_API` | `10000` | General table and metadata lookups |
-| `DRAT_VALIDATION_API` | `20000` | Structured input validation and result registry |
+| `DRAT_VALIDATION_API` | `20100` | Structured input validation and result registry |
 | `DRAT_CALCULATION_STATUS_API` | `20000` | Document-level calculation status |
-| `DRAT_REPORTING_API` | `20001` | Structured report registries |
-| `DRAT_REVIEW_SUMMARY_API` | `10000` | Unified document-review summary |
+| `DRAT_REPORTING_API` | `20100` | Structured report registries |
+| `DRAT_REVIEW_SUMMARY_API` | `10100` | Unified document-review summary |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
 `DBWrapperName$` and `DBWrapperVersion$` identify the bundled DataWrapper implementation.
@@ -57,11 +57,12 @@ The worksheet must first define the `$` macros used by the header, including `Or
 | Begin | Row/item | End | Result |
 | --- | --- | --- | --- |
 | `BeginRevisions$` | `AddRevision$(revision; description; author; date)` | `EndRevisions$` | Revision-history table |
-| `BeginListSection$(heading)` | `AddListItem$(item)` | `EndListSection$` | H4 subsection list |
-| `BeginVariables$` | `AddVariable$(symbol; description; units)` | `EndVariables$` | Rendered variable table |
-| `BeginConclusions$` | `AddConclusion$(label; value)` | `EndConclusions$` | Conclusions block |
+| `BeginListSection$(label)` | `AddListItem$(item)` | `EndListSection$` | Labelled list without a document heading |
+| `BeginVariables$` | `AddVariable$(symbol; description; units)` | `EndVariables$` | Variable table without a document heading |
+| `BeginConclusions$` | `AddConclusion$(label; value)` | `EndConclusions$` | Conclusions container without a document heading |
 
 `AddValidationConclusion$(label; status)` and `AddCheckConclusion$(label; status)` add rendered statuses to an open conclusions block.
+Except for the cover-page document-control helpers, Core macros do not emit H1-H6 elements. The worksheet owns its report hierarchy and must place the appropriate Markdown heading before each table, summary, or container.
 
 ## Reporting registries
 
@@ -92,22 +93,27 @@ CRITERION_STRENGTH = 1
 ASSUMPTION_STATIC = 1
 LIMITATION_TEMPERATURE = 1
 
+'## References
 BeginReferences$
 AddReference$(REF_STANDARD; CSA S16; Design of steel structures; 2024; Clause 13; Governing resistance standard.)
 EndReferences$
 
+'#### Design Criteria
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_STRENGTH; Member resistance; Demand must not exceed resistance.; REF_STANDARD; Clause 13; Use the applicable resistance equation.)
 EndDesignCriteria$
 
+'#### Assumptions
 BeginAssumptions$
 AddAssumption$(ASSUMPTION_STATIC; Loading; Loads are static.; Dynamic effects are outside the defined scope.; RPT_NO_REFERENCE)
 EndAssumptions$
 
+'#### Applicability and Limitations
 BeginLimitations$
 AddLimitation$(LIMITATION_TEMPERATURE; Room-temperature properties only.; Elevated-temperature behavior is excluded.; Reassess for elevated temperature.; RPT_NO_REFERENCE)
 EndLimitations$
 
+'#### Reporting Registry Summary
 ShowReportingSummary$
 ```
 
@@ -164,7 +170,7 @@ Its precedence is registry or calculation error, blocked calculation, warning re
 `ReviewValidationIssueCount`, `ReviewCheckIssueCount`, `ReviewReportingIssueCount`, and `ReviewTotalIssueCount` provide auditable issue counts.
 `ReviewReadyForCheck` accepts ready and attention states; `ReviewReadyForIssue` accepts only the ready state.
 `ReviewStatusKnown` validates the aggregate status, while `ReviewStatus$` and `ReviewReadiness$` render the status and yes/no readiness labels used by report macros.
-`ShowDocumentReviewSummary$` derives all inputs from the global registries, renders both readiness decisions, and links each stored issue back to its source row.
+`ShowDocumentReviewSummary$` derives all inputs from the global registries, renders both readiness decisions, and links each stored issue back to its source row. The calling worksheet supplies the section or subsection heading.
 See [`Examples/UnifiedReviewSummaryDemo.cpd`](../Examples/UnifiedReviewSummaryDemo.cpd) and [`Tests/Core/ReviewSummaryTest.cpd`](../Tests/Core/ReviewSummaryTest.cpd).
 
 ## Engineering checks

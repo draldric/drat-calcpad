@@ -424,6 +424,32 @@ function Test-ArtifactConventions {
         }
     }
 
+    $coverHeadingMacros = @('CreateHeader$', 'CreateTitle$', 'CreatePurpose$', 'CreateScope$', 'BeginRevisions$')
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Core\Src') -File -Filter '*.cpd' | Sort-Object Name) {
+        $activeMacro = $null
+        $lineNumber = 0
+        foreach ($line in [System.IO.File]::ReadAllLines($file.FullName)) {
+            $lineNumber++
+            $definitionMatch = [regex]::Match($line, '^\s*#def\s+(?<name>[A-Za-z][A-Za-z0-9]*\$)')
+            if ($definitionMatch.Success) {
+                $activeMacro = $definitionMatch.Groups['name'].Value
+            }
+
+            if ($null -ne $activeMacro) {
+                $trimmedLine = $line.TrimStart()
+                $emitsHtmlHeading = [regex]::IsMatch($line, "'<h[1-6](?:\s|>)", [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+                $emitsMarkdownHeading = [regex]::IsMatch($line, "^\s*'#{1,6}\s") -or $trimmedLine.StartsWith('"', [System.StringComparison]::Ordinal)
+                if (($emitsHtmlHeading -or $emitsMarkdownHeading) -and $activeMacro -notin $coverHeadingMacros) {
+                    Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName):$lineNumber emits an H1-H6 heading from non-cover macro $activeMacro. Worksheet source must own the report hierarchy."
+                }
+            }
+
+            if ([regex]::IsMatch($line, '^\s*#end\s+def\s*$') -or ($definitionMatch.Success -and $line.Contains('='))) {
+                $activeMacro = $null
+            }
+        }
+    }
+
     $generalTemplateText = [System.IO.File]::ReadAllText($generalTemplate)
     $generalTemplateRequirements = @(
         'BeginReferences$',
@@ -439,6 +465,21 @@ function Test-ArtifactConventions {
     foreach ($requiredMacro in $generalTemplateRequirements) {
         if (-not $generalTemplateText.Contains($requiredMacro)) {
             Add-VerificationFailure -Message "Templates\EngineeringCalculationTemplate.cpd is missing required workflow macro $requiredMacro."
+        }
+    }
+
+    $generalTemplateHeadingRequirements = @(
+        "'## References",
+        "'#### Design Criteria",
+        "'#### Assumptions",
+        "'#### Applicability and Limitations",
+        "'#### Reporting Registry Summary",
+        '"Definitions and Variables',
+        '"Conclusions'
+    )
+    foreach ($requiredHeading in $generalTemplateHeadingRequirements) {
+        if (-not $generalTemplateText.Contains($requiredHeading)) {
+            Add-VerificationFailure -Message "Templates\EngineeringCalculationTemplate.cpd is missing caller-owned heading $requiredHeading."
         }
     }
 

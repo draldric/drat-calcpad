@@ -74,6 +74,9 @@ AddValidationResult$(INPUT_PROVIDED_THICKNESS; Provided thickness; provided_thic
 AddValidationResult$(INPUT_INTERACTION; Interaction utilization; interaction_validation)
 AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
 EndValidationResults$
+
+'#### Input Items Requiring Review
+
 ShowValidationIssues$
 
 #hide
@@ -91,9 +94,14 @@ AddLowerCheck$(CHECK_MINIMUM_THICKNESS; Minimum supplied thickness; required_thi
 AddCustomCheck$(CHECK_INTERACTION; Combined interaction; interaction_utilization; 1; interaction_utilization; warning_threshold; Combined interaction ≤ 1.0; CheckStatus(interaction_utilization; warning_threshold))
 EndCheckRegistryWithSummary$
 
+'#### Items Requiring Review
+
 ShowCheckIssues$
 
 ShowCalculationStatusFromRegistries$
+
+'#### Document Review Summary
+
 ShowDocumentReviewSummary$
 
 "Registry Query Examples
