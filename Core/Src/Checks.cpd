@@ -19,6 +19,7 @@ CheckUtilizationOK(utilization) = and(utilization ≡ utilization; utilization �
 
 CheckStatus(utilization; warning_threshold) = switch(not(CheckWarningThresholdOK(warning_threshold)); CHK_ERROR; not(CheckUtilizationOK(utilization)); CHK_ERROR; utilization > 1; CHK_FAIL; utilization ≥ warning_threshold; CHK_WARN; CHK_PASS)
 
+'<!-- CalcPad raises incompatible-unit errors while forming demand/capacity; getunits does not provide a safely comparable dimension token, so that engine error cannot be converted to CHK_ERROR inside these functions. -->
 CheckUpperUtilization(demand; capacity) = if(clrunits(capacity) > 0; abs(demand)/capacity; 0/0)
 CheckUpperStatus(demand; capacity; warning_threshold) = if(clrunits(capacity) > 0; CheckStatus(CheckUpperUtilization(demand; capacity); warning_threshold); CHK_ERROR)
 

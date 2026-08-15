@@ -110,3 +110,8 @@ See the [library-authoring guide](LibraryAuthoring.md) for the full contract.
 - Public Core helper documentation, implementation-helper inventory, and intentional definition-only entry points.
 
 Manual CalcPad CE GUI review remains necessary for print layout, pagination, table alignment, browser controls, and Plotly behavior.
+
+CalcPad CE does not expose a catchable predicate for arbitrary dimensional compatibility.
+Its documented `getunits` function returns a unit-valued expression, but comparing that expression with a unitless value raises `Inconsistent units` before a custom function can branch or return `CHK_ERROR`; clearing the units also removes the dimensional identity needed for the test.
+Consequently, incompatible demand/capacity units and unit-bearing numeric metadata remain an explicit engine boundary: maintained negative fixtures must assert CalcPad's native unit diagnostic and confirm that no check or model status is rendered.
+A release criterion requiring those cases to return `CHK_ERROR` before division is not currently satisfiable and must be revised rather than reported as met, unless CalcPad adds a safe compatibility predicate.

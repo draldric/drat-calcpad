@@ -7,6 +7,7 @@ CalcPad regression worksheets are grouped by the behavior they protect.
 - `Libraries/Materials/` verifies engineering-material data integrity and selection behavior.
 - `Libraries/Steel/` verifies structural-section datasets and lookup contracts.
 - `Distribution/` verifies packaging, installation, updates, and portable projects.
+- `FailureModes/` verifies one-to-one expected CalcPad diagnostics for incompatible APIs, missing dependencies, and incompatible engineering units, including a temporary patched-Core mirror for Plotting-API guards.
 - `Tooling/` verifies repository-audit parsers and enforcement rules without requiring CalcPad.
 
 Every `.cpd` test declares a `TEST PURPOSE`.
@@ -18,6 +19,7 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Core/ChecksTest.cpd` | Utilization, classification, units, gating, aggregation, and engineering-check registries. |
 | `Core/DatabaseTest.cpd` | Safe columns, table lookups, missing values, fallbacks, and database registries. |
 | `Core/DataWrapperTest.cpd` | Property-wrapper aliases, values, statuses, metadata, interpolation, and bounds policies. |
+| `Core/FailureModesTest.cpd` | Empty, malformed, duplicate, missing, corrupt, and non-finite Core inputs, including review-status propagation. |
 | `Core/PlottingTest.cpd` | Deterministic minimal plotting workflow and CalcPad generation. |
 | `Core/PlottingBrowserDiagnostic.cpd` | Browser JavaScript execution and Plotly CDN loading. |
 | `Core/ReportingTest.cpd` | Report-registry shapes, links, summaries, and invalid registration attempts. |
@@ -25,6 +27,7 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Core/ValidationTest.cpd` | Scalar, vector, matrix, set, registry, and unit-aware validation. |
 | `Libraries/Analysis/BeamAnalysisTest.cpd` | Beam models, load cases, reactions, responses, extrema, diagrams, and screening helpers. |
 | `Libraries/Analysis/BeamAnalysisBenchmarkTest.cpd` | Independent equilibrium and Euler-Bernoulli benchmarks for reactions, shear, moment, rotation, deflection, sign conventions, and unit conversion. |
+| `Libraries/Analysis/BeamAnalysisFailureModesTest.cpd` | Empty load families, malformed models, invalid geometry, extreme values, accessor gating, and screening failures. |
 | `Libraries/Materials/EngineeringMaterialsTest.cpd` | Material data integrity, classification, provenance, discovery, ranking, and thresholds. |
 | `Libraries/Materials/EngineeringMaterialsPlottingTest.cpd` | Material comparison and trade-off plotting inputs. |
 | `Libraries/Steel/StructuralSectionsTest.cpd` | W-section data, aliases, property lookup, and selection. |
@@ -32,6 +35,7 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Libraries/Steel/AiscChannelSectionsTest.cpd` | C and MC channel data, aliases, statuses, and selection. |
 | `Libraries/Steel/AiscAngleSectionsTest.cpd` | Single-angle data, property lookup, and selection. |
 | `Tooling/PublicApiAuditTest.ps1` | Multiline-macro assignment parsing and module-namespace classification. |
+| `FailureModes/FailureModeRuntimeTest.ps1` | Expected compatibility, dependency, and native incompatible-unit diagnostics from a one-to-one negative fixture specification. |
 
 A test remains relevant only while it protects a maintained public behavior, dataset invariant, compatibility guard, or rendering boundary.
 When behavior is removed or consolidated, remove or consolidate its tests in the same change.

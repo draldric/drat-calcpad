@@ -1,0 +1,6 @@
+'<!-- TEST PURPOSE: Verify plotting-dependent libraries skip their plotting body and identify an incompatible Plotting API. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Materials/EngineeringMaterials.cpd
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd

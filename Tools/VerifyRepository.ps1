@@ -345,6 +345,7 @@ function Test-ArtifactConventions {
         }
     }
 
+    $expectedFailureFixtureDirectory = [System.IO.Path]::GetFullPath((Join-Path $script:repositoryRoot 'Tests\FailureModes\Fixtures')).TrimEnd('\', '/')
     $testFiles = Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests') -Recurse -File -Filter '*.cpd' | Sort-Object FullName
     foreach ($file in $testFiles) {
         $relativePath = Get-RepositoryRelativePath -Path $file.FullName
@@ -355,8 +356,17 @@ function Test-ArtifactConventions {
 
         $definesAssertion = [regex]::IsMatch($sourceText, '(?m)^\s*all_tests\s*=')
         $isBrowserDiagnostic = $sourceText.Contains('TEST TYPE: BROWSER DIAGNOSTIC')
-        if (-not $definesAssertion -and -not $isBrowserDiagnostic) {
-            Add-VerificationFailure -Message "$relativePath must define all_tests or explicitly declare itself a browser diagnostic."
+        $declaresExpectedFailure = $sourceText.Contains('TEST TYPE: EXPECTED FAILURE DIAGNOSTIC')
+        $isExpectedFailureFixture = $file.DirectoryName.Equals($expectedFailureFixtureDirectory, [System.StringComparison]::OrdinalIgnoreCase)
+        if ($declaresExpectedFailure -and -not $isExpectedFailureFixture) {
+            Add-VerificationFailure -Message "$relativePath declares an expected failure outside Tests\FailureModes\Fixtures."
+        }
+        if ($isExpectedFailureFixture -and -not $declaresExpectedFailure) {
+            Add-VerificationFailure -Message "$relativePath is an expected-failure fixture but does not declare TEST TYPE: EXPECTED FAILURE DIAGNOSTIC."
+        }
+        $isExpectedFailureDiagnostic = $declaresExpectedFailure -and $isExpectedFailureFixture
+        if (-not $definesAssertion -and -not $isBrowserDiagnostic -and -not $isExpectedFailureDiagnostic) {
+            Add-VerificationFailure -Message "$relativePath must define all_tests or explicitly declare itself a maintained diagnostic."
         }
     }
 
@@ -746,7 +756,8 @@ function Test-CalcPadWorksheets {
     New-Item -ItemType Directory -Path $script:calcPadOutputRoot | Out-Null
 
     $worksheetFiles = [System.Collections.Generic.List[object]]::new()
-    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests') -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
+    $failureFixtureRoot = [System.IO.Path]::GetFullPath((Join-Path $script:repositoryRoot 'Tests\FailureModes\Fixtures')).TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+    foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Tests') -Recurse -File -Filter '*.cpd' | Where-Object { -not $_.FullName.StartsWith($failureFixtureRoot, [System.StringComparison]::OrdinalIgnoreCase) } | Sort-Object FullName) {
         $worksheetFiles.Add([pscustomobject]@{ Kind = 'test'; File = $file })
     }
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Examples') -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
@@ -787,12 +798,54 @@ function Test-CalcPadWorksheets {
             'Undefined variable or units',
             'Invalid syntax:',
             'Parser error',
+            'Unexpected error:',
             'ζMAT_'
         )
         $matchedError = $errorPatterns | Where-Object { $html.Contains($_) } | Select-Object -First 1
         if ($null -ne $matchedError) {
             Add-VerificationFailure -Message "$relativePath contains a CalcPad parser or runtime error. Output: $outputPath"
             continue
+        }
+
+        if ($relativePath -ceq 'Tests\Core\FailureModesTest.cpd') {
+            $requiredEvidence = @(
+                'Failure-mode reference',
+                'Duplicate failure-mode reference',
+                'Missing linked reference',
+                'Span outside permitted range',
+                'Duplicate span input ID',
+                'Zero-capacity engineering check',
+                'Duplicate engineering check ID',
+                'failure-mode-corrupt-review-marker',
+                'Corrupted reporting registry review evidence')
+            foreach ($requiredText in $requiredEvidence) {
+                if (-not $html.Contains($requiredText, [System.StringComparison]::Ordinal)) {
+                    Add-VerificationFailure -Message "$relativePath did not render required failure evidence '$requiredText'."
+                }
+            }
+            foreach ($requiredId in @(501, 502, 601, 701)) {
+                if (-not [regex]::IsMatch($html, ">\s*$requiredId\s*<")) {
+                    Add-VerificationFailure -Message "$relativePath did not render failure ID $requiredId."
+                }
+            }
+            $corruptMarkerIndex = $html.IndexOf('failure-mode-corrupt-review-marker', [System.StringComparison]::Ordinal)
+            $corruptEvidence = if ($corruptMarkerIndex -ge 0) { $html.Substring($corruptMarkerIndex) } else { '' }
+            if (-not $corruptEvidence.Contains('INVALID REGISTRY', [System.StringComparison]::Ordinal) -or -not $corruptEvidence.Contains('<span class="review-status-label review-status-error">REVIEW ERROR</span>', [System.StringComparison]::Ordinal)) {
+                Add-VerificationFailure -Message "$relativePath did not render the corrupt reporting registry as a blocking review error."
+            }
+        }
+
+        if ($relativePath -ceq 'Tests\Libraries\Analysis\BeamAnalysisFailureModesTest.cpd') {
+            $beamMarkerIndex = $html.IndexOf('failure-mode-invalid-beam-marker', [System.StringComparison]::Ordinal)
+            $beamEvidence = if ($beamMarkerIndex -ge 0) { $html.Substring($beamMarkerIndex) } else { '' }
+            foreach ($requiredText in @('Invalid beam model report evidence', 'Sampled extrema', 'Screening check', 'Beam model status', '<span class="err">CHECK ERROR</span>')) {
+                if (-not $beamEvidence.Contains($requiredText, [System.StringComparison]::Ordinal)) {
+                    Add-VerificationFailure -Message "$relativePath did not render required invalid-model evidence '$requiredText'."
+                }
+            }
+            if ($beamEvidence.Contains('<span class="ok">PASS</span>', [System.StringComparison]::Ordinal)) {
+                Add-VerificationFailure -Message "$relativePath rendered a passing screening status for an invalid beam model."
+            }
         }
 
         $sourceText = [System.IO.File]::ReadAllText($worksheet.File.FullName)
@@ -815,6 +868,41 @@ function Test-CalcPadWorksheets {
 
     if ($script:verificationFailures.Count -eq $startingFailureCount) {
         Write-Output "[PASS] CalcPad generated $($worksheetFiles.Count) worksheets without parser/runtime errors; $assertionCount all_tests results passed."
+    }
+}
+
+function Test-FailureModeFixtures {
+    $startingFailureCount = $script:verificationFailures.Count
+    $resolvedCli = Resolve-CalcPadCli
+    if ([string]::IsNullOrWhiteSpace($resolvedCli) -or -not (Test-Path -LiteralPath $resolvedCli -PathType Leaf)) {
+        return
+    }
+
+    $testPath = Join-Path $script:repositoryRoot 'Tests\FailureModes\FailureModeRuntimeTest.ps1'
+    if (-not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
+        Add-VerificationFailure -Message 'Tests\FailureModes\FailureModeRuntimeTest.ps1 is missing.'
+        return
+    }
+
+    $outputRoot = if ([string]::IsNullOrWhiteSpace($script:calcPadOutputRoot)) {
+        Join-Path ([System.IO.Path]::GetTempPath()) ('drat-calcpad-verify-' + [guid]::NewGuid().ToString('N'))
+    }
+    else {
+        Join-Path $script:calcPadOutputRoot 'failure-modes'
+    }
+    if ([string]::IsNullOrWhiteSpace($script:calcPadOutputRoot)) {
+        $script:calcPadOutputRoot = $outputRoot
+    }
+
+    $powerShellPath = (Get-Process -Id $PID).Path
+    $testOutput = & $powerShellPath -NoProfile -File $testPath -CalcPadCli $resolvedCli -OutputRoot $outputRoot 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Negative CalcPad failure-mode fixtures failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+
+    if ($script:verificationFailures.Count -eq $startingFailureCount) {
+        $testOutput | ForEach-Object { Write-Output $_.ToString() }
     }
 }
 
@@ -851,6 +939,7 @@ if ($SkipCalcPad) {
 }
 else {
     Test-CalcPadWorksheets
+    Test-FailureModeFixtures
 }
 
 if ($verificationFailures.Count -eq 0) {

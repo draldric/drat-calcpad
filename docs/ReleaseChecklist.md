@@ -28,6 +28,8 @@
 - [ ] Confirm every example has one end-user purpose, a defined scope, the standard report structure, and a conclusion.
 - [ ] Confirm the general template and every affected specialized template remain usable starting points.
 - [ ] Run `pwsh -File Tools/VerifyRepository.ps1` with the CalcPad CE CLI.
+- [ ] Confirm all negative failure-mode fixtures report the expected compatibility, dependency, or incompatible-unit diagnostic.
+- [ ] Treat CalcPad's native `Inconsistent units` diagnostic as the release boundary for arbitrary dimension mismatches; do not claim that `CHK_ERROR` is returned before evaluation unless the engine provides a safe unit-compatibility predicate.
 - [ ] Confirm every Core `all_tests` value is true.
 - [ ] Render every changed example in the CalcPad CE GUI.
 - [ ] Render `Templates/EngineeringCalculationTemplate.cpd`.

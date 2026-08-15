@@ -1,0 +1,11 @@
+'<!-- TEST PURPOSE: Verify maintained libraries reject an incompatible Core API and identify the required dependency. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+DRAT_CORE_API = 50000
+
+#include ../../../Libraries/Materials/EngineeringMaterials.cpd
+#include ../../../Libraries/Steel/StructuralSections.cpd
+#include ../../../Libraries/Steel/AiscHssSections.cpd
+#include ../../../Libraries/Steel/AiscChannelSections.cpd
+#include ../../../Libraries/Steel/AiscAngleSections.cpd
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd

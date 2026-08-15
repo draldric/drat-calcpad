@@ -1,0 +1,9 @@
+'<!-- TEST PURPOSE: Verify a unit-bearing beam record count stops with CalcPad's native unit diagnostic instead of producing a model status. -->
+'<!-- TEST TYPE: EXPECTED FAILURE DIAGNOSTIC -->
+
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Analysis/BeamAnalysis.cpd
+
+valid_count_beam = BeamModel(BEAM_SIMPLE_SUPPORTED; 6m; 200GPa; 8*10^-6m^4)
+unit_count_beam = join(first(valid_count_beam; BEAM_MODEL_HEADER_LENGTH); join([1m]; last(valid_count_beam; len(valid_count_beam) - BEAM_MODEL_HEADER_LENGTH - 1)))
+unit_count_status = BeamModelStatus(unit_count_beam)

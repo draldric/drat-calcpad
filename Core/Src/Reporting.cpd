@@ -1,5 +1,5 @@
 #hide
-'<!-- Structured engineering-report registries. Version 2.0.0. -->
+'<!-- Structured engineering-report registries. Version 2.0.1. -->
 
 RPT_OK = 0
 RPT_ERR_BAD_REGISTRY = 10
@@ -59,12 +59,18 @@ ReportLinkedRegistryReference(registry; id) = if(ReportLinkedRegistryShapeOK(reg
 ReportEntryTypeKnown(entry_type) = or(entry_type ≡ RPT_ENTRY_REFERENCE; entry_type ≡ RPT_ENTRY_CRITERION; entry_type ≡ RPT_ENTRY_ASSUMPTION; entry_type ≡ RPT_ENTRY_LIMITATION)
 ReportErrorRegistryEmpty = join_rows([0; 0; RPT_OK; 0])
 '<!-- Attempt records include successful and failed calls so error links can return to the exact rendered source row rather than only the entry ID. -->
-ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; RPT_ATTEMPT_SEQUENCE)) ≡ 0)
+ReportErrorRegistryShapeOK(errors) = and(n_cols(errors) ≡ RPT_ATTEMPT_COLUMNS; n_rows(errors) ≥ 1; take(1; col(errors; min(n_cols(errors); RPT_ATTEMPT_SEQUENCE))) ≡ 0)
 ReportErrorRegistryAttemptCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - 1; 0)
 ReportErrorRecord(entry_type; id; status; sequence) = join_rows([entry_type; id; status; sequence])
 ReportErrorRegistryAdd(errors; entry_type; id; status) = stack(errors; ReportErrorRecord(entry_type; id; status; ReportErrorRegistryAttemptCount(errors) + 1))
 ReportErrorRegistryCount(errors) = if(ReportErrorRegistryShapeOK(errors); n_rows(errors) - count(col(errors; RPT_ATTEMPT_STATUS); RPT_OK; 1); 1)
-ReportErrorRegistryStatus(errors) = if(ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(col(errors; RPT_ATTEMPT_STATUS)))
+ReportErrorRegistryStatus(errors) = _
+$block{
+    safe_status_column = min(max(RPT_ATTEMPT_STATUS; 1); n_cols(errors));
+    safe_statuses = col(errors; safe_status_column);
+    status = switch(not(ReportErrorRegistryShapeOK(errors)); RPT_ERR_BAD_REGISTRY; ReportErrorRegistryCount(errors) ≡ 0; RPT_OK; max(safe_statuses));
+    status;
+}
 ReportErrorRegistryTypeAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_TYPE); max(ReportErrorRegistryAttemptCount(errors); 1)))
 ReportErrorRegistryIDAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_ID); max(ReportErrorRegistryAttemptCount(errors); 1)))
 ReportErrorRegistryStatusAt(errors; index) = take(index; last(col(errors; RPT_ATTEMPT_STATUS); max(ReportErrorRegistryAttemptCount(errors); 1)))
