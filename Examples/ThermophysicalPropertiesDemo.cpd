@@ -21,7 +21,6 @@ CreateHeader$
 CreateTitle$
 CreatePurpose$
 CreateScope$
-
 #hide
 REF_COOLPROP_SAMPLE = 1
 ASSUMPTION_SAMPLE_BASIS = 1
@@ -59,7 +58,6 @@ ShowThermoFluidRecord$(THERMO_WATER)
 ShowThermoFluidRecord$(THERMO_EG_50)
 
 "Property Query
-
 #hide
 T_query = 60°C
 m_dot = 2kg/s
