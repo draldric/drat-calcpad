@@ -13,6 +13,7 @@ Every example is a focused, end-user-facing worksheet that uses the standard rep
 | `PropertyLibraryDemo.cpd` | Exercise the property-library template's aliases, units, statuses, and bounds policies. |
 | `ReportingRegistriesDemo.cpd` | Register references, criteria, assumptions, limitations, and their source relationships. |
 | `StructuralSectionsDemo.cpd` | Apply a consistent discovery and geometric-screening workflow across supported AISC shape families. |
+| `ThermophysicalPropertiesDemo.cpd` | Query traceable water and 50% ethylene-glycol properties and use a returned value in a thermal calculation. |
 | `UnifiedReviewSummaryDemo.cpd` | Consolidate validation, check, and reporting issues into document readiness decisions. |
 | `ValidationRegistryDemo.cpd` | Register input-validation results and query aggregate status and issue information. |
 

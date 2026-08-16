@@ -9,11 +9,14 @@ Core/Src/                         Maintained Core modules
         └─ Tools/BuildCore.ps1
 Core/DratCore.cpd                 Generated, distributable Core bundle
 Libraries/                        Optional engineering data libraries
+Libraries/Thermophysical/Data/   Maintained raw property data
+Libraries/Thermophysical/*.cpd   Generated runtime library
 Templates/                        General calculation and categorized specialized templates
 Examples/                         Complete supported workflows
 Tests/Core/                       Deterministic Core regression worksheets
 Tests/Libraries/                  Deterministic library regression worksheets
 Tools/VerifyRepository.ps1       Static and CalcPad verification entry point
+Tools/GenerateThermophysical...  Raw-data validation and library generation
 ```
 
 Edit modules under `Core/Src/`.
@@ -90,6 +93,7 @@ They must:
 - Return a value and a separate status.
 - Preserve missing data as `DB_MISSING` internally and return non-finite values for fatal public lookups.
 - Report library revision, data source, and dataset revision.
+- Keep imported or sampled raw data separate from generated CalcPad source and validate its schema before generation.
 - Skip their body and render a compatibility message when a required API is incompatible.
 
 See the [library-authoring guide](LibraryAuthoring.md) for the full contract.
@@ -99,6 +103,7 @@ See the [library-authoring guide](LibraryAuthoring.md) for the full contract.
 `Tools/VerifyRepository.ps1` checks:
 
 - Generated-Core freshness.
+- Thermophysical raw-data schema tests and generated-library freshness.
 - Core and component API declarations.
 - Include existence, casing, location, and directness.
 - Git whitespace errors.

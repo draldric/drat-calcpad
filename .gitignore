@@ -2,5 +2,7 @@
 *.pdf
 *.bak
 *.tmp
+*.pyc
+__pycache__/
 .vscode/
 /artifacts/

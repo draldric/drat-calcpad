@@ -1,0 +1,107 @@
+#md on
+#include ../Core/DratCore.cpd
+#include ../Libraries/Thermophysical/ThermophysicalProperties.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = THERMAL PROPERTY WORKFLOW DEMONSTRATION
+#def Title$ = WATER AND ETHYLENE GLYCOL PROPERTY LOOKUPS
+#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE THERMOPHYSICAL PROPERTY LOOKUPS, RANGE STATUS REPORTING, AND USE OF THE RESULT IN A SIMPLE HEAT-CAPACITY-RATE CALCULATION.
+#def Scope$ = QUERY THE INITIAL WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES FROM 10 DEG C THROUGH 95 DEG C. GENERAL PRESSURE, PHASE, CONCENTRATION, AND EQUATION-OF-STATE CALCULATIONS ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-THERMO-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-15
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+#hide
+REF_COOLPROP_SAMPLE = 1
+ASSUMPTION_SAMPLE_BASIS = 1
+LIMITATION_RANGE = 1
+LIMITATION_MODEL = 2
+#show
+
+BeginRevisions$
+AddRevision$(0; Initial thermophysical-property library demonstration; EXAMPLE AUTHOR; 2026-08-15)
+EndRevisions$
+
+BeginReferences$
+AddReference$(REF_COOLPROP_SAMPLE; CoolProp thermophysical property engine; Water and INCOMP::MEG-50% sampled curves; SMath plugin build 6.4.8214.13502; 10 deg C through 95 deg C; Migration baseline captured from the source tank-heating worksheet.)
+EndReferences$
+
+"Basis and Limitations
+
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_SAMPLE_BASIS; Property basis; The sample fluid is 50 percent ethylene glycol by mass and the query temperature is within the committed data range.; The demonstration reproduces the captured CoolProp sample curves without changing their values.; REF_COOLPROP_SAMPLE)
+EndAssumptions$
+
+BeginLimitations$
+AddLimitation$(LIMITATION_RANGE; The initial dataset covers only 10 deg C through 95 deg C.; Requests outside that range return a fatal status and an undefined property value.; Regenerate or extend the approved source data instead of extrapolating for design use.; REF_COOLPROP_SAMPLE)
+AddLimitation$(LIMITATION_MODEL; This revision is not a general equation-of-state or phase-equilibrium engine.; Arbitrary pressure concentration phase and fluid queries are unsupported.; Confirm that the selected fluid and property curve matches the engineering state being modeled.; REF_COOLPROP_SAMPLE)
+EndLimitations$
+
+"Dataset Summary
+
+ShowThermoDatasetSummary$
+ShowThermoSourceRecord$(THERMO_SRC_COOLPROP_SMATH)
+
+"Available Fluids
+
+ShowThermoFluidRecord$(THERMO_WATER)
+ShowThermoFluidRecord$(THERMO_EG_50)
+
+"Property Query
+
+#hide
+T_query = 60°C
+m_dot = 2kg/s
+Delta_T = 15K
+
+rho_eg = Eg50DensityT(T_query)
+Cp_eg = Eg50SpecificHeatT(T_query)
+mu_eg = Eg50DynamicViscosityT(T_query)
+k_eg = Eg50ThermalConductivityT(T_query)
+P_sat = WaterSaturationPressureT(T_query)
+h_fg = WaterLatentHeatT(T_query)
+
+rho_status = Eg50DensityTStatus(T_query)
+Cp_status = Eg50SpecificHeatTStatus(T_query)
+Q_capacity = m_dot*Cp_eg*Delta_T
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>Quantity</th><th>Value</th><th>Status</th></tr></thead>
+'<tbody>
+'<tr><td>Query temperature</td><td>'T_query'</td><td>Input</td></tr>
+'<tr><td>Ethylene glycol density</td><td>'rho_eg'</td><td>
+DBStatus$(rho_status)
+'</td></tr>
+'<tr><td>Ethylene glycol specific heat</td><td>'Cp_eg'</td><td>
+DBStatus$(Cp_status)
+'</td></tr>
+'<tr><td>Ethylene glycol dynamic viscosity</td><td>'mu_eg'</td><td>From the same validated curve set</td></tr>
+'<tr><td>Ethylene glycol thermal conductivity</td><td>'k_eg'</td><td>From the same validated curve set</td></tr>
+'<tr><td>Water saturation pressure</td><td>'P_sat'</td><td>Sampled water curve</td></tr>
+'<tr><td>Water latent heat</td><td>'h_fg'</td><td>Sampled water curve</td></tr>
+'<tr><td>Heat-capacity rate for the example stream</td><td>'Q_capacity'</td><td>Derived from the returned specific heat</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Detailed Property Record
+
+ShowThermoProperty$(THERMO_EG_50; THERMO_P_DYNAMIC_VISCOSITY; T_query)
+
+BeginConclusions$
+AddConclusion$(Dataset status; ThermoDatasetStatus)
+AddConclusion$(Example heat-capacity rate; Q_capacity)
+EndConclusions$

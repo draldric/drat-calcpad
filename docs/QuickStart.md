@@ -4,6 +4,7 @@
 
 - CalcPad CE for calculating and rendering worksheets.
 - PowerShell 7 for rebuilding and verifying the repository.
+- Python 3 for validating and regenerating data-backed libraries.
 - Network access when rendering Plotly examples, because the plotting module loads Plotly from a CDN.
 
 ## Start a worksheet
@@ -27,6 +28,7 @@ Add optional libraries directly after Core:
 ```text
 #include ../Core/DratCore.cpd
 #include ../Libraries/Materials/EngineeringMaterials.cpd
+#include ../Libraries/Thermophysical/ThermophysicalProperties.cpd
 ```
 
 Includes must be relative, direct, and match the exact path casing.
@@ -164,6 +166,24 @@ ShowMatPropertyTradeoffPlot$(densityYieldTradeoff; comparison_items; MAT_P_DENSI
 The ranking is a screening aid, not a design recommendation or substituted design allowable.
 Material plots require network access because Core loads Plotly from a CDN.
 See the [Engineering Materials library reference](EngineeringMaterials.md) for category IDs, classification semantics, provenance checks, and reporting tables.
+
+## Use the thermophysical-properties library
+
+Query a typed property with a unit-aware temperature and retain its status:
+
+```text
+T_process = 60°C
+rho_eg = Eg50DensityT(T_process)
+rho_status = Eg50DensityTStatus(T_process)
+P_sat = WaterSaturationPressureT(T_process)
+
+ShowThermoFluidRecord$(THERMO_EG_50)
+ShowThermoProperty$(THERMO_EG_50; THERMO_P_DENSITY; T_process)
+```
+
+The initial dataset is limited to water and 50% ethylene glycol curves from 10 °C through 95 °C.
+An out-of-range or unavailable property returns an error status and a dimensioned undefined value.
+See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying a sampled curve to a design state.
 
 ## Verify the work
 

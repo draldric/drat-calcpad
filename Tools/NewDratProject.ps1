@@ -42,11 +42,25 @@ function Get-PhysicalPath {
         }
 
         if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
-            $target = $item.ResolveLinkTarget($true)
-            if ($null -eq $target) {
-                throw "Could not resolve reparse-point path: $($item.FullName)"
+            $target = $null
+            try {
+                $target = $item.ResolveLinkTarget($true)
             }
-            $resolvedPath = $target.FullName
+            catch {
+                if (-not [string]::IsNullOrWhiteSpace($item.LinkType)) {
+                    throw "Could not resolve linked path: $($item.FullName)"
+                }
+            }
+            if ($null -ne $target) {
+                $resolvedPath = $target.FullName
+            }
+            elseif (-not [string]::IsNullOrWhiteSpace($item.LinkType)) {
+                throw "Could not resolve linked path: $($item.FullName)"
+            }
+            else {
+                # Cloud-storage providers can mark ordinary directories as reparse points without making them links.
+                $resolvedPath = $item.FullName
+            }
         }
         else {
             $resolvedPath = $item.FullName
