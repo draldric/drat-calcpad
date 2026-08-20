@@ -1,0 +1,349 @@
+'<!-- GENERATED FILE. Edit Libraries/Thermophysical/Data/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->
+#if and(DRAT_CORE_API ≥ 40000; DRAT_CORE_API < 50000)
+#if and(DRAT_DATA_WRAPPER_API ≥ 303; DRAT_DATA_WRAPPER_API < 1000)
+#hide
+'<!-- Status-aware thermophysical property curves. -->
+
+#def ThermophysicalPropertiesLibraryName$ = DRAT Thermophysical Properties Library
+#def ThermophysicalPropertiesLibraryRevision$ = 0.1.0
+#def ThermophysicalPropertiesLibraryDate$ = 2026-08-15
+#def ThermophysicalPropertiesLibraryScope$ = Initial self-contained temperature-property curves for water and 50 percent ethylene glycol by mass. Values are linearly interpolated from 10 deg C through 95 deg C. This revision is not a general equation-of-state engine and does not support arbitrary pressure, concentration, phase, or fluid queries.
+
+THERMO_SRC_COOLPROP_SMATH = 1
+
+ThermoSourceIDs = [1]
+
+THERMO_WATER = 101
+THERMO_EG_50 = 201
+
+ThermoFluidIDs = [101; 201]
+
+THERMO_P_DENSITY = 1
+THERMO_P_SPECIFIC_HEAT = 2
+THERMO_P_DYNAMIC_VISCOSITY = 3
+THERMO_P_THERMAL_CONDUCTIVITY = 4
+THERMO_P_SATURATION_PRESSURE = 5
+THERMO_P_LATENT_HEAT = 6
+THERMO_P_CP = THERMO_P_SPECIFIC_HEAT
+THERMO_P_VISCOSITY = THERMO_P_DYNAMIC_VISCOSITY
+THERMO_P_CONDUCTIVITY = THERMO_P_THERMAL_CONDUCTIVITY
+
+ThermoPropertyIDs = [1; 2; 3; 4; 5; 6]
+
+ThermoCurveData = [101002; 10°C; 4195.158886|101002; 15°C; 4188.460623|101002; 20°C; 4184.050925|101002; 25°C; 4181.314991|101002; 30°C; 4179.819672|101002; 35°C; 4179.258102|101002; 40°C; 4179.414798|101002; 45°C; 4180.14194|101002; 50°C; 4181.342303|101002; 55°C; 4182.956504|101002; 60°C; 4184.953281|101002; 65°C; 4187.322032|101002; 70°C; 4190.067099|101002; 75°C; 4193.203419|101002; 80°C; 4196.753264|101002; 85°C; 4200.743848|101002; 90°C; 4205.205606|101002; 95°C; 4210.171015|101005; 10°C; 1.228198919|101005; 15°C; 1.705792856|101005; 20°C; 2.339318188|101005; 25°C; 3.169929389|101005; 30°C; 4.24697084|101005; 35°C; 5.629016095|101005; 40°C; 7.384938045|101005; 45°C; 9.594998843|101005; 50°C; 12.351945833|101005; 55°C; 15.76210154|101005; 60°C; 19.946434311|101005; 65°C; 25.041598085|101005; 70°C; 31.200930025|101005; 75°C; 38.595395847|101005; 80°C; 47.414474033|101005; 85°C; 57.866971652|101005; 90°C; 70.181765817|101005; 95°C; 84.60846632|101006; 10°C; 2477.187063|101006; 15°C; 2465.351742|101006; 20°C; 2453.519259|101006; 25°C; 2441.676175|101006; 30°C; 2429.81123|101006; 35°C; 2417.914585|101006; 40°C; 2405.977287|101006; 45°C; 2393.99088|101006; 50°C; 2381.947127|101006; 55°C; 2369.837799|101006; 60°C; 2357.65452|101006; 65°C; 2345.388653|101006; 70°C; 2333.031208|101006; 75°C; 2320.572786|101006; 80°C; 2308.003528|101006; 85°C; 2295.313091|101006; 90°C; 2282.490628|101006; 95°C; 2269.524787|201001; 10°C; 1070.020884|201001; 15°C; 1067.533382|201001; 20°C; 1064.928663|201001; 25°C; 1062.211884|201001; 30°C; 1059.388204|201001; 35°C; 1056.462779|201001; 40°C; 1053.440767|201001; 45°C; 1050.327325|201001; 50°C; 1047.127611|201001; 55°C; 1043.846781|201001; 60°C; 1040.489993|201001; 65°C; 1037.062405|201001; 70°C; 1033.569173|201001; 75°C; 1030.015455|201001; 80°C; 1026.406409|201001; 85°C; 1022.747192|201001; 90°C; 1019.04296|201001; 95°C; 1015.298872|201002; 10°C; 3258.410836|201002; 15°C; 3285.477985|201002; 20°C; 3312.041904|201002; 25°C; 3338.075189|201002; 30°C; 3363.550436|201002; 35°C; 3388.44024|201002; 40°C; 3412.717198|201002; 45°C; 3436.353903|201002; 50°C; 3459.322952|201002; 55°C; 3481.596941|201002; 60°C; 3503.148464|201002; 65°C; 3523.950117|201002; 70°C; 3543.974496|201002; 75°C; 3563.194197|201002; 80°C; 3581.581814|201002; 85°C; 3599.109944|201002; 90°C; 3615.751181|201002; 95°C; 3631.478121|201003; 10°C; 0.005256507894|201003; 15°C; 0.004376294213|201003; 20°C; 0.003693211431|201003; 25°C; 0.003156175824|201003; 30°C; 0.002728653898|201003; 35°C; 0.002384167994|201003; 40°C; 0.0021032809|201003; 45°C; 0.001871546472|201003; 50°C; 0.001678099682|201003; 55°C; 0.001514675445|201003; 60°C; 0.001374918624|201003; 65°C; 0.001253894139|201003; 70°C; 0.001147736272|201003; 75°C; 0.001053395812|201003; 80°C; 0.000968456688|201003; 85°C; 0.000891002332|201003; 90°C; 0.0008195178|201003; 95°C; 0.000752817562|201004; 10°C; 0.382962793|201004; 15°C; 0.386052253|201004; 20°C; 0.389148353|201004; 25°C; 0.392248012|201004; 30°C; 0.395348149|201004; 35°C; 0.398445681|201004; 40°C; 0.401537528|201004; 45°C; 0.404620608|201004; 50°C; 0.407691839|201004; 55°C; 0.410748139|201004; 60°C; 0.413786428|201004; 65°C; 0.416803623|201004; 70°C; 0.419796644|201004; 75°C; 0.422762407|201004; 80°C; 0.425697833|201004; 85°C; 0.42859984|201004; 90°C; 0.431465345|201004; 95°C; 0.434291268]
+ThermoMetadata = [101002; 10°C; 95°C; 1; 1|101005; 10°C; 95°C; 1; 1|101006; 10°C; 95°C; 1; 1|201001; 10°C; 95°C; 1; 1|201002; 10°C; 95°C; 1; 1|201003; 10°C; 95°C; 1; 1|201004; 10°C; 95°C; 1; 1]
+ThermoFluidCount = 2
+ThermoPropertyCount = 6
+ThermoCurveCount = 7
+ThermoPointCount = 126
+
+ThermoHasFluid(fluid) = DBHasID(ThermoFluidIDs; fluid)
+ThermoHasProperty(property) = DBHasID(ThermoPropertyIDs; property)
+ThermoHasSource(source_id) = DBHasID(ThermoSourceIDs; source_id)
+ThermoHasCurve(fluid; property) = DBCurveExists(ThermoCurveData; DBKey(fluid; property))
+ThermoHasMetadata(fluid; property) = and(DBTableStatus(ThermoMetadata; DBKey(fluid; property); 2) ≡ DB_OK; DBTableStatus(ThermoMetadata; DBKey(fluid; property); 3) ≡ DB_OK; DBTableStatus(ThermoMetadata; DBKey(fluid; property); 4) ≡ DB_OK; DBTableStatus(ThermoMetadata; DBKey(fluid; property); 5) ≡ DB_OK)
+ThermoTMin(fluid; property) = DBTableRaw(ThermoMetadata; DBKey(fluid; property); 2)
+ThermoTMax(fluid; property) = DBTableRaw(ThermoMetadata; DBKey(fluid; property); 3)
+ThermoSourceID(fluid; property) = DBTableRaw(ThermoMetadata; DBKey(fluid; property); 4)
+ThermoDataRevision(fluid; property) = DBTableRaw(ThermoMetadata; DBKey(fluid; property); 5)
+
+ThermoFluidConcentrationMassFraction(fluid) = switch(fluid ≡ THERMO_WATER; DB_MISSING; fluid ≡ THERMO_EG_50; 0.5; DB_MISSING)
+ThermoFluidStatus(fluid) = if(ThermoHasFluid(fluid); DB_OK; DB_ERR_NAME)
+
+ThermoApplyUnits(property; value) = switch(property ≡ THERMO_P_DENSITY; setunits(value; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(value; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(value; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(value; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(value; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(value; kJ/kg); 0/0)
+ThermoUndefined(property) = switch(property ≡ THERMO_P_DENSITY; setunits(0/0; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(0/0; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(0/0; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(0/0; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(0/0; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(0/0; kJ/kg); 0/0)
+
+ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3)
+ThermoDatasetStatus = if(ThermoDatasetOK; DB_OK; DB_ERR_MISSING)
+
+ThermoPROPStatus(fluid; property; temperature; method; bounds_policy) = _
+$block{
+    fluid_ok = ThermoHasFluid(fluid);
+    property_ok = ThermoHasProperty(property);
+    curve_ok = if(and(fluid_ok; property_ok); ThermoHasCurve(fluid; property); 0);
+    metadata_ok = if(curve_ok; ThermoHasMetadata(fluid; property); 0);
+    T_min = if(metadata_ok; ThermoTMin(fluid; property); 0°C);
+    T_max = if(metadata_ok; ThermoTMax(fluid; property); 0°C);
+    status = switch(ThermoDatasetStatus ≠ DB_OK; ThermoDatasetStatus; not(fluid_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; not(curve_ok); DB_ERR_MISSING; not(metadata_ok); DB_ERR_MISSING; DBCurveStatus(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));
+    status;
+}
+
+ThermoPROPEx(fluid; property; temperature; method; bounds_policy) = _
+$block{
+    status = ThermoPROPStatus(fluid; property; temperature; method; bounds_policy);
+    T_min = if(DBIsFatal(status); 0°C; ThermoTMin(fluid; property));
+    T_max = if(DBIsFatal(status); 0°C; ThermoTMax(fluid; property));
+    raw = if(DBIsFatal(status); 0/0; DBCurveRaw(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));
+    value = if(DBIsFatal(status); ThermoUndefined(property); ThermoApplyUnits(property; raw));
+    value;
+}
+
+ThermoPROP(fluid; property; temperature) = ThermoPROPEx(fluid; property; temperature; DB_LINEAR; DB_STRICT)
+ThermoPROPAtC(fluid; property; temperature_C) = ThermoPROP(fluid; property; temperature_C*°C)
+ThermoPROPClamped(fluid; property; temperature) = ThermoPROPEx(fluid; property; temperature; DB_LINEAR; DB_CLAMP)
+ThermoPROPExtrapolated(fluid; property; temperature) = ThermoPROPEx(fluid; property; temperature; DB_LINEAR; DB_EXTRAPOLATE)
+
+WaterSpecificHeatTStatus(temperature) = ThermoPROPStatus(THERMO_WATER; THERMO_P_SPECIFIC_HEAT; temperature; DB_LINEAR; DB_STRICT)
+WaterSpecificHeatT(temperature) = ThermoPROP(THERMO_WATER; THERMO_P_SPECIFIC_HEAT; temperature)
+WaterSaturationPressureTStatus(temperature) = ThermoPROPStatus(THERMO_WATER; THERMO_P_SATURATION_PRESSURE; temperature; DB_LINEAR; DB_STRICT)
+WaterSaturationPressureT(temperature) = ThermoPROP(THERMO_WATER; THERMO_P_SATURATION_PRESSURE; temperature)
+WaterLatentHeatTStatus(temperature) = ThermoPROPStatus(THERMO_WATER; THERMO_P_LATENT_HEAT; temperature; DB_LINEAR; DB_STRICT)
+WaterLatentHeatT(temperature) = ThermoPROP(THERMO_WATER; THERMO_P_LATENT_HEAT; temperature)
+Eg50DensityTStatus(temperature) = ThermoPROPStatus(THERMO_EG_50; THERMO_P_DENSITY; temperature; DB_LINEAR; DB_STRICT)
+Eg50DensityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_DENSITY; temperature)
+Eg50SpecificHeatTStatus(temperature) = ThermoPROPStatus(THERMO_EG_50; THERMO_P_SPECIFIC_HEAT; temperature; DB_LINEAR; DB_STRICT)
+Eg50SpecificHeatT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_SPECIFIC_HEAT; temperature)
+Eg50DynamicViscosityTStatus(temperature) = ThermoPROPStatus(THERMO_EG_50; THERMO_P_DYNAMIC_VISCOSITY; temperature; DB_LINEAR; DB_STRICT)
+Eg50DynamicViscosityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_DYNAMIC_VISCOSITY; temperature)
+Eg50ThermalConductivityTStatus(temperature) = ThermoPROPStatus(THERMO_EG_50; THERMO_P_THERMAL_CONDUCTIVITY; temperature; DB_LINEAR; DB_STRICT)
+Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMAL_CONDUCTIVITY; temperature)
+
+#def ThermoFluidName$(fluid$)
+    #if fluid$ ≡ 101
+        'Water
+    #end if
+    #if fluid$ ≡ 201
+        'Ethylene glycol solution, 50 percent by mass
+    #end if
+    #if not(ThermoHasFluid(fluid$))
+        '<span class="err">Unknown thermophysical fluid ID</span>
+    #end if
+#end def
+
+#def ThermoFluidDescription$(fluid$)
+    #if fluid$ ≡ 101
+        'Water property curves sampled from the source-model CoolProp engine.
+    #end if
+    #if fluid$ ≡ 201
+        'CoolProp incompressible-fluid key INCOMP::MEG-50%.
+    #end if
+    #if not(ThermoHasFluid(fluid$))
+        '<span class="err">Unknown thermophysical fluid ID</span>
+    #end if
+#end def
+
+#def ThermoPropertyName$(property$)
+    #if property$ ≡ 1
+        'Density
+    #end if
+    #if property$ ≡ 2
+        'Specific heat capacity
+    #end if
+    #if property$ ≡ 3
+        'Dynamic viscosity
+    #end if
+    #if property$ ≡ 4
+        'Thermal conductivity
+    #end if
+    #if property$ ≡ 5
+        'Saturation pressure
+    #end if
+    #if property$ ≡ 6
+        'Latent heat of vaporization
+    #end if
+    #if not(ThermoHasProperty(property$))
+        '<span class="err">Unknown thermophysical property ID</span>
+    #end if
+#end def
+
+#def ThermoPropertySymbol$(property$)
+    #if property$ ≡ 1
+        'rho
+    #end if
+    #if property$ ≡ 2
+        'c_p
+    #end if
+    #if property$ ≡ 3
+        'mu
+    #end if
+    #if property$ ≡ 4
+        'k
+    #end if
+    #if property$ ≡ 5
+        'P_sat
+    #end if
+    #if property$ ≡ 6
+        'h_fg
+    #end if
+    #if not(ThermoHasProperty(property$))
+        '<span class="err">Unknown thermophysical property ID</span>
+    #end if
+#end def
+
+#def ThermoPropertyUnit$(property$)
+    #if property$ ≡ 1
+        'kg/m3
+    #end if
+    #if property$ ≡ 2
+        'J/(kg K)
+    #end if
+    #if property$ ≡ 3
+        'Pa s
+    #end if
+    #if property$ ≡ 4
+        'W/(m K)
+    #end if
+    #if property$ ≡ 5
+        'kPa
+    #end if
+    #if property$ ≡ 6
+        'kJ/kg
+    #end if
+    #if not(ThermoHasProperty(property$))
+        '<span class="err">Unknown thermophysical property ID</span>
+    #end if
+#end def
+
+#def ThermoSourceName$(source$)
+    #if source$ ≡ 1
+        'CoolProp sampled through SMath
+    #end if
+    #if not(ThermoHasSource(source$))
+        '<span class="err">Unknown thermophysical source ID</span>
+    #end if
+#end def
+
+#def ThermoSourceCitation$(source$)
+    #if source$ ≡ 1
+        'CoolProp thermophysical property engine through SMath plugin build 6.4.8214.13502
+    #end if
+    #if not(ThermoHasSource(source$))
+        '<span class="err">Unknown thermophysical source ID</span>
+    #end if
+#end def
+
+#def ThermoSourceRevision$(source$)
+    #if source$ ≡ 1
+        'Tank worksheet sample set captured 2026-08-14
+    #end if
+    #if not(ThermoHasSource(source$))
+        '<span class="err">Unknown thermophysical source ID</span>
+    #end if
+#end def
+
+#def ThermoSourceLicense$(source$)
+    #if source$ ≡ 1
+        'CoolProp project distributed under the MIT License
+    #end if
+    #if not(ThermoHasSource(source$))
+        '<span class="err">Unknown thermophysical source ID</span>
+    #end if
+#end def
+
+#def ThermoSourceNotes$(source$)
+    #if source$ ≡ 1
+        'Fluid keys Water and INCOMP::MEG-50%. The saved worksheet did not retain the complete input-pair calls, so this dataset must be treated as a traceable migration baseline rather than independent validation of the property basis.
+    #end if
+    #if not(ThermoHasSource(source$))
+        '<span class="err">Unknown thermophysical source ID</span>
+    #end if
+#end def
+
+#def ShowThermoDatasetSummary$
+    #novar
+    '<table class="bordered data thermo-summary" style="width:95%"><tbody>
+    '<tr><td><strong>Library</strong></td><td>ThermophysicalPropertiesLibraryName$</td></tr>
+    '<tr><td><strong>Library revision</strong></td><td>ThermophysicalPropertiesLibraryRevision$</td></tr>
+    '<tr><td><strong>Dataset date</strong></td><td>ThermophysicalPropertiesLibraryDate$</td></tr>
+    '<tr><td><strong>Scope</strong></td><td>ThermophysicalPropertiesLibraryScope$</td></tr>
+    '<tr><td><strong>Fluid count</strong></td><td>'ThermoFluidCount'</td></tr>
+    '<tr><td><strong>Property count</strong></td><td>'ThermoPropertyCount'</td></tr>
+    '<tr><td><strong>Curve count</strong></td><td>'ThermoCurveCount'</td></tr>
+    '<tr><td><strong>Data point count</strong></td><td>'ThermoPointCount'</td></tr>
+    '<tr><td><strong>Dataset status</strong></td><td>
+    DBStatus$(ThermoDatasetStatus)
+    '</td></tr></tbody></table>
+    #equ
+#end def
+
+#def ShowThermoSourceRecord$(source$)
+    #hide
+    ζTHERMO_source_status = if(ThermoHasSource(source$); DB_OK; DB_ERR_NAME)
+    #show
+    #novar
+    '<table class="bordered data thermo-source-record" style="width:95%"><tbody>
+    '<tr><td><strong>Source ID</strong></td><td>'source$'</td></tr>
+    '<tr><td><strong>Name</strong></td><td>
+    ThermoSourceName$(source$)
+    '</td></tr>
+    '<tr><td><strong>Citation</strong></td><td>
+    ThermoSourceCitation$(source$)
+    '</td></tr>
+    '<tr><td><strong>Revision</strong></td><td>
+    ThermoSourceRevision$(source$)
+    '</td></tr>
+    '<tr><td><strong>License</strong></td><td>
+    ThermoSourceLicense$(source$)
+    '</td></tr>
+    '<tr><td><strong>Qualification note</strong></td><td>
+    ThermoSourceNotes$(source$)
+    '</td></tr>
+    '<tr><td><strong>Status</strong></td><td>
+    DBStatus$(ζTHERMO_source_status)
+    '</td></tr></tbody></table>
+    #equ
+#end def
+
+#def ShowThermoFluidRecord$(fluid$)
+    #hide
+    ζTHERMO_fluid_status = ThermoFluidStatus(fluid$)
+    ζTHERMO_concentration = ThermoFluidConcentrationMassFraction(fluid$)
+    #show
+    #novar
+    '<table class="bordered data thermo-fluid-record" style="width:95%"><tbody>
+    '<tr><td><strong>Fluid ID</strong></td><td>'fluid$'</td></tr>
+    '<tr><td><strong>Name</strong></td><td>
+    ThermoFluidName$(fluid$)
+    '</td></tr>
+    '<tr><td><strong>Description</strong></td><td>
+    ThermoFluidDescription$(fluid$)
+    '</td></tr>
+    #if not(DBIsMissing(ζTHERMO_concentration))
+        '<tr><td><strong>Mass concentration</strong></td><td>'ζTHERMO_concentration'</td></tr>
+    #end if
+    '<tr><td><strong>Status</strong></td><td>
+    DBStatus$(ζTHERMO_fluid_status)
+    '</td></tr></tbody></table>
+    #equ
+#end def
+
+#def ShowThermoProperty$(fluid$; property$; temperature$)
+    #hide
+    ζTHERMO_temperature = temperature$
+    ζTHERMO_property_status = ThermoPROPStatus(fluid$; property$; ζTHERMO_temperature; DB_LINEAR; DB_STRICT)
+    ζTHERMO_property_value = ThermoPROP(fluid$; property$; ζTHERMO_temperature)
+    ζTHERMO_source = if(DBIsFatal(ζTHERMO_property_status); 0; ThermoSourceID(fluid$; property$))
+    ζTHERMO_revision = if(DBIsFatal(ζTHERMO_property_status); 0; ThermoDataRevision(fluid$; property$))
+    ζTHERMO_T_min = if(DBIsFatal(ζTHERMO_property_status); 0°C; ThermoTMin(fluid$; property$))
+    ζTHERMO_T_max = if(DBIsFatal(ζTHERMO_property_status); 0°C; ThermoTMax(fluid$; property$))
+    #show
+    #novar
+    '<table class="bordered data thermo-property-record" style="width:95%"><tbody>
+    '<tr><td><strong>Fluid</strong></td><td>
+    ThermoFluidName$(fluid$)
+    '</td></tr>
+    '<tr><td><strong>Property</strong></td><td>
+    ThermoPropertyName$(property$)
+    '</td></tr>
+    '<tr><td><strong>Temperature</strong></td><td>'temperature$'</td></tr>
+    '<tr><td><strong>Status</strong></td><td>
+    DBStatus$(ζTHERMO_property_status)
+    '</td></tr>
+    #if not(DBIsFatal(ζTHERMO_property_status))
+        '<tr><td><strong>Value</strong></td><td>'ζTHERMO_property_value'</td></tr>
+        '<tr><td><strong>Valid temperature range</strong></td><td>'ζTHERMO_T_min' to 'ζTHERMO_T_max'</td></tr>
+        '<tr><td><strong>Source</strong></td><td>
+        ThermoSourceName$(ζTHERMO_source)
+        '</td></tr>
+        '<tr><td><strong>Data revision ID</strong></td><td>'ζTHERMO_revision'</td></tr>
+    #end if
+    '</tbody></table>
+    #equ
+#end def
+#show
+#else
+'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> ThermophysicalProperties requires DataWrapper API 0.3.3 or newer. Load a compatible DratCore.cpd before this library.</div>
+#end if
+#else
+'<div style="margin:1em;padding:0.75em;border:2px solid #b00020;color:#b00020;background:#fff0f2;"><strong>DRAT library load error:</strong> ThermophysicalProperties requires DRAT core API 4.x. Load a compatible DratCore.cpd before this library.</div>
+#end if

@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$CalcPadCli,
+    [string]$PythonPath,
     [switch]$SkipCalcPad,
     [switch]$KeepOutput
 )
@@ -89,6 +90,60 @@ function Test-CoreBundle {
     }
 
     Write-Output '[PASS] Generated Core bundle is current.'
+}
+
+function Resolve-PythonExecutable {
+    if (-not [string]::IsNullOrWhiteSpace($script:PythonPath)) {
+        $resolvedPath = [System.IO.Path]::GetFullPath($script:PythonPath)
+        if (Test-Path -LiteralPath $resolvedPath -PathType Leaf) {
+            return $resolvedPath
+        }
+        return $null
+    }
+
+    foreach ($commandName in @('python', 'python3')) {
+        $command = Get-Command $commandName -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($null -ne $command -and -not [string]::IsNullOrWhiteSpace($command.Source)) {
+            return $command.Source
+        }
+    }
+
+    return $null
+}
+
+function Test-ThermophysicalGenerator {
+    $startingFailureCount = $script:verificationFailures.Count
+    $python = Resolve-PythonExecutable
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        Add-VerificationFailure -Message 'Python 3 was not found. Pass -PythonPath to verify the generated thermophysical library.'
+        return
+    }
+
+    $generatorPath = Join-Path $script:repositoryRoot 'Tools\GenerateThermophysicalLibrary.py'
+    $sourcePath = Join-Path $script:repositoryRoot 'Libraries\Thermophysical\Data\ThermophysicalProperties.json'
+    $outputPath = Join-Path $script:repositoryRoot 'Libraries\Thermophysical\ThermophysicalProperties.cpd'
+    $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\ThermophysicalGeneratorTest.py'
+    foreach ($requiredPath in @($generatorPath, $sourcePath, $outputPath, $testPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            Add-VerificationFailure -Message "Thermophysical generation input is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
+        }
+    }
+    if ($script:verificationFailures.Count -ne $startingFailureCount) {
+        return
+    }
+
+    $generatorOutput = & $python $generatorPath $sourcePath $outputPath --check 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Thermophysical generated-library check failed: ' + (($generatorOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+    $testOutput = & $python $testPath 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Thermophysical generator schema tests failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+
+    Write-Output '[PASS] Thermophysical raw-data schema, generator regressions, and committed CalcPad library are current.'
 }
 
 function Test-ApiVersions {
@@ -974,6 +1029,7 @@ function Remove-CalcPadOutput {
 
 Write-Output "Verifying $repositoryRoot"
 Test-CoreBundle
+Test-ThermophysicalGenerator
 Test-ApiVersions
 Test-IncludeGraph
 Test-ArtifactConventions

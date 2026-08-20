@@ -19,6 +19,7 @@ This table summarizes the currently supported package combination.
 | Plotting | `30200` | Bundled with Core 4.2.0 and network access for Plotly |
 | Engineering Materials | 1.4.0 | Core `10000–49999`, DataWrapper `302–999`, Plotting `30200–39999` |
 | Beam Analysis | 0.6.0 | Core `10000–49999`, DataWrapper `302–999`, Checks `10200–29999`; Plotting `30200–39999` is optional and gates diagram helpers |
+| Thermophysical Properties | 0.1.0 | Core `40000–49999`, DataWrapper `303–999` |
 | AISC W Shapes | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |
 | AISC HSS | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |
 | AISC Channels | 0.1.0 | Core `10000–49999`, DataWrapper `302–999` |

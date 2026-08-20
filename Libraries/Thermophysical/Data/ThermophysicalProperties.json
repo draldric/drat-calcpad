@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "library": {
+    "name": "DRAT Thermophysical Properties Library",
+    "revision": "0.1.0",
+    "date": "2026-08-15",
+    "scope": "Initial self-contained temperature-property curves for water and 50 percent ethylene glycol by mass. Values are linearly interpolated from 10 deg C through 95 deg C. This revision is not a general equation-of-state engine and does not support arbitrary pressure, concentration, phase, or fluid queries."
+  },
+  "sources": [
+    {
+      "id": 1,
+      "constant": "THERMO_SRC_COOLPROP_SMATH",
+      "name": "CoolProp sampled through SMath",
+      "citation": "CoolProp thermophysical property engine through SMath plugin build 6.4.8214.13502",
+      "revision": "Tank worksheet sample set captured 2026-08-14",
+      "license": "CoolProp project distributed under the MIT License",
+      "notes": "Fluid keys Water and INCOMP::MEG-50%. The saved worksheet did not retain the complete input-pair calls, so this dataset must be treated as a traceable migration baseline rather than independent validation of the property basis."
+    }
+  ],
+  "fluids": [
+    {
+      "id": 101,
+      "constant": "THERMO_WATER",
+      "name": "Water",
+      "description": "Water property curves sampled from the source-model CoolProp engine.",
+      "concentration_mass_fraction": null
+    },
+    {
+      "id": 201,
+      "constant": "THERMO_EG_50",
+      "name": "Ethylene glycol solution, 50 percent by mass",
+      "description": "CoolProp incompressible-fluid key INCOMP::MEG-50%.",
+      "concentration_mass_fraction": 0.5
+    }
+  ],
+  "properties": [
+    {
+      "id": 1,
+      "constant": "THERMO_P_DENSITY",
+      "name": "Density",
+      "symbol": "rho",
+      "unit_key": "kg_per_m3",
+      "unit_label": "kg/m3"
+    },
+    {
+      "id": 2,
+      "constant": "THERMO_P_SPECIFIC_HEAT",
+      "name": "Specific heat capacity",
+      "symbol": "c_p",
+      "unit_key": "J_per_kgK",
+      "unit_label": "J/(kg K)"
+    },
+    {
+      "id": 3,
+      "constant": "THERMO_P_DYNAMIC_VISCOSITY",
+      "name": "Dynamic viscosity",
+      "symbol": "mu",
+      "unit_key": "Pa_s",
+      "unit_label": "Pa s"
+    },
+    {
+      "id": 4,
+      "constant": "THERMO_P_THERMAL_CONDUCTIVITY",
+      "name": "Thermal conductivity",
+      "symbol": "k",
+      "unit_key": "W_per_mK",
+      "unit_label": "W/(m K)"
+    },
+    {
+      "id": 5,
+      "constant": "THERMO_P_SATURATION_PRESSURE",
+      "name": "Saturation pressure",
+      "symbol": "P_sat",
+      "unit_key": "kPa",
+      "unit_label": "kPa"
+    },
+    {
+      "id": 6,
+      "constant": "THERMO_P_LATENT_HEAT",
+      "name": "Latent heat of vaporization",
+      "symbol": "h_fg",
+      "unit_key": "kJ_per_kg",
+      "unit_label": "kJ/kg"
+    }
+  ],
+  "curves": [
+    {
+      "fluid_id": 101,
+      "property_id": 2,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "WaterSpecificHeatT",
+      "status_function": "WaterSpecificHeatTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [4195.158886, 4188.460623, 4184.050925, 4181.314991, 4179.819672, 4179.258102, 4179.414798, 4180.14194, 4181.342303, 4182.956504, 4184.953281, 4187.322032, 4190.067099, 4193.203419, 4196.753264, 4200.743848, 4205.205606, 4210.171015]
+    },
+    {
+      "fluid_id": 101,
+      "property_id": 5,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "WaterSaturationPressureT",
+      "status_function": "WaterSaturationPressureTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [1.228198919, 1.705792856, 2.339318188, 3.169929389, 4.24697084, 5.629016095, 7.384938045, 9.594998843, 12.351945833, 15.76210154, 19.946434311, 25.041598085, 31.200930025, 38.595395847, 47.414474033, 57.866971652, 70.181765817, 84.60846632]
+    },
+    {
+      "fluid_id": 101,
+      "property_id": 6,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "WaterLatentHeatT",
+      "status_function": "WaterLatentHeatTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [2477.187063, 2465.351742, 2453.519259, 2441.676175, 2429.81123, 2417.914585, 2405.977287, 2393.99088, 2381.947127, 2369.837799, 2357.65452, 2345.388653, 2333.031208, 2320.572786, 2308.003528, 2295.313091, 2282.490628, 2269.524787]
+    },
+    {
+      "fluid_id": 201,
+      "property_id": 1,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "Eg50DensityT",
+      "status_function": "Eg50DensityTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [1070.020884, 1067.533382, 1064.928663, 1062.211884, 1059.388204, 1056.462779, 1053.440767, 1050.327325, 1047.127611, 1043.846781, 1040.489993, 1037.062405, 1033.569173, 1030.015455, 1026.406409, 1022.747192, 1019.04296, 1015.298872]
+    },
+    {
+      "fluid_id": 201,
+      "property_id": 2,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "Eg50SpecificHeatT",
+      "status_function": "Eg50SpecificHeatTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [3258.410836, 3285.477985, 3312.041904, 3338.075189, 3363.550436, 3388.44024, 3412.717198, 3436.353903, 3459.322952, 3481.596941, 3503.148464, 3523.950117, 3543.974496, 3563.194197, 3581.581814, 3599.109944, 3615.751181, 3631.478121]
+    },
+    {
+      "fluid_id": 201,
+      "property_id": 3,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "Eg50DynamicViscosityT",
+      "status_function": "Eg50DynamicViscosityTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [0.005256507894, 0.004376294213, 0.003693211431, 0.003156175824, 0.002728653898, 0.002384167994, 0.0021032809, 0.001871546472, 0.001678099682, 0.001514675445, 0.001374918624, 0.001253894139, 0.001147736272, 0.001053395812, 0.000968456688, 0.000891002332, 0.0008195178, 0.000752817562]
+    },
+    {
+      "fluid_id": 201,
+      "property_id": 4,
+      "source_id": 1,
+      "data_revision": 1,
+      "value_function": "Eg50ThermalConductivityT",
+      "status_function": "Eg50ThermalConductivityTStatus",
+      "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
+      "values": [0.382962793, 0.386052253, 0.389148353, 0.392248012, 0.395348149, 0.398445681, 0.401537528, 0.404620608, 0.407691839, 0.410748139, 0.413786428, 0.416803623, 0.419796644, 0.422762407, 0.425697833, 0.42859984, 0.431465345, 0.434291268]
+    }
+  ]
+}

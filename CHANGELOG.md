@@ -7,6 +7,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Generated Thermophysical Properties 0.1.0 library with traceable water and 50% ethylene-glycol temperature curves, unit-aware typed helpers, status-aware generic lookup, provenance reporting, schema validation, regression coverage, and a focused end-user demo.
 - Deterministic boundary and failure-mode coverage for empty and malformed registries, missing versus zero data, invalid beam records, modifiers, and extrema, incompatible Core/component/Plotting APIs, missing dependencies, rendered error evidence, and native CalcPad unit errors.
 - Independent equilibrium and Euler-Bernoulli beam benchmarks covering point loads, uniform and triangular distributed loads, applied moments, support conditions, sign conventions, and alternate units.
 - Windows GitHub Actions verification for generated Core, APIs, includes, artifact conventions, public-helper integrity, and distribution workflows, with an explicit CalcPad CE qualification boundary.

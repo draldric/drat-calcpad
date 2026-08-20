@@ -6,6 +6,7 @@ CalcPad regression worksheets are grouped by the behavior they protect.
 - `Libraries/Analysis/` verifies reusable analysis models and response helpers.
 - `Libraries/Materials/` verifies engineering-material data integrity and selection behavior.
 - `Libraries/Steel/` verifies structural-section datasets and lookup contracts.
+- `Libraries/Thermophysical/` verifies generated fluid-property curves, units, ranges, provenance, and rejected queries.
 - `Distribution/` verifies exact archive and declaration-backed manifest contents, metadata and file tamper rejection, physical path-overlap rejection through junction aliases, optional-library preflight, retained version updates, the stable `Current` path, and moved current-version Core-only and optional-library projects.
 - `FailureModes/` verifies one-to-one expected CalcPad diagnostics for incompatible APIs, missing dependencies, and incompatible engineering units, including a temporary patched-Core mirror for Plotting-API guards.
 - `Tooling/` verifies repository-audit parsers and enforcement rules without requiring CalcPad.
@@ -34,7 +35,9 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Libraries/Steel/AiscHssSectionsTest.cpd` | Rectangular and round HSS data, aliases, statuses, and selection. |
 | `Libraries/Steel/AiscChannelSectionsTest.cpd` | C and MC channel data, aliases, statuses, and selection. |
 | `Libraries/Steel/AiscAngleSectionsTest.cpd` | Single-angle data, property lookup, and selection. |
+| `Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` | Generated water and 50% ethylene-glycol values, interpolation, units, statuses, provenance, and rendered records. |
 | `Tooling/PublicApiAuditTest.ps1` | Multiline-macro assignment parsing and module-namespace classification. |
+| `Tooling/ThermophysicalGeneratorTest.py` | Raw-data schema rejection, deterministic generation, and stale-output detection. |
 | `FailureModes/FailureModeRuntimeTest.ps1` | Expected compatibility, dependency, and native incompatible-unit diagnostics from a one-to-one negative fixture specification. |
 
 `Distribution/DISTRIBUTION_TEST.ps1` is a PowerShell workflow test rather than a CalcPad worksheet.

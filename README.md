@@ -9,6 +9,7 @@ Modular framework for reusable engineering calculations.
 - [Core API reference](docs/CoreApi.md)
 - [Engineering Materials library](docs/EngineeringMaterials.md)
 - [Structural Sections library](docs/StructuralSections.md)
+- [Thermophysical Properties library](docs/ThermophysicalProperties.md)
 - [Status-code reference](docs/StatusCodes.md)
 - [Library-authoring guide](docs/LibraryAuthoring.md)
 - [Versioning policy](docs/Versioning.md)
@@ -25,6 +26,7 @@ Worksheets load the generated core bundle before any optional libraries:
 ```text
 #include ../Core/DratCore.cpd
 #include ../Libraries/Materials/EngineeringMaterials.cpd
+#include ../Libraries/Thermophysical/ThermophysicalProperties.cpd
 ```
 
 Maintain the individual core modules in `Core/Src/`.
@@ -35,7 +37,7 @@ Build a versioned release directory and ZIP archive with `Tools/BuildDistributio
 Install an extracted release with `Tools/InstallDratCalcpad.ps1`, or create a self-contained calculation folder with `Tools/NewDratProject.ps1`.
 See the [distribution guide](docs/Distribution.md) for the managed installation and portable-project workflows.
 Run `Tools/VerifyRepository.ps1` before opening a pull request to verify the generated Core, API versions, include graph, whitespace, Core tests, examples, and engineering template.
-Pass `-SkipCalcPad` when only static checks are available, or `-CalcPadCli <path>` when CalcPad CE is installed outside its default location.
+Pass `-SkipCalcPad` when only static checks are available, `-CalcPadCli <path>` when CalcPad CE is installed outside its default location, or `-PythonPath <path>` when Python 3 is not on `PATH`.
 
 Libraries do not include their own dependencies.
 Each library checks the core API and its required component APIs before loading its definitions.

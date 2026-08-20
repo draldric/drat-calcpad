@@ -10,6 +10,7 @@
         'Core/Src/Validation.cpd' = 'VAL'
         'Libraries/Analysis/BeamAnalysis.cpd' = 'BEAM'
         'Libraries/Materials/EngineeringMaterials.cpd' = 'MAT'
+        'Libraries/Thermophysical/ThermophysicalProperties.cpd' = 'THERMO'
         'Libraries/Steel/AiscAngleSections.cpd' = 'AISC'
         'Libraries/Steel/AiscChannelSections.cpd' = 'AISC'
         'Libraries/Steel/AiscHssSections.cpd' = 'AISC'

@@ -1,0 +1,26 @@
+#include ../../../Core/DratCore.cpd
+#include ../../../Libraries/Thermophysical/ThermophysicalProperties.cpd
+
+'<!-- TEST PURPOSE: Verify generated thermophysical curves, unit-aware typed helpers, range statuses, missing properties, provenance, and reporting tables. -->
+
+water_cp_25 = WaterSpecificHeatT(25°C)
+water_pressure_37_5 = WaterSaturationPressureT(37.5°C)
+water_latent_heat_60 = WaterLatentHeatT(60°C)
+eg_density_60 = Eg50DensityT(60°C)
+eg_cp_60 = Eg50SpecificHeatT(60°C)
+eg_viscosity_60 = Eg50DynamicViscosityT(60°C)
+eg_conductivity_60 = Eg50ThermalConductivityT(60°C)
+
+catalog_tests = and(ThermoDatasetStatus ≡ DB_OK; ThermoFluidCount ≡ 2; ThermoPropertyCount ≡ 6; ThermoCurveCount ≡ 7; ThermoPointCount ≡ 126; ThermoHasFluid(THERMO_WATER); ThermoHasFluid(THERMO_EG_50); ThermoHasProperty(THERMO_P_DENSITY); ThermoHasSource(THERMO_SRC_COOLPROP_SMATH))
+alias_tests = and(THERMO_P_CP ≡ THERMO_P_SPECIFIC_HEAT; THERMO_P_VISCOSITY ≡ THERMO_P_DYNAMIC_VISCOSITY; THERMO_P_CONDUCTIVITY ≡ THERMO_P_THERMAL_CONDUCTIVITY)
+value_tests = and(abs(water_cp_25/(J/(kg*K)) - 4181.314991) < 0.000001; abs(water_pressure_37_5/kPa - 6.50697707) < 0.000001; abs(water_latent_heat_60/(kJ/kg) - 2357.65452) < 0.000001; abs(eg_density_60/(kg/m^3) - 1040.489993) < 0.000001; abs(eg_cp_60/(J/(kg*K)) - 3503.148464) < 0.000001; abs(eg_viscosity_60/(Pa*s) - 0.001374918624) < 0.000000000001; abs(eg_conductivity_60/(W/(m*K)) - 0.413786428) < 0.000000001)
+status_tests = and(WaterSpecificHeatTStatus(25°C) ≡ DB_OK; WaterSpecificHeatTStatus(5°C) ≡ DB_ERR_BELOW_RANGE; Eg50DensityTStatus(100°C) ≡ DB_ERR_ABOVE_RANGE; ThermoPROPStatus(THERMO_WATER; THERMO_P_DENSITY; 25°C; DB_LINEAR; DB_STRICT) ≡ DB_ERR_MISSING; ThermoPROPStatus(999; THERMO_P_SPECIFIC_HEAT; 25°C; DB_LINEAR; DB_STRICT) ≡ DB_ERR_NAME; ThermoPROPStatus(THERMO_WATER; 999; 25°C; DB_LINEAR; DB_STRICT) ≡ DB_ERR_PROPERTY; ThermoPROPStatus(THERMO_WATER; THERMO_P_SPECIFIC_HEAT; 25°C; 999; DB_STRICT) ≡ DB_ERR_BAD_METHOD; ThermoPROPStatus(THERMO_WATER; THERMO_P_SPECIFIC_HEAT; 25°C; DB_LINEAR; 999) ≡ DB_ERR_BAD_POLICY)
+bounds_tests = and(ThermoPROPStatus(THERMO_EG_50; THERMO_P_DENSITY; 100°C; DB_LINEAR; DB_CLAMP) ≡ DB_WARN_CLAMP_HIGH; abs(ThermoPROPClamped(THERMO_EG_50; THERMO_P_DENSITY; 100°C)/(kg/m^3) - 1015.298872) < 0.000001)
+metadata_tests = and(ThermoTMin(THERMO_WATER; THERMO_P_SPECIFIC_HEAT) ≡ 10°C; ThermoTMax(THERMO_WATER; THERMO_P_SPECIFIC_HEAT) ≡ 95°C; ThermoSourceID(THERMO_WATER; THERMO_P_SPECIFIC_HEAT) ≡ THERMO_SRC_COOLPROP_SMATH; ThermoDataRevision(THERMO_EG_50; THERMO_P_DENSITY) ≡ 1; ThermoFluidConcentrationMassFraction(THERMO_EG_50) ≡ 0.5; DBIsMissing(ThermoFluidConcentrationMassFraction(THERMO_WATER)))
+undefined_tests = and(not(ValidationIsFinite(ThermoPROP(THERMO_WATER; THERMO_P_DENSITY; 25°C))); not(ValidationIsFinite(Eg50DensityT(100°C))))
+
+all_tests = and(catalog_tests; alias_tests; value_tests; status_tests; bounds_tests; metadata_tests; undefined_tests)
+
+ShowThermoDatasetSummary$
+ShowThermoFluidRecord$(THERMO_EG_50)
+ShowThermoProperty$(THERMO_WATER; THERMO_P_SATURATION_PRESSURE; 60°C)
