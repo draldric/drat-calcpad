@@ -53,14 +53,17 @@ Use `RPT_NO_REFERENCE` only where an assumption or limitation genuinely has no e
 REF_STANDARD = 1
 CRITERION_PRIMARY = 1
 
+'## References
 BeginReferences$
 AddReference$(REF_STANDARD; GOVERNING STANDARD; STANDARD TITLE; EDITION; CLAUSE; APPLICATION NOTES)
 EndReferences$
 
+'#### Design Criteria
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_PRIMARY; PRIMARY CRITERION; REQUIRED LIMIT; REF_STANDARD; CLAUSE; APPLICATION NOTES)
 EndDesignCriteria$
 
+'#### Reporting Registry Summary
 ShowReportingSummary$
 ```
 
@@ -91,6 +94,7 @@ AddValidationResult$(INPUT_DEMAND; Demand; demand_validation)
 AddValidationResult$(INPUT_CAPACITY; Capacity; capacity_validation)
 AddValidationResult$(INPUT_WARNING_THRESHOLD; Warning threshold; warning_validation)
 EndValidationResults$
+'#### Input Items Requiring Review
 ShowValidationIssues$
 
 #hide
@@ -114,11 +118,12 @@ AddUpperCheck$(CHECK_DEMAND; Demand check; demand; capacity; warning_threshold; 
 EndCheckRegistryWithSummary$
 
 ShowCalculationStatusFromRegistries$
+'#### Document Review Summary
 ShowDocumentReviewSummary$
 ```
 
 Invalid inputs must produce `CHK_ERROR`; they must not appear as passing engineering checks.
-The document review summary consolidates validation, check, and reporting issues and links each stored issue back to its source row.
+The document review summary consolidates validation, check, and reporting issues and links each stored issue back to its source row. Worksheet Markdown owns these headings; non-cover Core macros render content only.
 `Ready for Check` permits an otherwise complete calculation with warnings, while `Ready for Issue` requires a clean `REVIEW_READY` result.
 
 ## Use the materials library

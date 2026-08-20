@@ -41,6 +41,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
+- Core is versioned as 4.2.0 with worksheet-owned report headings, compact IEEE-style reference rows, stacked design-basis records, and record-level print grouping. Cover-page helpers remain the only Core macros that emit H1-H6 elements.
 - Core is versioned as 4.1.2 with shape-safe reporting registries and release-hardening standards for tests, examples, templates, and maintainability comments.
 - Beam Analysis 0.6.1 rejects empty load families and prevents invalid model records from producing plausible high-level reactions, responses, or series.
 - DataWrapper 0.3.3 identifies itself as the DRAT Data Wrapper instead of retaining stale template metadata.

@@ -1,24 +1,24 @@
 #hide
 '<!-- DRAT core compatibility manifest. -->
 
-DRAT_CORE_API = 40102
-DRAT_DEFINITIONS_API = 20000
-DRAT_STYLESHEET_API = 10800
+DRAT_CORE_API = 40200
+DRAT_DEFINITIONS_API = 20100
+DRAT_STYLESHEET_API = 10900
 DRAT_PLOTTING_API = 30200
 DRAT_DATA_WRAPPER_API = 303
 DRAT_CHECKS_API = 20000
 DRAT_DATABASE_API = 10000
-DRAT_VALIDATION_API = 20000
-DRAT_CHECK_REGISTRY_API = 10000
+DRAT_VALIDATION_API = 20100
+DRAT_CHECK_REGISTRY_API = 10100
 DRAT_CALCULATION_STATUS_API = 20000
-DRAT_REPORTING_API = 20001
-DRAT_REVIEW_SUMMARY_API = 10000
+DRAT_REPORTING_API = 20100
+DRAT_REVIEW_SUMMARY_API = 10100
 
 #def DRATCoreName$ = DRAT CalcpadCE Core
-#def DRATCoreVersion$ = 4.1.2
+#def DRATCoreVersion$ = 4.2.0
 #show
 #hide
-'<!-- Shared worksheet stylesheet. Version 1.8.0. -->
+'<!-- Shared worksheet stylesheet. Version 1.9.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -49,6 +49,7 @@ DRAT_REVIEW_SUMMARY_API = 10000
 '<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
 '<style>.document-summary h2{margin-bottom:0.25em;}</style>
 '<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
+'<style>.list-section-label{margin:0.75em 2em 0.25em 2em;text-transform:none;}</style>
 '<style>.calculation-status-banner{border:2px solid #444;border-left-width:8px;background:#f5f5f5;padding:0.75em 1em;margin:1.5em 2em;break-inside:avoid;page-break-inside:avoid;}</style>
 '<style>.calculation-status-heading{display:flex;justify-content:space-between;align-items:center;gap:1em;font-size:12pt;text-transform:uppercase;}</style>
 '<style>.calculation-status-label{display:inline-block;padding:0.2em 0.6em;border:2px solid currentColor;font-weight:bold;white-space:nowrap;}</style>
@@ -67,7 +68,15 @@ DRAT_REVIEW_SUMMARY_API = 10000
 '<style>.reporting-registry .registry-id,.reporting-registry-summary td{text-align:center;white-space:nowrap;}</style>
 '<style>.reporting-registry .registry-reference-link{font-weight:bold;}</style>
 '<style>.reporting-registry .registry-error td{background:#fff2f2;color:#b30000;}</style>
-'<style>.reporting-registry tfoot th,.reporting-registry tfoot td{background:#f5f5f5;font-weight:bold;}</style>
+'<style>.reporting-registry .registry-record{break-inside:avoid;page-break-inside:avoid;}</style>
+'<style>.reporting-registry .registry-record-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
+'<style>.reporting-registry .registry-record-id{display:inline-block;min-width:5.5em;margin-right:0.75em;padding:0.1em 0.4em;border:1px solid #777;background:#fff;text-align:center;white-space:nowrap;}</style>
+'<style>.reporting-registry .registry-record-detail th{width:9.5em;background:#f5f5f5;white-space:nowrap;}</style>
+'<style>.reporting-registry .registry-source-detail{white-space:nowrap;}</style>
+'<style>.reference-registry .registry-record-id{width:3.5em;text-align:right;white-space:nowrap;background:#f5f5f5;}</style>
+'<style>.reference-registry .reference-number{font-weight:bold;}</style>
+'<style>.reference-registry .reference-document{font-weight:bold;}</style>
+'<style>.reference-registry .reference-title{font-style:italic;}</style>
 '<style>.check-summary .check-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
 '<style>.check-summary .check-counts td{text-align:center;}</style>
@@ -95,9 +104,9 @@ DRAT_REVIEW_SUMMARY_API = 10000
 '<style>.document-review-counts th,.document-review-counts td{text-align:center;}</style>
 '<style>.document-review-issues td:first-child,.document-review-issues td:nth-child(2){text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner,.document-review-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner,.document-review-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}.reporting-registry{break-inside:auto;page-break-inside:auto;}.reporting-registry .registry-record{break-inside:avoid;page-break-inside:avoid;}}</style>
 #hide
-'<!-- Worksheet formatting definitions. Version 2.0.0. -->
+'<!-- Worksheet formatting definitions. Version 2.1.0. -->
 
 '<!-- Print and spacing helpers. -->
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -176,7 +185,8 @@ DRAT_REVIEW_SUMMARY_API = 10000
     '</table>
 #end def
 #def BeginListSection$(heading$)
-    '#### heading$
+    '<section class="list-section">
+    '<div class="list-section-label"><strong>heading$</strong></div>
     '<ul>
 #end def
 #def AddListItem$(item$)
@@ -184,9 +194,9 @@ DRAT_REVIEW_SUMMARY_API = 10000
 #end def
 #def EndListSection$
     '</ul>
+    '</section>
 #end def
 #def BeginVariables$
-    '### List of Variables
     #noc
     '<table class="bordered" style="width:95%">
     '<thead>
@@ -204,7 +214,6 @@ DRAT_REVIEW_SUMMARY_API = 10000
 #end def
 
 #def BeginConclusions$
-    '### Conclusions
     '<div class="conclusions">
 #end def
 #def AddConclusion$(label$; value$)
@@ -540,7 +549,7 @@ DBRegistryStatus(ids; id) = if(DBHasID(ids; id); DB_OK; DB_ERR_NAME)
 DBRegistryCount(ids) = len(ids)
 #show
 #hide
-'<!-- Input validation helpers. Version 2.0.0. -->
+'<!-- Input validation helpers. Version 2.1.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -1185,7 +1194,6 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     ζVAL_registry_count = ValidationResultRegistryCount(InputValidationRegistry)
     #show
     '<section class="validation-issues">
-    '<h4>Input Items Requiring Review</h4>
     #if ζVAL_issue_count ≡ 0
         '<p class="ok">No validation warnings or errors were registered.</p>
     #else
@@ -1220,7 +1228,7 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
 #end def
 #show
 #hide
-'<!-- Structured engineering check-result registry. Version 1.0.0. -->
+'<!-- Structured engineering check-result registry. Version 1.1.0. -->
 
 CHECK_REG_OK = 0
 CHECK_REG_ERR_BAD_REGISTRY = 10
@@ -1455,7 +1463,6 @@ EngineeringCheckRegistryErrors = [CHECK_REG_OK]
     ζCHECK_registry_count = CheckResultRegistryCount(EngineeringCheckRegistry)
     #show
     '<section class="check-issues">
-    '<h4>Items Requiring Review</h4>
     #if ζCHECK_issue_count ≡ 0
         '<p class="ok">No warning, failure, or error checks were registered.</p>
     #else
@@ -1603,7 +1610,7 @@ CalculationCanBeIssued(status) = or(status ≡ CALC_PASS; status ≡ CALC_WARN)
 #end def
 #show
 #hide
-'<!-- Structured engineering-report registries. Version 2.0.1. -->
+'<!-- Structured engineering-report registries. Version 2.1.0. -->
 
 RPT_OK = 0
 RPT_ERR_BAD_REGISTRY = 10
@@ -1720,7 +1727,7 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
         '<span class="note">None</span>
     #else
         #val
-        '<a class="registry-reference-link" href="#report-reference-reference_id$">'reference_id$'</a>
+        '<a class="registry-reference-link" href="#report-reference-reference_id$">['reference_id$']</a>
         #equ
     #end if
 #end def
@@ -1760,10 +1767,7 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
 #end def
 
 #def BeginReferences$
-    '<h2>References</h2>
     '<table class="bordered reporting-summary reporting-registry reference-registry">
-    '<thead><tr><th>ID</th><th>Document</th><th>Title</th><th>Edition / Revision</th><th>Clause</th><th>Notes</th></tr></thead>
-    '<tbody>
 #end def
 
 #def AddReference$(id$; document$; title$; edition$; clause$; notes$)
@@ -1774,34 +1778,30 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
     ζRPT_reference_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
     #val
-    '<tr id="report-entry-1-'ζRPT_reference_sequence'">
+    '<tbody id="report-entry-1-'ζRPT_reference_sequence'" class="registry-record reference-record"><tr>
     #equ
-    '<td class="registry-id">
+    '<th class="registry-record-id">
     #if ζRPT_reference_status ≡ RPT_OK
         '<span id="report-reference-id$"></span>
     #end if
-    ReportID$(id$)
-    '</td><td>document$</td><td>title$</td><td>edition$</td><td>clause$</td><td>notes$</td></tr>
+    #val
+    '<span class="reference-number">['id$']</span>
+    #equ
+    '</th><td class="reference-citation"><span class="reference-document">document$.</span> <span class="reference-title">title$.</span> <span class="reference-edition">edition$.</span> <span class="reference-clause">clause$.</span> <span class="reference-notes">notes$</span></td></tr>
     #if ζRPT_reference_status ≠ RPT_OK
-        '<tr class="registry-error"><td></td><td colspan="5"><strong>Reference registry error:</strong>
+        '<tr class="registry-error"><td></td><td><strong>Reference registry error:</strong>
         ReportStatus$(ζRPT_reference_status)
         '</td></tr>
     #end if
+    '</tbody>
 #end def
 
 #def EndReferences$
-    '</tbody>
-    #val
-    '<tfoot><tr><th>Registered references</th><td colspan="5">'ReportRegistryCount(ReportReferences)'</td></tr></tfoot>
-    #equ
     '</table>
 #end def
 
 #def BeginDesignCriteria$
-    '<h4>Design Criteria</h4>
     '<table class="bordered reporting-summary reporting-registry criteria-registry">
-    '<thead><tr><th>ID</th><th>Criterion</th><th>Requirement</th><th>Reference</th><th>Clause</th><th>Notes</th></tr></thead>
-    '<tbody>
 #end def
 
 #def AddDesignCriterion$(id$; criterion$; requirement$; reference_id$; clause$; notes$)
@@ -1812,32 +1812,28 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
     ζRPT_criterion_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
     #val
-    '<tr id="report-entry-2-'ζRPT_criterion_sequence'"><td class="registry-id">
+    '<tbody id="report-entry-2-'ζRPT_criterion_sequence'" class="registry-record"><tr class="registry-record-title"><th colspan="2">
+    '<span class="registry-record-id">ID 'id$'</span><span class="registry-record-text">criterion$</span></th></tr>
     #equ
-    ReportID$(id$)
-    '</td><td>criterion$</td><td>requirement$</td><td class="registry-id">
+    '<tr class="registry-record-detail"><th>Requirement</th><td>requirement$</td></tr>
+    '<tr class="registry-record-detail"><th>Source</th><td>
     ReportReferenceID$(reference_id$)
-    '</td><td>clause$</td><td>notes$</td></tr>
+    '<span class="registry-source-detail">, clause$</span></td></tr>
+    '<tr class="registry-record-detail"><th>Notes</th><td>notes$</td></tr>
     #if ζRPT_criterion_status ≠ RPT_OK
-        '<tr class="registry-error"><td></td><td colspan="5"><strong>Design-criteria registry error:</strong>
+        '<tr class="registry-error"><td colspan="2"><strong>Design-criteria registry error:</strong>
         ReportStatus$(ζRPT_criterion_status)
         '</td></tr>
     #end if
+    '</tbody>
 #end def
 
 #def EndDesignCriteria$
-    '</tbody>
-    #val
-    '<tfoot><tr><th>Registered criteria</th><td colspan="5">'ReportLinkedRegistryCount(ReportDesignCriteria)'</td></tr></tfoot>
-    #equ
     '</table>
 #end def
 
 #def BeginAssumptions$
-    '<h4>Assumptions</h4>
     '<table class="bordered reporting-summary reporting-registry assumption-registry">
-    '<thead><tr><th>ID</th><th>Category</th><th>Assumption</th><th>Basis / Justification</th><th>Reference</th></tr></thead>
-    '<tbody>
 #end def
 
 #def AddAssumption$(id$; category$; assumption$; basis$; reference_id$)
@@ -1848,32 +1844,27 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
     ζRPT_assumption_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
     #val
-    '<tr id="report-entry-3-'ζRPT_assumption_sequence'"><td class="registry-id">
+    '<tbody id="report-entry-3-'ζRPT_assumption_sequence'" class="registry-record"><tr class="registry-record-title"><th colspan="2">
+    '<span class="registry-record-id">ID 'id$'</span><span class="registry-record-category">category$</span><span class="registry-record-separator"> &mdash; </span><span class="registry-record-text">assumption$</span></th></tr>
     #equ
-    ReportID$(id$)
-    '</td><td>category$</td><td>assumption$</td><td>basis$</td><td class="registry-id">
+    '<tr class="registry-record-detail"><th>Basis</th><td>basis$</td></tr>
+    '<tr class="registry-record-detail"><th>Reference</th><td>
     ReportReferenceID$(reference_id$)
     '</td></tr>
     #if ζRPT_assumption_status ≠ RPT_OK
-        '<tr class="registry-error"><td></td><td colspan="4"><strong>Assumption registry error:</strong>
+        '<tr class="registry-error"><td colspan="2"><strong>Assumption registry error:</strong>
         ReportStatus$(ζRPT_assumption_status)
         '</td></tr>
     #end if
+    '</tbody>
 #end def
 
 #def EndAssumptions$
-    '</tbody>
-    #val
-    '<tfoot><tr><th>Registered assumptions</th><td colspan="4">'ReportLinkedRegistryCount(ReportAssumptions)'</td></tr></tfoot>
-    #equ
     '</table>
 #end def
 
 #def BeginLimitations$
-    '<h4>Applicability and Limitations</h4>
     '<table class="bordered reporting-summary reporting-registry limitation-registry">
-    '<thead><tr><th>ID</th><th>Limitation</th><th>Consequence</th><th>Required Follow-up</th><th>Reference</th></tr></thead>
-    '<tbody>
 #end def
 
 #def AddLimitation$(id$; limitation$; consequence$; follow_up$; reference_id$)
@@ -1884,24 +1875,23 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
     ζRPT_limitation_sequence = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
     #val
-    '<tr id="report-entry-4-'ζRPT_limitation_sequence'"><td class="registry-id">
+    '<tbody id="report-entry-4-'ζRPT_limitation_sequence'" class="registry-record"><tr class="registry-record-title"><th colspan="2">
+    '<span class="registry-record-id">ID 'id$'</span><span class="registry-record-text">limitation$</span></th></tr>
     #equ
-    ReportID$(id$)
-    '</td><td>limitation$</td><td>consequence$</td><td>follow_up$</td><td class="registry-id">
+    '<tr class="registry-record-detail"><th>Consequence</th><td>consequence$</td></tr>
+    '<tr class="registry-record-detail"><th>Required action</th><td>follow_up$</td></tr>
+    '<tr class="registry-record-detail"><th>Reference</th><td>
     ReportReferenceID$(reference_id$)
     '</td></tr>
     #if ζRPT_limitation_status ≠ RPT_OK
-        '<tr class="registry-error"><td></td><td colspan="4"><strong>Limitation registry error:</strong>
+        '<tr class="registry-error"><td colspan="2"><strong>Limitation registry error:</strong>
         ReportStatus$(ζRPT_limitation_status)
         '</td></tr>
     #end if
+    '</tbody>
 #end def
 
 #def EndLimitations$
-    '</tbody>
-    #val
-    '<tfoot><tr><th>Registered limitations</th><td colspan="4">'ReportLinkedRegistryCount(ReportLimitations)'</td></tr></tfoot>
-    #equ
     '</table>
 #end def
 
@@ -1910,7 +1900,6 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
     ζRPT_overall_status = ReportRegistriesStatus(ReportReferences; ReportDesignCriteria; ReportAssumptions; ReportLimitations; ReportRegistryErrors)
     #show
     '<section class="reporting-registry-summary">
-    '<h4>Reporting Registry Summary</h4>
     '<table class="bordered reporting-summary reporting-registry">
     '<thead><tr><th>References</th><th>Design Criteria</th><th>Assumptions</th><th>Limitations</th><th>Errors</th><th>Status</th></tr></thead>
     #val
@@ -1923,7 +1912,7 @@ ReportRegistryErrors = ReportErrorRegistryEmpty
 #end def
 #show
 #hide
-'<!-- Unified document review summary. Version 1.0.0. -->
+'<!-- Unified document review summary. Version 1.1.0. -->
 
 REVIEW_READY = 0
 REVIEW_ATTENTION = 10
@@ -1988,7 +1977,6 @@ ReviewReadyForIssue(status) = status ≡ REVIEW_READY
     ζREVIEW_check_count = CheckResultRegistryCount(EngineeringCheckRegistry)
     ζREVIEW_reporting_attempts = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
-    '<h4>Document Review Summary</h4>
     '<section class="document-review-summary">
     '<div class="document-review-heading"><strong>Overall review state</strong>
     ReviewStatus$(ζREVIEW_status)

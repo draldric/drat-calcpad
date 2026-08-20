@@ -42,6 +42,8 @@ BeginRevisions$
 AddRevision$(0; Initial example; EXAMPLE AUTHOR; 2026-08-08)
 EndRevisions$
 
+'## References
+
 BeginReferences$
 AddReference$(REF_PROJECT_BASIS; Project design basis; Applicable engineering requirements; Project revision; Governing criteria; Confirm the project-specific acceptance requirements.)
 AddReference$(REF_FACTOR_SOURCES; Engineering input sources; Material data and loading assumptions; Current project revision; Factor selection basis; Document the evidence supporting each selected factor.)
@@ -49,18 +51,26 @@ EndReferences$
 
 "Design Basis and Assumptions
 
+'#### Design Criteria
+
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_FACTOR_SELECTION; Factor selection; Each selected factor must match a documented option and the design factor must meet or exceed the recommended minimum.; REF_PROJECT_BASIS; Governing criteria; Confirm the project-specific requirement before issue.)
 EndDesignCriteria$
+
+'#### Assumptions
 
 BeginAssumptions$
 AddAssumption$(ASSUMPTION_DIMENSIONLESS_FACTORS; Methodology; The selected factors are dimensionless.; The factor method combines categorical multipliers.; REF_FACTOR_SOURCES)
 AddAssumption$(ASSUMPTION_APPLICABLE_OPTIONS; Applicability; The documented factor categories and permitted values apply to the design.; Selection must be confirmed by the responsible engineer.; REF_PROJECT_BASIS)
 EndAssumptions$
 
+'#### Applicability and Limitations
+
 BeginLimitations$
 AddLimitation$(LIMITATION_WORKFLOW_EXAMPLE; This example demonstrates a workflow and is not a substitute for a governing code requirement.; A passing result does not establish code compliance.; Confirm every governing project and code requirement before use.; REF_PROJECT_BASIS)
 EndLimitations$
+
+'#### Reporting Registry Summary
 
 ShowReportingSummary$
 
@@ -168,7 +178,12 @@ calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; In
 #show
 
 ShowCalculationStatusFromRegistries$
+
+'#### Document Review Summary
+
 ShowDocumentReviewSummary$
+
+"Conclusions
 
 BeginConclusions$
 #novar

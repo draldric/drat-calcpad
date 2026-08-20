@@ -39,6 +39,8 @@ BeginRevisions$
 AddRevision$(0; Initial calculation; PREPARER NAME; YYYY-MM-DD)
 EndRevisions$
 
+'## References
+
 BeginReferences$
 AddReference$(REF_GOVERNING_STANDARD; GOVERNING STANDARD; STANDARD TITLE; EDITION / REVISION; APPLICABLE CLAUSE; Describe how the reference governs the calculation.)
 AddReference$(REF_INPUT_SOURCE; DRAWING / SPECIFICATION / DATASET; INPUT SOURCE TITLE; REVISION / DATE; APPLICABLE LOCATION; Identify the origin of calculation inputs.)
@@ -46,17 +48,25 @@ EndReferences$
 
 "Design Basis and Assumptions
 
+'#### Design Criteria
+
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_PRIMARY; PRIMARY DESIGN CRITERION; STATE THE REQUIRED LIMIT OR ACCEPTANCE CONDITION.; REF_GOVERNING_STANDARD; APPLICABLE CLAUSE; Explain how the criterion is applied.)
 EndDesignCriteria$
+
+'#### Assumptions
 
 BeginAssumptions$
 AddAssumption$(ASSUMPTION_PRIMARY; ANALYSIS / GEOMETRY / LOADING / MATERIAL; STATE THE ENGINEERING ASSUMPTION.; State the evidence or engineering basis.; REF_INPUT_SOURCE)
 EndAssumptions$
 
+'#### Applicability and Limitations
+
 BeginLimitations$
 AddLimitation$(LIMITATION_PRIMARY; STATE THE BOUND, EXCLUSION, OR CONDITION OF USE.; Explain the consequence if the limitation is exceeded.; State the review, verification, or additional analysis required.; RPT_NO_REFERENCE)
 EndLimitations$
+
+'#### Reporting Registry Summary
 
 ShowReportingSummary$
 
@@ -121,7 +131,12 @@ calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; In
 "Results
 
 ShowCalculationStatusFromRegistries$
+
+'#### Document Review Summary
+
 ShowDocumentReviewSummary$
+
+"Conclusions
 
 BeginConclusions$
 #novar

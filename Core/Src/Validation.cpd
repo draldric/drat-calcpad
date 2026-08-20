@@ -1,5 +1,5 @@
 #hide
-'<!-- Input validation helpers. Version 2.0.0. -->
+'<!-- Input validation helpers. Version 2.1.0. -->
 
 VAL_OK = 0
 VAL_WARN = 10
@@ -644,7 +644,6 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     ζVAL_registry_count = ValidationResultRegistryCount(InputValidationRegistry)
     #show
     '<section class="validation-issues">
-    '<h4>Input Items Requiring Review</h4>
     #if ζVAL_issue_count ≡ 0
         '<p class="ok">No validation warnings or errors were registered.</p>
     #else

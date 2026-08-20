@@ -50,6 +50,8 @@ EndRevisions$
 'Assumptions and limitations may use a registered source or RPT_NO_REFERENCE when their basis is explicitly internal to the calculation.
 'IDs are positive integers stored in CalcPad registries, while the accompanying report text remains visible directly in the worksheet source.
 
+'#### References
+
 BeginReferences$
 AddReference$(REF_DESIGN_STANDARD; CSA S16; Design of steel structures; 2024; Clause 13; Governing structural resistance and serviceability reference.)
 AddReference$(REF_PROJECT_DRAWING; Project drawing GA-001; General arrangement; Rev 2; Member geometry; Source of member span support arrangement and connection locations.)
@@ -57,11 +59,15 @@ AddReference$(REF_PROJECT_SPECIFICATION; Project specification SP-100; Structura
 AddReference$(REF_MATERIAL_DATA; Engineering material dataset; Certified steel material properties; Current project submittal; Material certificate; Source of the project-specific strength properties.)
 EndReferences$
 
+'#### Design Criteria
+
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_STRENGTH; Strength; Factored demand must not exceed the applicable member resistance.; REF_DESIGN_STANDARD; Clause 13; Evaluate every applicable strength limit state.)
 AddDesignCriterion$(CRITERION_DEFLECTION; Serviceability; Calculated deflection must not exceed the project serviceability limit.; REF_PROJECT_SPECIFICATION; Section 4.3; Use the governing service load combination.)
 AddDesignCriterion$(CRITERION_MATERIAL; Material properties; Design properties must correspond to the supplied member material and condition.; REF_MATERIAL_DATA; Material certificate; Confirm grade thickness and condition before issue.)
 EndDesignCriteria$
+
+'#### Assumptions
 
 BeginAssumptions$
 AddAssumption$(ASSUMPTION_STATIC_LOADING; Loading; Applied loads are static.; No impact cyclic or dynamic loading is included in the defined scope.; REF_PROJECT_SPECIFICATION)
@@ -69,11 +75,15 @@ AddAssumption$(ASSUMPTION_GEOMETRY; Geometry; The analyzed member geometry match
 AddAssumption$(ASSUMPTION_AMBIENT_CONDITIONS; Environment; The calculation applies at ordinary ambient temperature.; Temperature-dependent behavior is outside this demonstration.; RPT_NO_REFERENCE)
 EndAssumptions$
 
+'#### Applicability and Limitations
+
 BeginLimitations$
 AddLimitation$(LIMITATION_DYNAMIC_RESPONSE; Dynamic response is not evaluated.; Resonance impact or transient effects may increase demand.; Perform a dynamic assessment where the loading source requires it.; REF_PROJECT_SPECIFICATION)
 AddLimitation$(LIMITATION_DRAWING_REVISION; Results apply only to the registered drawing revision.; Geometry changes may invalidate the calculated response.; Recheck the calculation following any drawing revision.; REF_PROJECT_DRAWING)
 AddLimitation$(LIMITATION_FIELD_CONDITIONS; Existing field conditions have not been independently verified.; Unrecorded modifications or deterioration may affect applicability.; Confirm critical dimensions and condition before relying on the calculation.; RPT_NO_REFERENCE)
 EndLimitations$
+
+'#### Reporting Registry Summary
 
 ShowReportingSummary$
 

@@ -1,5 +1,5 @@
 #hide
-'<!-- Shared worksheet stylesheet. Version 1.8.0. -->
+'<!-- Shared worksheet stylesheet. Version 1.9.0. -->
 #show
 '<style>*{font-family:courier new;font-size:10pt;}</style>
 '<style>body{counter-reset:h3counter;}</style>
@@ -30,6 +30,7 @@
 '<style>.document-summary{border-bottom:1px solid #999;padding-bottom:0.5em;margin-bottom:1em;}</style>
 '<style>.document-summary h2{margin-bottom:0.25em;}</style>
 '<style>.conclusions{border:2px solid #444;background:#f5f5f5;padding:1em;margin:1em 2em;}</style>
+'<style>.list-section-label{margin:0.75em 2em 0.25em 2em;text-transform:none;}</style>
 '<style>.calculation-status-banner{border:2px solid #444;border-left-width:8px;background:#f5f5f5;padding:0.75em 1em;margin:1.5em 2em;break-inside:avoid;page-break-inside:avoid;}</style>
 '<style>.calculation-status-heading{display:flex;justify-content:space-between;align-items:center;gap:1em;font-size:12pt;text-transform:uppercase;}</style>
 '<style>.calculation-status-label{display:inline-block;padding:0.2em 0.6em;border:2px solid currentColor;font-weight:bold;white-space:nowrap;}</style>
@@ -48,7 +49,15 @@
 '<style>.reporting-registry .registry-id,.reporting-registry-summary td{text-align:center;white-space:nowrap;}</style>
 '<style>.reporting-registry .registry-reference-link{font-weight:bold;}</style>
 '<style>.reporting-registry .registry-error td{background:#fff2f2;color:#b30000;}</style>
-'<style>.reporting-registry tfoot th,.reporting-registry tfoot td{background:#f5f5f5;font-weight:bold;}</style>
+'<style>.reporting-registry .registry-record{break-inside:avoid;page-break-inside:avoid;}</style>
+'<style>.reporting-registry .registry-record-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
+'<style>.reporting-registry .registry-record-id{display:inline-block;min-width:5.5em;margin-right:0.75em;padding:0.1em 0.4em;border:1px solid #777;background:#fff;text-align:center;white-space:nowrap;}</style>
+'<style>.reporting-registry .registry-record-detail th{width:9.5em;background:#f5f5f5;white-space:nowrap;}</style>
+'<style>.reporting-registry .registry-source-detail{white-space:nowrap;}</style>
+'<style>.reference-registry .registry-record-id{width:3.5em;text-align:right;white-space:nowrap;background:#f5f5f5;}</style>
+'<style>.reference-registry .reference-number{font-weight:bold;}</style>
+'<style>.reference-registry .reference-document{font-weight:bold;}</style>
+'<style>.reference-registry .reference-title{font-style:italic;}</style>
 '<style>.check-summary .check-title th{text-align:left;background:#e8e8e8;border-top:2px solid #666;}</style>
 '<style>table.data.check-summary td.check-demand{text-align:right;}</style>
 '<style>.check-summary .check-counts td{text-align:center;}</style>
@@ -76,4 +85,4 @@
 '<style>.document-review-counts th,.document-review-counts td{text-align:center;}</style>
 '<style>.document-review-issues td:first-child,.document-review-issues td:nth-child(2){text-align:left;}</style>
 '<style>table.data.revision-history td:first-child{text-align:right;}</style>
-'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner,.document-review-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}}</style>
+'<style>@media print{h3{break-before:page;page-break-before:always;}h3,h4,h5,h6{break-after:avoid-page;page-break-after:avoid;}.document-header,.document-summary,.conclusions,.reporting-summary,.calculation-status-banner,.document-review-summary{break-inside:avoid;page-break-inside:avoid;}.reporting-summary{font-size:9pt;}.reporting-registry{break-inside:auto;page-break-inside:auto;}.reporting-registry .registry-record{break-inside:avoid;page-break-inside:avoid;}}</style>

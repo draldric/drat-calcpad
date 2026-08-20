@@ -53,6 +53,8 @@ BeginRevisions$
 AddRevision$(0; Initial integrated example; EXAMPLE AUTHOR; 2026-08-09)
 EndRevisions$
 
+'## References
+
 BeginReferences$
 AddReference$(REF_MATERIAL_LIBRARY; EngineeringMaterialsLibraryName$; Common engineering materials screening data; EngineeringMaterialsLibraryRevision$ / EngineeringMaterialsLibraryDate$; Selected material record; Representative values are not project-certified allowables.)
 AddReference$(REF_PROJECT_BASIS; Project design basis; Project-specific material specification and acceptance requirements; Project revision; Governing design criteria; To be confirmed by the responsible engineer.)
@@ -61,11 +63,15 @@ EndReferences$
 
 "Design Basis and Assumptions
 
+'#### Design Criteria
+
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_YIELD; Yield screening; Nominal axial tensile stress must not exceed the yield-strength screening value divided by the selected yield factor.; REF_PROJECT_BASIS; Project acceptance criteria; Replace with the governing project or code criterion.)
 AddDesignCriterion$(CRITERION_TENSILE; Tensile screening; Nominal axial tensile stress must not exceed the tensile-strength screening value divided by the selected ultimate factor.; REF_PROJECT_BASIS; Project acceptance criteria; Replace with the governing project or code criterion.)
 AddDesignCriterion$(CRITERION_UTILIZATION; Utilization classification; A utilization of 1.0 is the screening limit and the warning threshold identifies checks approaching that limit.; REF_PROJECT_BASIS; Project acceptance criteria; The warning threshold does not change the acceptance limit.)
 EndDesignCriteria$
+
+'#### Assumptions
 
 BeginAssumptions$
 AddAssumption$(ASSUMPTION_STATIC_TENSION; Loading; The member carries concentric static uniaxial tension.; The example applies a single axial force without eccentricity or dynamics.; REF_PROJECT_BASIS)
@@ -73,11 +79,15 @@ AddAssumption$(ASSUMPTION_UNIFORM_STRESS; Analysis; Stress is uniformly distribu
 AddAssumption$(ASSUMPTION_MATERIAL_REPRESENTATION; Material; The selected material record represents the member material and condition.; Property applicability must be confirmed from the reported provenance.; REF_MATERIAL_PROVENANCE)
 EndAssumptions$
 
+'#### Applicability and Limitations
+
 BeginLimitations$
 AddLimitation$(LIMITATION_SCREENING_VALUES; The material library contains representative screening values rather than certified project design allowables.; A passing result is suitable only for screening.; Confirm project material properties before design issue.; REF_MATERIAL_LIBRARY)
 AddLimitation$(LIMITATION_EXCLUDED_MODES; Net-section reduction connections stress concentrations fatigue fracture buckling temperature effects and code-specific resistance factors are excluded.; Other failure modes may govern.; Perform the governing code and project-specific checks.; REF_PROJECT_BASIS)
 AddLimitation$(LIMITATION_DEMONSTRATION_INPUTS; Applied load and gross area are saved demonstration inputs.; The reported result does not represent a specific project member.; Replace the inputs and verify all requirements before use.; RPT_NO_REFERENCE)
 EndLimitations$
+
+'#### Reporting Registry Summary
 
 ShowReportingSummary$
 
@@ -147,6 +157,8 @@ ShowMatPROP$(material_id; MAT_P_TENSILE_STRENGTH)
 'The two screening allowables are obtained by dividing the retrieved strengths by their respective factors.
 'Each utilization is the nominal stress divided by its screening allowable.
 
+'#### Variables
+
 BeginVariables$
 AddVariable$(F_t; Applied tensile load; kN)
 AddVariable$(A_g; Gross cross-sectional area; mm^2)
@@ -188,7 +200,12 @@ AddConclusion$(Governing utilization; governing_utilization)
 #equ
 
 ShowCalculationStatusFromRegistries$
+
+'#### Document Review Summary
+
 ShowDocumentReviewSummary$
+
+"Conclusions
 
 BeginConclusions$
 #novar

@@ -58,6 +58,8 @@ AddValidationResult$(INPUT_CONFIDENCE; Screening confidence; confidence_validati
 AddValidationResult$(INPUT_OFFSET; Connection offset; offset_validation)
 EndValidationResults$
 
+'#### Input Items Requiring Review
+
 ShowValidationIssues$
 
 "Registry Query Examples

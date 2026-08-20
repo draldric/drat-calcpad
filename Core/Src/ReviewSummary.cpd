@@ -1,5 +1,5 @@
 #hide
-'<!-- Unified document review summary. Version 1.0.0. -->
+'<!-- Unified document review summary. Version 1.1.0. -->
 
 REVIEW_READY = 0
 REVIEW_ATTENTION = 10
@@ -64,7 +64,6 @@ ReviewReadyForIssue(status) = status ≡ REVIEW_READY
     ζREVIEW_check_count = CheckResultRegistryCount(EngineeringCheckRegistry)
     ζREVIEW_reporting_attempts = ReportErrorRegistryAttemptCount(ReportRegistryErrors)
     #show
-    '<h4>Document Review Summary</h4>
     '<section class="document-review-summary">
     '<div class="document-review-heading"><strong>Overall review state</strong>
     ReviewStatus$(ζREVIEW_status)
