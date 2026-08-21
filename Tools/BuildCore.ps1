@@ -3,6 +3,8 @@ param(
     [switch]$Check
 )
 
+$ErrorActionPreference = 'Stop'
+
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $sourceRoot = Join-Path $repositoryRoot 'Core\Src'
 $outputPath = Join-Path $repositoryRoot 'Core\DratCore.cpd'
@@ -50,5 +52,23 @@ if ($Check) {
 }
 
 $utf8WithoutBom = [System.Text.UTF8Encoding]::new($false)
-[System.IO.File]::WriteAllText($outputPath, $bundle, $utf8WithoutBom)
-Write-Output "Generated $outputPath"
+$outputDirectory = Split-Path -Parent $outputPath
+$temporaryPath = Join-Path $outputDirectory ('.DratCore.cpd.' + [System.Guid]::NewGuid().ToString('N') + '.tmp')
+
+try {
+    [System.IO.File]::WriteAllText($temporaryPath, $bundle, $utf8WithoutBom)
+    $temporaryBundle = [System.IO.File]::ReadAllText($temporaryPath)
+    if ($temporaryBundle -cne $bundle) {
+        throw "Temporary Core bundle verification failed: $temporaryPath"
+    }
+
+    # The source and destination share a directory, so the overwrite is a single filesystem rename/replace.
+    [System.IO.File]::Move($temporaryPath, $outputPath, $true)
+
+    Write-Output "Generated $outputPath"
+}
+finally {
+    if (Test-Path -LiteralPath $temporaryPath) {
+        Remove-Item -LiteralPath $temporaryPath -Force
+    }
+}
