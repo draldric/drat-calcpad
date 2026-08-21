@@ -35,7 +35,7 @@ def symbol(label: str) -> str:
 
 
 def build(workbook: Path) -> str:
-    data = load_family(workbook, ["C", "MC"], PROPERTIES, {"C": 32, "MC": 40})
+    data = load_family(workbook, "Channel", ["C", "MC"], PROPERTIES, {"C": 32, "MC": 40}, 3001)
     L: list[str] = []
     e = L.append
     e("#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)"); e("#if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)")
@@ -88,7 +88,7 @@ def build(workbook: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source", type=Path, help="Official AISC Shapes Database v16.0 workbook.")
+    parser.add_argument("source", type=Path, help="Repository-owned DRAT structural-section source workbook.")
     parser.add_argument("output", help="Generated CalcPad library path or - for stdout.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     options = parser.parse_args()

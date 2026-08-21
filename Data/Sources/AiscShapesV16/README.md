@@ -1,4 +1,4 @@
-# AISC Shapes Database v16.0 source record
+# DRAT structural-section source dataset
 
 ## Identification
 
@@ -10,13 +10,15 @@
 - Official download used for qualification: `https://cloud.aisc.org/biggie_bin/aisc-shapes-database-v160-2.xlsx`
 - Retrieved: 2026-08-20
 - SHA-256: `82d0ceb96a0d938ae1a6bd9637cb10a1e269225b5d668dce5b0bdc8d86013496`
-- Required worksheets: `Database v16.0` and `Readme`
+- Repository source workbook: `DratStructuralSectionsSource.xlsx`
+- DRAT dataset revision: 1.0.0, 2026-08-20
+- Required worksheets: `README`, `Properties`, `W`, `HSS`, `Channel`, `Angle`, and `QA`
 
 ## Repository and redistribution disposition
 
-The official workbook is externally obtained and is not committed. AISC makes the workbook available for download, but its website terms restrict copying and redistribution. DRAT therefore records the authoritative download and hash while excluding the workbook from the repository and runtime packages.
+The official AISC workbook is not committed or redistributed. DRAT instead maintains its own curated workbook containing selected factual geometric values, organized by supported shape family. It omits the official workbook's unused families, SI duplication, and additional parameters.
 
-The committed `.cpd` files contain selected nominal geometric properties transformed from the workbook. Their public redistribution requires an explicit AISC permission decision before the first release. Until that decision is recorded, the four generated AISC libraries are a release blocker; free public download is not treated as redistribution permission.
+`DratStructuralSectionsSource.xlsx` is the repository-owned source of truth for generation. The source workbook is committed for review and regeneration but excluded from runtime packages. The generated `.cpd` files contain the same selected factual values in CalcPad form. This disposition does not authorize copying or redistributing the AISC v16 workbook itself.
 
 ## Generated coverage
 
@@ -31,4 +33,4 @@ Missing cells and AISC dash markers remain `DB_MISSING`. No absent property is r
 
 ## Generation
 
-Install the compatible generator dependencies from `requirements-generators.txt`. Pass the independently downloaded workbook to each `Tools/GenerateAisc*Library.py` command. The generators validate the workbook schema and expected family counts before producing output.
+Install the compatible generator dependencies from `requirements-generators.txt`. Pass `DratStructuralSectionsSource.xlsx` to each `Tools/GenerateAisc*Library.py` command. The generators validate the DRAT dataset identity and revision, exact family sheets, stable IDs, property contract, numeric values, missing values, and expected family counts before producing output.

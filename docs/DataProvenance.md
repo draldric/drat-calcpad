@@ -7,30 +7,33 @@ This audit covers every distributed DRAT engineering dataset as of 2026-08-20. A
 | Runtime dataset | Source and revision | Raw-input disposition | Generated-output disposition | Qualification state |
 |---|---|---|---|---|
 | Engineering Materials 1.4.0 | Repository workbook 1.0.0, 2026-08-07; 11 row-level source portals | Committed under `Data/Sources/EngineeringMaterials`; excluded from runtime packages | Packaged as screening data | Blocked: property-level citations and source revisions are incomplete |
-| AISC W shapes 0.1.0 | AISC Shapes Database v16.0, August 2023; SHA-256 `82d0ceb96a0d938ae1a6bd9637cb10a1e269225b5d668dce5b0bdc8d86013496` | Externally downloaded; not committed or packaged | Embedded transformed values retained for qualification | Blocked: obtain and record AISC redistribution permission or remove the dataset |
-| AISC HSS 0.1.0 | Same AISC workbook | Externally downloaded; not committed or packaged | Embedded transformed values retained for qualification | Same redistribution blocker |
-| AISC C/MC channels 0.1.0 | Same AISC workbook | Externally downloaded; not committed or packaged | Embedded transformed values retained for qualification | Same redistribution blocker |
-| AISC single angles 0.1.0 | Same AISC workbook | Externally downloaded; not committed or packaged | Embedded transformed values retained for qualification | Same redistribution blocker |
+| AISC W shapes 0.1.0 | DRAT structural-section source 1.0.0; values based on AISC Shapes Database v16.0, August 2023 | Repository workbook committed under `Data/Sources/AiscShapesV16`; excluded from runtime packages | Embedded selected factual values packaged | Qualified against the recorded source hash and deterministic generation checks |
+| AISC HSS 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
+| AISC C/MC channels 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
+| AISC single angles 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | Thermophysical Properties 0.1.0 | CoolProp samples migrated through SMath plugin build `6.4.8214.13502`, captured 2026-08-14 | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Packaged with CoolProp MIT notice | Blocked: exact CoolProp version/input pairs and independent property validation are incomplete |
 
 ## AISC verification
 
-The official AISC landing page identifies v16.0 as the Excel shapes database consistent with the 16th Edition Steel Construction Manual. Qualification used the official AISC download and recorded its hash without committing it.
+The official AISC landing page identifies v16.0 as the Excel shapes database consistent with the 16th Edition Steel Construction Manual. The official download was used to prepare and qualify the repository-owned DRAT compilation; its hash is recorded without committing or redistributing that workbook.
 
-All four generators were run in `--check` mode against that workbook. The complete generated W, HSS, C/MC, and L outputs matched the committed libraries byte for byte. This full-output comparison confirms the selected workbook columns, missing markers, record order, aliases, units, and numeric values used by the generators.
+`Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx` contains separate W, HSS, Channel, and Angle sheets plus an explicit property contract. It retains only the records and US-customary geometric properties used by the current DRAT APIs. It omits other shape families, SI duplicates, and unused source fields.
+
+All four generators run in `--check` mode against the committed DRAT workbook. The complete generated W, HSS, C/MC, and L outputs match the committed libraries byte for byte. This full-output comparison confirms the selected columns, missing values, record order, aliases, units, and numeric values used by the generators.
 
 The generators additionally enforce:
 
-- required `Database v16.0` and `Readme` worksheets;
-- required label, type, and family-specific property columns;
+- required `README`, `Properties`, and family worksheets;
+- dataset ID `DRAT_STRUCTURAL_SECTIONS`, dataset revision 1.0.0, and the recorded AISC source basis;
+- exact family-specific property names, IDs, units, and source-column mappings;
 - 289 W, 714 HSS, 32 C, 40 MC, and 137 L records;
-- unique supported labels and deterministic IDs;
+- unique supported labels and ordered contiguous stable IDs;
 - numeric finite property cells, with positive non-missing weight and area;
 - explicit `DB_MISSING` output for blank and dash markers;
 - verified temporary output followed by atomic replacement;
 - read-only stale-output checks and prior-output preservation on validation failure.
 
-AISC's website terms state that site content is proprietary and limit copying and redistribution. Free download is not treated as permission to redistribute the workbook or the transformed embedded table. The raw workbook remains excluded, and public release is blocked pending explicit permission or dataset removal.
+The project disposition is to publish DRAT's own curated compilation of factual shape values while neither copying nor redistributing the AISC v16 workbook. Attribution, version identification, the qualification hash, and the narrower field scope remain documented. The official workbook remains excluded from the repository and all packages.
 
 ## Engineering Materials verification
 
@@ -55,7 +58,7 @@ The dataset reproduces the migrated worksheet's CoolProp samples but lacks the e
 
 ## Units, conversions, and missing values
 
-- AISC values are emitted directly in the source workbook's US-customary units; the generator performs no numeric conversion.
+- Structural-section values are emitted directly from the DRAT workbook's documented US-customary units; the generator performs no numeric conversion.
 - Engineering Materials values use the workbook's documented SI-oriented units. Elongation is a fraction, CTE is in micrometres per metre-kelvin, and shear/bulk modulus are formula-derived only where documented.
 - Thermophysical values use the explicit unit keys in the JSON and CalcPad unit expressions in the generator.
 - Blank cells and source dash markers remain missing. No generator replaces a missing value with zero.
@@ -68,20 +71,15 @@ Install compatible dependencies:
 python -m pip install -r requirements-generators.txt
 ```
 
-Validate repository-owned inputs:
+Validate repository-owned inputs and generated outputs:
 
 ```powershell
 python Tools/ValidateEngineeringMaterialsSource.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx
 python Tools/GenerateThermophysicalLibrary.py Data/Sources/Thermophysical/ThermophysicalProperties.json Libraries/Thermophysical/ThermophysicalProperties.cpd --check
+python Tools/GenerateAiscWLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/StructuralSections.cpd --check
+python Tools/GenerateAiscHssLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscHssSections.cpd --check
+python Tools/GenerateAiscChannelLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscChannelSections.cpd --check
+python Tools/GenerateAiscAngleLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscAngleSections.cpd --check
 ```
 
-After independently downloading the AISC workbook whose hash is recorded above:
-
-```powershell
-python Tools/GenerateAiscWLibrary.py path/to/aisc-shapes-database-v16.0.xlsx Libraries/Steel/StructuralSections.cpd --check
-python Tools/GenerateAiscHssLibrary.py path/to/aisc-shapes-database-v16.0.xlsx Libraries/Steel/AiscHssSections.cpd --check
-python Tools/GenerateAiscChannelLibrary.py path/to/aisc-shapes-database-v16.0.xlsx Libraries/Steel/AiscChannelSections.cpd --check
-python Tools/GenerateAiscAngleLibrary.py path/to/aisc-shapes-database-v16.0.xlsx Libraries/Steel/AiscAngleSections.cpd --check
-```
-
-`Tools/VerifyRepository.ps1` runs the repository-owned schema and failure-mode tests. It does not download the external AISC workbook, so the hash-qualified AISC `--check` commands remain an explicit release qualification step.
+`Tools/VerifyRepository.ps1` runs the repository-owned schema and failure-mode tests plus all four structural-section `--check` commands. It does not download or require the external AISC workbook.

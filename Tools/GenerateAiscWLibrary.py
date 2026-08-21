@@ -1,7 +1,7 @@
 """Generate the embedded AISC v16 W-shape CalcPad library from the source workbook.
 
 The generated .cpd is committed; this helper is retained to make its source-data
-transformation auditable. Run it with the official workbook path as its argument.
+transformation auditable from the repository-owned curated workbook.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ def emit(lines: list[str], line: str = "") -> None:
 
 
 def build(workbook: Path) -> str:
-    sections = load_family(workbook, ["W"], PROPERTIES, {"W": 289})
+    sections = load_family(workbook, "W", ["W"], PROPERTIES, {"W": 289}, 1001)
 
     lines: list[str] = []
     emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)")
@@ -189,7 +189,7 @@ def build(workbook: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source", type=Path, help="Official AISC Shapes Database v16.0 workbook.")
+    parser.add_argument("source", type=Path, help="Repository-owned DRAT structural-section source workbook.")
     parser.add_argument("output", help="Generated CalcPad library path or - for stdout.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     options = parser.parse_args()

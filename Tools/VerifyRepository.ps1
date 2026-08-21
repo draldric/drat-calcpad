@@ -160,16 +160,46 @@ function Test-ThermophysicalGenerator {
 }
 
 function Test-AiscGenerators {
+    $startingFailureCount = $script:verificationFailures.Count
     $python = Resolve-PythonExecutable
     if ([string]::IsNullOrWhiteSpace($python)) {
         Add-VerificationFailure -Message 'Python 3 was not found. Pass -PythonPath to verify the AISC dataset generators.'
         return
     }
 
+    $sourcePath = Join-Path $script:repositoryRoot 'Data\Sources\AiscShapesV16\DratStructuralSectionsSource.xlsx'
     $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\AiscGeneratorTest.py'
-    if (-not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
-        Add-VerificationFailure -Message 'AISC generator regression test is missing.'
+    $checks = @(
+        @{ Generator = 'Tools\GenerateAiscWLibrary.py'; Output = 'Libraries\Steel\StructuralSections.cpd' },
+        @{ Generator = 'Tools\GenerateAiscHssLibrary.py'; Output = 'Libraries\Steel\AiscHssSections.cpd' },
+        @{ Generator = 'Tools\GenerateAiscChannelLibrary.py'; Output = 'Libraries\Steel\AiscChannelSections.cpd' },
+        @{ Generator = 'Tools\GenerateAiscAngleLibrary.py'; Output = 'Libraries\Steel\AiscAngleSections.cpd' }
+    )
+    foreach ($requiredPath in @($sourcePath, $testPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            Add-VerificationFailure -Message "AISC generation input is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
+        }
+    }
+    foreach ($check in $checks) {
+        foreach ($relativePath in @($check.Generator, $check.Output)) {
+            $requiredPath = Join-Path $script:repositoryRoot $relativePath
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+                Add-VerificationFailure -Message "AISC generation input is missing: $relativePath"
+            }
+        }
+    }
+    if ($script:verificationFailures.Count -ne $startingFailureCount) {
         return
+    }
+
+    foreach ($check in $checks) {
+        $generatorPath = Join-Path $script:repositoryRoot $check.Generator
+        $outputPath = Join-Path $script:repositoryRoot $check.Output
+        $generatorOutput = & $python $generatorPath $sourcePath $outputPath --check 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Add-VerificationFailure -Message ('AISC generated-library check failed: ' + (($generatorOutput | ForEach-Object { $_.ToString() }) -join ' '))
+            return
+        }
     }
     $testOutput = & $python $testPath 2>&1
     if ($LASTEXITCODE -ne 0) {
@@ -177,7 +207,7 @@ function Test-AiscGenerators {
         return
     }
 
-    Write-Output '[PASS] AISC generator schema, deterministic-output, and failed-write preservation tests passed.'
+    Write-Output '[PASS] Curated AISC source schema, stable IDs, deterministic generators, and committed CalcPad libraries are current.'
 }
 
 function Test-EngineeringMaterialsSource {
@@ -240,16 +270,16 @@ function Test-DatasetSourceLayout {
         Add-VerificationFailure -Message "Raw generator input must be outside Libraries: $(Get-RepositoryRelativePath -Path $file.FullName)"
     }
 
-    $externalAiscInputs = @(
+    $unexpectedAiscWorkbooks = @(
         Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Data\Sources\AiscShapesV16') -File -Recurse |
-            Where-Object Extension -In @('.xlsx', '.xls')
+            Where-Object { $_.Extension -In @('.xlsx', '.xls') -and $_.Name -cne 'DratStructuralSectionsSource.xlsx' }
     )
-    foreach ($file in $externalAiscInputs) {
-        Add-VerificationFailure -Message "Externally obtained AISC workbook must not be committed: $(Get-RepositoryRelativePath -Path $file.FullName)"
+    foreach ($file in $unexpectedAiscWorkbooks) {
+        Add-VerificationFailure -Message "Only the curated DRAT structural-section workbook may be committed: $(Get-RepositoryRelativePath -Path $file.FullName)"
     }
 
-    if ($rawRuntimeInputs.Count -eq 0 -and $externalAiscInputs.Count -eq 0) {
-        Write-Output '[PASS] Raw dataset inputs are separated from runtime libraries; external AISC workbooks remain uncommitted.'
+    if ($rawRuntimeInputs.Count -eq 0 -and $unexpectedAiscWorkbooks.Count -eq 0) {
+        Write-Output '[PASS] Raw dataset inputs are separated from runtime libraries; the official AISC workbook remains uncommitted.'
     }
 }
 

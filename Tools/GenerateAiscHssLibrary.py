@@ -48,7 +48,7 @@ def emit(lines: list[str], line: str = "") -> None:
 
 
 def build(workbook: Path) -> str:
-    sections = load_family(workbook, ["HSS"], PROPERTIES, {"HSS": 714})
+    sections = load_family(workbook, "HSS", ["HSS"], PROPERTIES, {"HSS": 714}, 2001)
 
     lines: list[str] = []
     emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)")
@@ -182,7 +182,7 @@ def build(workbook: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source", type=Path, help="Official AISC Shapes Database v16.0 workbook.")
+    parser.add_argument("source", type=Path, help="Repository-owned DRAT structural-section source workbook.")
     parser.add_argument("output", help="Generated CalcPad library path or - for stdout.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     options = parser.parse_args()

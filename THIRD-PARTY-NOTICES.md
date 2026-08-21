@@ -16,8 +16,8 @@ Project and current license text: https://github.com/CoolProp/CoolProp/blob/mast
 
 ## AISC Shapes Database v16.0
 
-The structural-section libraries were transformed from the American Institute of Steel Construction's AISC Shapes Database v16.0, August 2023, consistent with the AISC Steel Construction Manual, 16th Edition.
+The structural-section libraries contain selected factual geometric values compiled by DRAT using the American Institute of Steel Construction's AISC Shapes Database v16.0, August 2023, as their source basis, consistent with the AISC Steel Construction Manual, 16th Edition.
 
 Source: https://www.aisc.org/aisc/publications/steel-construction-manual/aisc-shapes-database-v160/
 
-The source workbook is not included. Public redistribution of the transformed embedded dataset remains subject to an explicit AISC permission decision before release; attribution is not a substitute for permission.
+The AISC workbook is not included or redistributed. DRAT's repository-owned workbook is organized by supported shape family and omits the official workbook's unused families and parameters.
