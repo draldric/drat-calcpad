@@ -16,6 +16,7 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 
 | Worksheet | Maintained behavior |
 | --- | --- |
+| `Core/AuthoringTest.cpd` | Explicit heading, narrative, callout, list, definition, compact-table, equation, citation, caption, outcome, and print-grouping components. |
 | `Core/CalculationStatusTest.cpd` | Calculation-status classification, predicates, completion rules, and registry aggregation. |
 | `Core/ChecksTest.cpd` | Utilization, classification, units, gating, aggregation, and engineering-check registries. |
 | `Core/DatabaseTest.cpd` | Safe columns, table lookups, missing values, fallbacks, and database registries. |

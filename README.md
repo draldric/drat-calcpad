@@ -7,6 +7,7 @@ Modular framework for reusable engineering calculations.
 - [Quick start](docs/QuickStart.md)
 - [Architecture](docs/Architecture.md)
 - [Core API reference](docs/CoreApi.md)
+- [Worksheet authoring components](docs/Authoring.md)
 - [Engineering Materials library](docs/EngineeringMaterials.md)
 - [Structural Sections library](docs/StructuralSections.md)
 - [Thermophysical Properties library](docs/ThermophysicalProperties.md)
@@ -62,6 +63,10 @@ Use `ShowDocumentReviewSummary$` near the end of a worksheet to show validation,
 Each entry has a positive integer ID; linked entries validate their source reference, duplicate IDs render inline errors, and `ShowReportingSummary$` reports the registered counts and aggregate registry status.
 CalcPad text remains macro content, while the numeric registries preserve the auditable identities and relationships used for validation.
 
+`Authoring.cpd` provides explicit H3-H6 headings, semantic callouts, heading-free lists and definitions, compact key-value and comparison tables, CalcPad-native equation blocks, local where tables, citations, captions, result highlights, and print grouping.
+These helpers format author-owned content without creating validation or engineering status.
+See the [worksheet authoring guide](docs/Authoring.md) and `Examples/AuthoringDemo.cpd`.
+
 `Validation.cpd` validates defined values, the complete positive/negative/zero sign family, inclusive and open ranges, excluded ranges, one-sided and absolute bounds, integers, vector length and contents, vector ordering and uniqueness, matching vector lengths, matrix row and column counts, square matrices, registered values, available values, and values from registered option sets.
 The result constructors return `[status; value; rule_code; data_1; data_2]`.
 `AddValidationResult$` combines that result with a stable input ID, renders the row, and registers `[id; status; value; rule_code; data_1; data_2]` for summaries and calculation decisions.
@@ -95,12 +100,13 @@ Copy `Templates/EngineeringCalculationTemplate.cpd` to start a calculation.
 Replace its document-control placeholders, references, assumptions, saved inputs, validation calls, calculations, and conclusions.
 The template deliberately uses explicit CalcPad assignments instead of browser controls so selected design inputs remain part of the auditable source file.
 Its standard structure covers purpose and scope, references, design criteria, input sources, assumptions, limitations, saved inputs, validation, methodology, calculations, results, engineering checks, and conclusions.
-Numbered H3 sections begin on new pages when printed or exported to PDF; H4 and H5 headings remain numbered subsections on the current page.
+Numbered H3 sections begin on new pages when printed or exported to PDF; H4, H5, and H6 headings remain numbered subsections on the current page.
 Required organization, client, project, calculation, and preparation metadata uses direct, readable placeholders, while unchecked and unapproved states remain visible in the document header.
 Specialized templates are categorized by purpose; see [`Templates/README.md`](Templates/README.md).
 
 The focused example catalog is maintained in [`Examples/README.md`](Examples/README.md).
 
+`Examples/AuthoringDemo.cpd` applies the explicit authoring components in a complete pipe-insulation heat-loss screening calculation.
 `Examples/FactorOfSafety.cpd` demonstrates the complete workflow with categorical factor validation, a recommended minimum factor of safety, and a check against the saved design value.
 `Examples/ReportingRegistriesDemo.cpd` demonstrates structured references, linked design criteria, assumptions, limitations, registry queries, and aggregate reporting status without requiring a discipline-specific calculation.
 `Examples/ValidationRegistryDemo.cpd` demonstrates stable input IDs, automatic aggregation, issue links, and validation-registry queries.

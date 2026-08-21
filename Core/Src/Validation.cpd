@@ -624,7 +624,7 @@ ValidationResultRegistryInputsValid(registry; errors) = and(ValidationResultRegi
     '</tbody>
     '<tfoot>
     #val
-    '<tr><th colspan="2">Overall validation</th><td><strong>Warnings:</strong> 'ValidationWarningCount(ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors))' &nbsp; <strong>Errors:</strong> 'ValidationErrorCount(ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors))'</td><td class="status-cell">
+    '<tr><th colspan="2">Overall validation</th><td><span class="validation-summary-counts"><span><strong>Warnings:</strong> 'ValidationWarningCount(ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors))'</span><span><strong>Errors:</strong> 'ValidationErrorCount(ValidationResultRegistryEffectiveStatuses(InputValidationRegistry; InputValidationRegistryErrors))'</span></span></td><td class="status-cell">
     #equ
     ValidationSummaryStatus$([ValidationResultRegistrySummaryStatus(InputValidationRegistry; InputValidationRegistryErrors)])
     '</td></tr>

@@ -54,8 +54,9 @@ This contract avoids relying on ambiguous nested-include path behavior and makes
 8. `CheckRegistry.cpd`
 9. `CalculationStatus.cpd`
 10. `Reporting.cpd`
-11. `ReviewSummary.cpd`
-12. `Plotting.cpd`
+11. `Authoring.cpd`
+12. `ReviewSummary.cpd`
+13. `Plotting.cpd`
 
 The order is part of the Core contract because later modules use constants and macros defined earlier.
 
@@ -78,6 +79,7 @@ The standard worksheet flow is:
 
 The reporting registries separately preserve the identities and source relationships for references, design criteria, assumptions, and limitations.
 Their human-readable text is rendered by macros because CalcPad calculation matrices are numeric and unit-valued rather than general string containers.
+The authoring module follows Reporting so `Cite$` and `SourceNote$` can link narrative directly to registered reference rows.
 
 The validation-result and check-result registries are deliberately reused for both calculation decisions and reporting.
 This prevents displayed values, criteria, statuses, and governing summaries from drifting away from the rules that were evaluated.

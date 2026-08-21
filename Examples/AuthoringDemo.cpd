@@ -1,0 +1,192 @@
+#md on
+#include ../Core/DratCore.cpd
+
+#def Organization$ = DRAT EXAMPLE ORGANIZATION
+#def Client$ = DEMONSTRATION CLIENT
+#def Project$ = WORKSHEET AUTHORING DEMONSTRATION
+#def Title$ = PIPE INSULATION HEAT-LOSS SCREENING
+#def Purpose$ = DEMONSTRATE THE EXPLICIT DRAT AUTHORING COMPONENTS IN A SMALL ENGINEERING CALCULATION.
+#def Scope$ = COMPARE TWO CYLINDRICAL INSULATION THICKNESSES USING STEADY-STATE RADIAL CONDUCTION AND EXTERNAL CONVECTION. SUPPORTS, JOINTS, RADIATION, MOISTURE, AND CODE COMPLIANCE ARE EXCLUDED.
+#def Calculation$ = EXAMPLE-AUTH-001
+#def Rev$ = 0
+#def PreparedBy$ = EXAMPLE AUTHOR
+#def PreparedOn$ = 2026-08-20
+#def CheckedBy$ = NOT CHECKED
+#def CheckedOn$ = --
+#def ApprovedBy$ = NOT APPROVED
+#def ApprovedOn$ = --
+
+CreateHeader$
+CreateTitle$
+CreatePurpose$
+CreateScope$
+
+BeginRevisions$
+AddRevision$(0; Initial authoring-component demonstration; EXAMPLE AUTHOR; 2026-08-20)
+EndRevisions$
+
+#hide
+REF_HEAT_TRANSFER = 1
+ASSUMPTION_STEADY_STATE = 1
+LIMITATION_SCREENING_ONLY = 1
+
+INPUT_PIPE_DIAMETER = 101
+INPUT_PIPE_LENGTH = 102
+INPUT_TEMPERATURE_DIFFERENCE = 103
+INPUT_CONDUCTIVITY = 104
+INPUT_CONVECTION = 105
+
+CHECK_SELECTED_HEAT_LOSS = 201
+#show
+
+H3$(Design Basis)
+SectionIntro$(The worksheet compares two insulation alternatives while demonstrating explicit headings, narrative components, compact records, equations, citations, results, and print-layout controls.)
+
+H4$(Method and Applicability)
+BeginBulletList$
+AddBullet$(Evaluate one-dimensional steady radial conduction through cylindrical insulation.)
+AddBullet$(Include external convection from the insulation surface.)
+AddBullet$(Select the lower-loss alternative and screen it against the illustrative heat-loss criterion.)
+EndBulletList$
+
+BeginDefinitions$
+AddDefinition$(Heat loss; Steady thermal power transferred from the pipe to the surroundings.)
+AddDefinition$(Thermal resistance; Temperature difference divided by the associated heat-transfer rate.)
+AddDefinition$(Screening criterion; An illustrative project target rather than a code-mandated limit.)
+EndDefinitions$
+
+Basis$(Thermal properties and convection are held constant so this example remains focused on worksheet authoring rather than detailed insulation design.)
+Important$(A project calculation must replace the illustrative inputs and criterion with verified design data.)
+
+H4$(References)
+BeginReferences$
+AddReference$(REF_HEAT_TRANSFER; Standard heat-transfer text; Cylindrical conduction and convection resistance relations; Current project edition; Radial systems; Replace with the governing project reference before issue.)
+EndReferences$
+SourceNote$(REF_HEAT_TRANSFER; Cylindrical resistance forms used in this demonstration.)
+
+H4$(Assumptions)
+BeginAssumptions$
+AddAssumption$(ASSUMPTION_STEADY_STATE; Thermal model; Heat transfer is steady and one-dimensional.; The example isolates the effect of insulation thickness.; REF_HEAT_TRANSFER)
+EndAssumptions$
+
+H4$(Applicability and Limitations)
+BeginLimitations$
+AddLimitation$(LIMITATION_SCREENING_ONLY; Results are suitable only for preliminary comparison.; Detailed losses may differ when radiation joints supports weather or property variation are significant.; Complete a project-specific thermal assessment before design issue.; REF_HEAT_TRANSFER)
+EndLimitations$
+
+H3$(Inputs and Validation)
+SectionIntro$(The compact key-value component keeps short input summaries readable while the validation registry retains auditable input status.)
+
+#hide
+pipe_diameter = 100mm
+pipe_length = 10m
+temperature_difference = 60K
+insulation_conductivity = 0.04W/(m*K)
+external_convection = 10W/(m^2*K)
+thin_insulation = 25mm
+thick_insulation = 50mm
+allowable_heat_loss = 250W
+#show
+
+TableCaption$(1; Screening inputs)
+BeginKeepTogether$
+BeginKeyValueTable$
+AddKeyValue$(Pipe outside diameter; pipe_diameter)
+AddKeyValue$(Pipe length; pipe_length)
+AddKeyValue$(Temperature difference; temperature_difference)
+AddKeyValue$(Insulation conductivity; insulation_conductivity)
+AddKeyValue$(External convection coefficient; external_convection)
+AddKeyValue$(Thin insulation option; thin_insulation)
+AddKeyValue$(Thick insulation option; thick_insulation)
+AddKeyValue$(Illustrative heat-loss criterion; allowable_heat_loss)
+AddKeyText$(Analysis type; Steady-state screening comparison)
+EndKeyValueTable$
+EndKeepTogether$
+
+BeginValidationSummary$
+AddValidationResult$(INPUT_PIPE_DIAMETER; Pipe outside diameter; ValidationPositiveResult(pipe_diameter))
+AddValidationResult$(INPUT_PIPE_LENGTH; Pipe length; ValidationPositiveResult(pipe_length))
+AddValidationResult$(INPUT_TEMPERATURE_DIFFERENCE; Temperature difference; ValidationPositiveResult(temperature_difference))
+AddValidationResult$(INPUT_CONDUCTIVITY; Insulation conductivity; ValidationPositiveResult(insulation_conductivity))
+AddValidationResult$(INPUT_CONVECTION; External convection coefficient; ValidationPositiveResult(external_convection))
+EndValidationSummary$
+
+#hide
+inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
+#show
+
+Note$(The validation registry governs calculation readiness. The key-value table is presentation only.)
+
+H3$(Heat-Loss Calculation)
+SectionIntro$(CalcPad renders the governing relations directly, while equation titles and stable identifiers make them easier to cite during review.)
+
+H4$(Resistance Model)
+CalculationStep$(Define the cylindrical thermal resistances)
+
+BeginEquation$(HT-1; Cylindrical insulation resistance)
+CylindricalResistance(r_inner; r_outer; conductivity; length) = ln(r_outer/r_inner)/(2*π*conductivity*length)
+EndEquation$
+
+BeginWhere$
+AddWhereWithUnits$(r_inner; Inner insulation radius; m)
+AddWhereWithUnits$(r_outer; Outer insulation radius; m)
+AddWhereWithUnits$(conductivity; Insulation thermal conductivity; W/(m*K))
+AddWhereWithUnits$(length; Insulated pipe length; m)
+EndWhere$
+
+BeginEquation$(HT-2; External convection resistance)
+ConvectionResistance(r_outer; convection; length) = 1/(convection*2*π*r_outer*length)
+EndEquation$
+
+'The alternative calculations combine 'EquationReference$(HT-1)' and 'EquationReference$(HT-2)'.
+
+#hide
+pipe_radius = pipe_diameter/2
+thin_outer_radius = pipe_radius + thin_insulation
+thick_outer_radius = pipe_radius + thick_insulation
+
+thin_conduction_resistance = CylindricalResistance(pipe_radius; thin_outer_radius; insulation_conductivity; pipe_length)
+thin_convection_resistance = ConvectionResistance(thin_outer_radius; external_convection; pipe_length)
+thin_heat_loss = temperature_difference/(thin_conduction_resistance + thin_convection_resistance)
+
+thick_conduction_resistance = CylindricalResistance(pipe_radius; thick_outer_radius; insulation_conductivity; pipe_length)
+thick_convection_resistance = ConvectionResistance(thick_outer_radius; external_convection; pipe_length)
+thick_heat_loss = temperature_difference/(thick_conduction_resistance + thick_convection_resistance)
+
+selected_heat_loss = min(thin_heat_loss; thick_heat_loss)
+#show
+
+H4$(Alternative Comparison)
+TableCaption$(2; Calculated heat loss by insulation alternative)
+BeginComparison$(Insulation alternative)
+AddComparisonValue$(25 mm insulation; thin_heat_loss)
+AddComparisonValue$(50 mm insulation; thick_heat_loss)
+AddComparisonText$(Lower-loss alternative; 50 mm insulation)
+EndComparison$
+
+'The calculated alternatives are summarized in'TableReference$(2)'.
+
+Result$(Selected heat loss; selected_heat_loss)
+Decision$(Selected alternative; 50 mm insulation)
+
+Warning$(The lower calculated heat loss does not by itself establish code compliance condensation control personnel protection or economic optimum.)
+
+H3$(Engineering Check)
+SectionIntro$(The authoring components present the calculation. The check registry remains responsible for engineering acceptance.)
+
+BeginCheckRegistry$
+AddUpperCheck$(CHECK_SELECTED_HEAT_LOSS; Selected heat-loss screening; selected_heat_loss; allowable_heat_loss; CHK_DEFAULT_WARNING; Selected heat loss must not exceed the illustrative criterion.; inputs_valid)
+EndCheckRegistryWithSummary$
+
+#hide
+overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
+#show
+
+H3$(Conclusions)
+BeginConclusions$
+AddConclusion$(Selected insulation; 50 mm)
+AddConclusion$(Selected heat loss; selected_heat_loss)
+AddCheckConclusion$(Screening status; overall_check_status)
+EndConclusions$
+
+EmptyState$(No additional alternatives were evaluated in this focused demonstration.)

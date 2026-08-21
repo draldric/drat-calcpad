@@ -4,6 +4,7 @@ Every example is a focused, end-user-facing worksheet that uses the standard rep
 
 | Worksheet | Focus |
 | --- | --- |
+| `AuthoringDemo.cpd` | Apply explicit headings, callouts, compact records, equations, citations, comparisons, and print grouping in a pipe-insulation screening calculation. |
 | `BeamAnalysisDemo.cpd` | Define one beam model and obtain responses, diagrams, and illustrative screening results. |
 | `CheckRegistryDemo.cpd` | Register engineering checks and derive governing, issue, and calculation-status outputs. |
 | `EngineeringMaterialsDemo.cpd` | Discover, screen, compare, plot, and query representative engineering material records. |

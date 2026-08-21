@@ -1,0 +1,157 @@
+#hide
+'<!-- Explicit worksheet-authoring components. Version 1.0.0. -->
+
+'<!-- Document hierarchy remains an explicit worksheet-author decision. -->
+#def H3$(text$) = '<h3>text$</h3>'
+#def H4$(text$) = '<h4>text$</h4>'
+#def H5$(text$) = '<h5>text$</h5>'
+#def H6$(text$) = '<h6>text$</h6>'
+
+'<!-- Narrative structure that does not affect heading counters. -->
+#def SectionIntro$(text$) = '<p class="author-section-intro">text$</p>'
+#def CalculationStep$(text$) = '<div class="author-calculation-step">text$</div>'
+#def Divider$ = '<hr class="author-divider"/>'
+
+'<!-- Semantic author callouts. Validation and engineering status remain separate APIs. -->
+#def Note$(text$)
+    '<div class="author-callout author-callout-note" role="note">
+    '<strong class="author-callout-label">Note</strong>
+    '<span class="author-callout-text">text$</span>
+    '</div>
+#end def
+#def Basis$(text$)
+    '<div class="author-callout author-callout-basis" role="note">
+    '<strong class="author-callout-label">Basis</strong>
+    '<span class="author-callout-text">text$</span>
+    '</div>
+#end def
+#def Important$(text$)
+    '<div class="author-callout author-callout-important" role="note">
+    '<strong class="author-callout-label">Important</strong>
+    '<span class="author-callout-text">text$</span>
+    '</div>
+#end def
+#def Warning$(text$)
+    '<div class="author-callout author-callout-warning" role="note">
+    '<strong class="author-callout-label">Warning</strong>
+    '<span class="author-callout-text">text$</span>
+    '</div>
+#end def
+#def ErrorMessage$(text$)
+    '<div class="author-callout author-callout-error" role="alert">
+    '<strong class="author-callout-label">Error</strong>
+    '<span class="author-callout-text">text$</span>
+    '</div>
+#end def
+
+'<!-- Lists are deliberately independent of headings. -->
+#def BeginBulletList$ = '<ul class="author-list author-bullet-list">'
+#def AddBullet$(text$) = '<li>text$</li>'
+#def EndBulletList$ = '</ul>'
+#def BeginNumberedList$ = '<ol class="author-list author-numbered-list">'
+#def AddNumberedItem$(text$) = '<li>text$</li>'
+#def EndNumberedList$ = '</ol>'
+
+'<!-- Compact terms and abbreviations. -->
+#def BeginDefinitions$ = '<dl class="author-definitions">'
+#def AddDefinition$(term$; definition$)
+    '<div class="author-definition">
+    '<dt>term$</dt>
+    '<dd>definition$</dd>
+    '</div>
+#end def
+#def EndDefinitions$ = '</dl>'
+
+'<!-- Compact two-column records. Use AddKeyValue for CalcPad expressions and AddKeyText for prose. -->
+#def BeginKeyValueTable$
+    #novar
+    '<table class="bordered author-table author-key-value-table">
+    '<tbody>
+#end def
+#def AddKeyValue$(label$; value$) = '<tr><th>label$</th><td class="value-cell">'value$'</td></tr>'
+#def AddKeyText$(label$; value$) = '<tr><th>label$</th><td class="value-cell text-value">value$</td></tr>'
+#def EndKeyValueTable$
+    '</tbody>
+    '</table>
+    #equ
+    #varsub
+#end def
+
+'<!-- Numbered equations retain CalcPad-native rendering and substitutions. -->
+#def BeginEquation$(id$; title$)
+    '<div class="author-equation" id="equation-id$">
+    '<div class="author-equation-heading">
+    '<strong>title$</strong>
+    '<a class="author-equation-id" href="#equation-id$">[id$]</a>
+    '</div>
+    '<div class="author-equation-body">
+#end def
+#def EndEquation$
+    '</div>
+    '</div>
+#end def
+#def EquationReference$(id$) = '<a class="author-cross-reference" href="#equation-id$">Equation&nbsp;[id$]</a>'
+
+'<!-- Local equation definitions are intentionally separate from the document-wide variable list. -->
+#def BeginWhere$
+    #noc
+    '<table class="author-where-table">
+    '<tbody>
+#end def
+#def AddWhere$(symbol$; description$) = '<tr><td class="author-where-symbol">'symbol$'</td><td class="text-cell">description$</td></tr>'
+#def AddWhereWithUnits$(symbol$; description$; units$) = '<tr><td class="author-where-symbol">'symbol$'</td><td class="text-cell">description$</td><td class="unit-cell">'units$'</td></tr>'
+#def EndWhere$
+    '</tbody>
+    '</table>
+    #equ
+#end def
+
+'<!-- Registered source references and compact provenance notes. -->
+#def Cite$(reference_id$)
+    '<span class="author-citation">
+    ReportReferenceID$(reference_id$)
+    '</span>
+#end def
+#def SourceNote$(reference_id$; text$)
+    '<div class="author-source-note"><strong>Source:</strong>
+    Cite$(reference_id$)
+    '<span> text$</span></div>
+#end def
+
+'<!-- Explicit stable identifiers keep review references valid when document order changes. -->
+#def TableCaption$(id$; text$) = '<div class="author-caption author-table-caption" id="table-id$"><strong>Table id$</strong> &mdash; text$</div>'
+#def TableReference$(id$) = '<a class="author-cross-reference" href="#table-id$">Table&nbsp;id$</a>'
+#def FigureCaption$(id$; text$) = '<div class="author-caption author-figure-caption" id="figure-id$"><strong>Figure id$</strong> &mdash; text$</div>'
+#def FigureReference$(id$) = '<a class="author-cross-reference" href="#figure-id$">Figure&nbsp;id$</a>'
+
+'<!-- Compact outcomes without creating an engineering pass/fail status. -->
+#def Result$(label$; value$)
+    #novar
+    '<div class="author-result"><strong>label$</strong><span class="author-result-value">'value$'</span></div>
+    #equ
+    #varsub
+#end def
+#def Decision$(label$; value$) = '<div class="author-result author-decision"><strong>label$</strong><span class="author-result-value">value$</span></div>'
+
+'<!-- Alternative comparison records. Status determination remains caller-owned. -->
+#def BeginComparison$(title$)
+    #novar
+    '<table class="bordered author-table author-comparison-table">
+    '<thead><tr><th colspan="2">title$</th></tr></thead>
+    '<tbody>
+#end def
+#def AddComparisonValue$(alternative$; value$) = '<tr><td class="text-cell">alternative$</td><td class="value-cell">'value$'</td></tr>'
+#def AddComparisonText$(alternative$; value$) = '<tr><td class="text-cell">alternative$</td><td class="value-cell text-value">value$</td></tr>'
+#def EndComparison$
+    '</tbody>
+    '</table>
+    #equ
+    #varsub
+#end def
+
+'<!-- Print and empty-state helpers. -->
+#def BeginKeepTogether$ = '<div class="author-keep-together">'
+#def EndKeepTogether$ = '</div>'
+#def EmptyState$(text$) = '<div class="author-empty-state">text$</div>'
+
+#show

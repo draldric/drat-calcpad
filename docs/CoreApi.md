@@ -14,9 +14,9 @@ Macro names end with `$`.
 
 | Name | Current value | Purpose |
 | --- | ---: | --- |
-| `DRAT_CORE_API` | `40200` | Complete generated-Core API |
-| `DRAT_DEFINITIONS_API` | `20100` | Worksheet reporting definitions |
-| `DRAT_STYLESHEET_API` | `10900` | Shared rendered styles |
+| `DRAT_CORE_API` | `40300` | Complete generated-Core API |
+| `DRAT_DEFINITIONS_API` | `20200` | Worksheet reporting definitions |
+| `DRAT_STYLESHEET_API` | `11000` | Shared rendered styles |
 | `DRAT_PLOTTING_API` | `30200` | Plotly wrapper |
 | `DRAT_DATA_WRAPPER_API` | `303` | Numeric property and curve wrapper |
 | `DRAT_CHECKS_API` | `20000` | Engineering check calculations |
@@ -25,6 +25,7 @@ Macro names end with `$`.
 | `DRAT_VALIDATION_API` | `20100` | Structured input validation and result registry |
 | `DRAT_CALCULATION_STATUS_API` | `20000` | Document-level calculation status |
 | `DRAT_REPORTING_API` | `20100` | Structured report registries |
+| `DRAT_AUTHORING_API` | `10000` | Explicit worksheet-authoring components |
 | `DRAT_REVIEW_SUMMARY_API` | `10100` | Unified document-review summary |
 
 `DRATCoreName$` and `DRATCoreVersion$` provide display metadata.
@@ -62,7 +63,28 @@ The worksheet must first define the `$` macros used by the header, including `Or
 | `BeginConclusions$` | `AddConclusion$(label; value)` | `EndConclusions$` | Conclusions container without a document heading |
 
 `AddValidationConclusion$(label; status)` and `AddCheckConclusion$(label; status)` add rendered statuses to an open conclusions block.
-Except for the cover-page document-control helpers, Core macros do not emit H1-H6 elements. The worksheet owns its report hierarchy and must place the appropriate Markdown heading before each table, summary, or container.
+`BeginConclusions$` renders calculation expressions as result values only, including their units, and `EndConclusions$` restores normal equation and variable-substitution modes.
+Except for the cover-page document-control helpers and explicit `H3$`-`H6$` authoring calls, Core macros do not emit H1-H6 elements.
+The worksheet owns its report hierarchy and must place the appropriate Markdown or authoring heading before each table, summary, or container.
+
+## Worksheet authoring
+
+`Authoring.cpd` provides explicit structure and layout without changing engineering status:
+
+| Area | Public components |
+| --- | --- |
+| Hierarchy | `H3$`, `H4$`, `H5$`, `H6$` |
+| Narrative | `SectionIntro$`, `CalculationStep$`, `Divider$` |
+| Callouts | `Note$`, `Basis$`, `Important$`, `Warning$`, `ErrorMessage$` |
+| Lists | `BeginBulletList$`, `AddBullet$`, `EndBulletList$`, `BeginNumberedList$`, `AddNumberedItem$`, `EndNumberedList$` |
+| Definitions | `BeginDefinitions$`, `AddDefinition$`, `EndDefinitions$` |
+| Compact records | `BeginKeyValueTable$`, `AddKeyValue$`, `AddKeyText$`, `EndKeyValueTable$` |
+| Equations | `BeginEquation$`, `EndEquation$`, `EquationReference$`, `BeginWhere$`, `AddWhere$`, `AddWhereWithUnits$`, `EndWhere$` |
+| Sources and captions | `Cite$`, `SourceNote$`, `TableCaption$`, `TableReference$`, `FigureCaption$`, `FigureReference$` |
+| Outcomes | `Result$`, `Decision$`, `BeginComparison$`, `AddComparisonValue$`, `AddComparisonText$`, `EndComparison$` |
+| Print and empty output | `BeginKeepTogether$`, `EndKeepTogether$`, `EmptyState$` |
+
+See [Worksheet authoring components](Authoring.md) for the formatting contract and examples.
 
 ## Reporting registries
 

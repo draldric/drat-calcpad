@@ -17,6 +17,7 @@ $moduleNames = @(
     'CheckRegistry.cpd'
     'CalculationStatus.cpd'
     'Reporting.cpd'
+    'Authoring.cpd'
     'ReviewSummary.cpd'
     'Plotting.cpd'
 )

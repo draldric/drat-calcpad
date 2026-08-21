@@ -1,5 +1,5 @@
 #hide
-'<!-- Worksheet formatting definitions. Version 2.1.0. -->
+'<!-- Worksheet formatting definitions. Version 2.2.0. -->
 
 '<!-- Print and spacing helpers. -->
 #def pagebreak$ = '<p style="page-break-before: always;"></p>
@@ -107,6 +107,7 @@
 #end def
 
 #def BeginConclusions$
+    #novar
     '<div class="conclusions">
 #end def
 #def AddConclusion$(label$; value$)
@@ -124,5 +125,7 @@
 #end def
 #def EndConclusions$
     '</div>
+    #equ
+    #varsub
 #end def
 #show

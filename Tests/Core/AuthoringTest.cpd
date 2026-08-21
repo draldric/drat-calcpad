@@ -1,0 +1,98 @@
+#include ../../Core/DratCore.cpd
+
+'<!-- TEST PURPOSE: Verify the explicit authoring API renders without parser/runtime errors and leaves calculation state usable. -->
+
+"Authoring Components Test
+
+authoring_api_tests = and(DRAT_CORE_API ≡ 40300; DRAT_AUTHORING_API ≡ 10000; DRAT_STYLESHEET_API ≡ 11000)
+
+test_length = 2m
+test_width = 3m
+test_area = test_length*test_width
+calculation_state_tests = and(test_area ≡ 6m^2; test_length + test_width ≡ 5m)
+
+all_tests = and(authoring_api_tests; calculation_state_tests)
+
+H3$(Explicit Major Section)
+SectionIntro$(Authoring components render structure only when the worksheet explicitly invokes them.)
+H4$(Nested Subsection)
+H5$(Detailed Topic)
+H6$(Minor Topic)
+
+CalculationStep$(Evaluate the sample geometry)
+Divider$
+
+Note$(This is supplementary author guidance.)
+Basis$(The sample uses a rectangular area so the rendered equation remains easy to inspect.)
+Important$(Author callouts do not replace validation or engineering checks.)
+Warning$(This warning is a rendering fixture and is not an engineering status.)
+ErrorMessage$(This error callout is a rendering fixture and does not alter all_tests.)
+
+BeginBulletList$
+AddBullet$(First bullet item)
+AddBullet$(Second bullet item)
+EndBulletList$
+
+BeginNumberedList$
+AddNumberedItem$(First numbered step)
+AddNumberedItem$(Second numbered step)
+EndNumberedList$
+
+BeginDefinitions$
+AddDefinition$(API; Application programming interface)
+AddDefinition$(DRAT; Design Reporting Analysis and Tools)
+EndDefinitions$
+
+TableCaption$(A1; Sample geometry inputs)
+BeginKeepTogether$
+BeginKeyValueTable$
+AddKeyValue$(Length; test_length)
+AddKeyValue$(Width; test_width)
+AddKeyText$(Shape; Rectangle)
+EndKeyValueTable$
+EndKeepTogether$
+
+BeginEquation$(A-1; Rectangular area)
+test_area = test_length*test_width
+EndEquation$
+
+BeginWhere$
+AddWhere$(test_area; Calculated area)
+AddWhereWithUnits$(test_length; Rectangle length; m)
+AddWhereWithUnits$(test_width; Rectangle width; m)
+EndWhere$
+
+'The calculated result follows from
+EquationReference$(A-1)
+'and the input summary is
+TableReference$(A1)
+'.
+
+#hide
+AUTHOR_TEST_REFERENCE = 901
+#show
+BeginReferences$
+AddReference$(AUTHOR_TEST_REFERENCE; DRAT authoring test; Maintained rendering fixture; 1.0; Authoring API; Source-reference fixture.)
+EndReferences$
+SourceNote$(AUTHOR_TEST_REFERENCE; Maintained authoring-component fixture.)
+Cite$(AUTHOR_TEST_REFERENCE)
+
+FigureCaption$(A1; Placeholder figure caption used to exercise cross-referencing)
+FigureReference$(A1)
+
+Result$(Calculated area; test_area)
+Decision$(Selected shape; Rectangle)
+
+BeginComparison$(Sample alternatives)
+AddComparisonValue$(Rectangle area; test_area)
+AddComparisonText$(Selected geometry; Rectangle)
+EndComparison$
+
+BeginConclusions$
+AddConclusion$(Calculated area; test_area)
+EndConclusions$
+
+post_conclusion_area = test_length*test_width
+all_tests = and(all_tests; post_conclusion_area ≡ 6m^2)
+
+EmptyState$(No additional authoring records were supplied.)
