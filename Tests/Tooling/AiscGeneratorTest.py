@@ -140,13 +140,23 @@ class AiscGeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(OUTPUT_SUPPORT.GeneratorError, "unique, ordered, and contiguous"):
             GENERATORS[3].build(self.workbook)
 
+    def test_new_section_is_generated_without_count_validation_changes(self) -> None:
+        row = self.frames["W"].iloc[-1].copy()
+        row["Section_ID"] = int(row["Section_ID"]) + 1
+        row["AISC_Manual_Label"] = "WMAINTAINEDX1"
+        self.frames["W"] = pd.concat([self.frames["W"], row.to_frame().T], ignore_index=True)
+        self.write_workbook()
+        generated = GENERATORS[0].build(self.workbook)
+        self.assertIn("290 AISC W-shapes", generated)
+        self.assertIn("WMAINTAINEDX1", generated)
+
     def test_failed_validation_preserves_output(self) -> None:
         output = self.root / "StructuralSections.cpd"
         original = "'previous maintained output\n"
         output.write_text(original, encoding="utf-8", newline="\n")
         self.frames["W"].drop(index=0, inplace=True)
         self.write_workbook()
-        with self.assertRaisesRegex(OUTPUT_SUPPORT.GeneratorError, "Expected 289 W records"):
+        with self.assertRaisesRegex(OUTPUT_SUPPORT.GeneratorError, "unique, ordered, and contiguous"):
             generated = GENERATORS[0].build(self.workbook)
             OUTPUT_SUPPORT.write_or_check(output, generated, False)
         self.assertEqual(output.read_text(encoding="utf-8"), original)

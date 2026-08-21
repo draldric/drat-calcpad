@@ -35,14 +35,16 @@ def symbol(label: str) -> str:
 
 
 def build(workbook: Path) -> str:
-    data = load_family(workbook, "Channel", ["C", "MC"], PROPERTIES, {"C": 32, "MC": 40}, 3001)
+    data = load_family(workbook, "Channel", ["C", "MC"], PROPERTIES, 3001)
     L: list[str] = []
     e = L.append
     e("#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)"); e("#if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)")
     e("#hide"); e("'<!-- AISC C and MC channel geometric-property library. Source: AISC Shapes Database v16.0 (August 2023). -->")
     e("#def AiscChannelLibraryName$ = AISC C and MC Channel Structural Sections Library"); e("#def AiscChannelLibraryRevision$ = 0.1.0"); e("#def AiscChannelLibraryDate$ = 2026-08-10")
     e("#def AiscChannelLibrarySource$ = AISC Shapes Database v16.0, August 2023. https://www.aisc.org/aisc/publications/steel-construction-manual/aisc-shapes-database-v160/")
-    e("#def AiscChannelLibraryScope$ = 32 AISC C and 40 MC channels with tabulated US customary geometric properties. This library does not provide material strength, member capacity, or code checks.")
+    c_count = int(data["Type"].eq("C").sum())
+    mc_count = int(data["Type"].eq("MC").sum())
+    e(f"#def AiscChannelLibraryScope$ = {c_count} AISC C and {mc_count} MC channels with tabulated US customary geometric properties. This library does not provide material strength, member capacity, or code checks.")
     e("#show"); e("'<style>table.data.channel-record td:nth-child(2),table.data.channel-record td:nth-child(2) p,table.data.channel-property td:nth-child(2),table.data.channel-property td:nth-child(2) p,table.data.channel-summary td:nth-child(2),table.data.channel-summary td:nth-child(2) p{text-align:right!important;overflow-wrap:anywhere;word-break:break-word;}</style>"); e("#hide")
     for i, row in data.iterrows():
         item, name = 3001 + i, symbol(row["AISC_Manual_Label"])
@@ -64,7 +66,7 @@ def build(workbook: Path) -> str:
     e("AiscChannelProperty(item; property) = AiscChannelApplyUnits(property; AiscChannelPropertyRaw(item; property))")
     for code in ["WEIGHT", "AREA", "IX", "SX", "IY", "SY"]: e(f"AiscChannel{code.title()}(item) = AiscChannelProperty(item; AISC_CHANNEL_P_{code})")
     e("AiscChannelItemsAtLeast(property; minimum) = _"); e("$block{"); e("    property_ok = AiscChannelHasProperty(property);"); e("    safe_property = if(property_ok; property; AISC_CHANNEL_P_WEIGHT);"); e("    values = AiscChannelApplyUnits(safe_property; col(AiscChannelData; safe_property + 1));"); e("    if(property_ok; lookup_ge(values; AiscChannelItemIDs; minimum); find_eq([0]; 1; 1));"); e("}")
-    e("AiscChannelDataOK = and(AiscChannelItemCount ≡ 72; n_rows(AiscChannelData) ≡ 72; n_cols(AiscChannelData) ≡ AiscChannelPropertyCount + 1; norm_1(sort(col(AiscChannelData; 1)) - sort(AiscChannelItemIDs)) ≡ 0)"); e("AiscChannelDatasetStatus = if(AiscChannelDataOK; DB_OK; DB_ERR_MISSING)")
+    e("AiscChannelDataOK = and(n_rows(AiscChannelData) ≡ AiscChannelItemCount; n_cols(AiscChannelData) ≡ AiscChannelPropertyCount + 1; norm_1(sort(col(AiscChannelData; 1)) - sort(AiscChannelItemIDs)) ≡ 0)"); e("AiscChannelDatasetStatus = if(AiscChannelDataOK; DB_OK; DB_ERR_MISSING)")
     e("#def AiscChannelName$(item$)")
     for i, row in data.iterrows(): e(f"    #if item$ ≡ {3001+i}"); e(f"        '{row['AISC_Manual_Label']}"); e("    #end if")
     e("    #if not(AiscChannelHasItem(item$))"); e("        '<span class=\"err\">Unknown AISC channel</span>"); e("    #end if"); e("#end def")

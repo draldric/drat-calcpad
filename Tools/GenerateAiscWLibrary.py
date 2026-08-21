@@ -52,7 +52,7 @@ def emit(lines: list[str], line: str = "") -> None:
 
 
 def build(workbook: Path) -> str:
-    sections = load_family(workbook, "W", ["W"], PROPERTIES, {"W": 289}, 1001)
+    sections = load_family(workbook, "W", ["W"], PROPERTIES, 1001)
 
     lines: list[str] = []
     emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)")
@@ -63,7 +63,7 @@ def build(workbook: Path) -> str:
     emit(lines, "#def StructuralSectionsLibraryRevision$ = 0.1.0")
     emit(lines, "#def StructuralSectionsLibraryDate$ = 2026-08-10")
     emit(lines, "#def StructuralSectionsLibrarySource$ = AISC Shapes Database v16.0, August 2023. https://www.aisc.org/aisc/publications/steel-construction-manual/aisc-shapes-database-v160/")
-    emit(lines, "#def StructuralSectionsLibraryScope$ = 289 AISC W-shapes with tabulated US customary geometric properties. This library does not provide material strength, member capacity, or code checks.")
+    emit(lines, f"#def StructuralSectionsLibraryScope$ = {len(sections)} AISC W-shapes with tabulated US customary geometric properties. This library does not provide material strength, member capacity, or code checks.")
     emit(lines, "#show")
     emit(lines, "'<style>table.data.section-record td:nth-child(2),table.data.section-record td:nth-child(2) p,table.data.section-property td:nth-child(2),table.data.section-property td:nth-child(2) p,table.data.section-summary td:nth-child(2),table.data.section-summary td:nth-child(2) p{text-align:right!important;overflow-wrap:anywhere;word-break:break-word;}</style>")
     emit(lines, "#hide")
@@ -101,7 +101,7 @@ def build(workbook: Path) -> str:
     emit(lines, "    items = if(property_ok; lookup_ge(values; AiscWItemIDs; minimum); find_eq([0]; 1; 1));")
     emit(lines, "    items;")
     emit(lines, "}")
-    emit(lines, "AiscWDataOK = and(AiscWItemCount ≡ 289; n_rows(AiscWData) ≡ AiscWItemCount; n_cols(AiscWData) ≡ AiscWPropertyCount + 1; norm_1(sort(col(AiscWData; 1)) - sort(AiscWItemIDs)) ≡ 0)")
+    emit(lines, "AiscWDataOK = and(n_rows(AiscWData) ≡ AiscWItemCount; n_cols(AiscWData) ≡ AiscWPropertyCount + 1; norm_1(sort(col(AiscWData; 1)) - sort(AiscWItemIDs)) ≡ 0)")
     emit(lines, "AiscWDatasetStatus = if(AiscWDataOK; DB_OK; DB_ERR_MISSING)")
     emit(lines)
     emit(lines, "#def AiscWName$(item$)")

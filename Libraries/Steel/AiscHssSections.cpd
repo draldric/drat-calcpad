@@ -2195,7 +2195,7 @@ $block{
     items = if(property_ok; lookup_ge(values; AiscHssItemIDs; minimum); find_eq([0]; 1; 1));
     items;
 }
-AiscHssDataOK = and(AiscHssItemCount ≡ 714; n_rows(AiscHssData) ≡ AiscHssItemCount; n_cols(AiscHssData) ≡ AiscHssPropertyCount + 1; norm_1(sort(col(AiscHssData; 1)) - sort(AiscHssItemIDs)) ≡ 0)
+AiscHssDataOK = and(n_rows(AiscHssData) ≡ AiscHssItemCount; n_cols(AiscHssData) ≡ AiscHssPropertyCount + 1; norm_1(sort(col(AiscHssData; 1)) - sort(AiscHssItemIDs)) ≡ 0)
 AiscHssDatasetStatus = if(AiscHssDataOK; DB_OK; DB_ERR_MISSING)
 
 #def AiscHssName$(item$)

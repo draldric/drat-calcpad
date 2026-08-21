@@ -37,7 +37,7 @@ The project disposition is to publish DRAT's own curated compilation of factual 
 
 ## Engineering Materials verification
 
-The committed workbook validator checks all seven required worksheets, 126 unique material IDs, 18 stable property IDs, 11 source IDs, CPD constant syntax and uniqueness, numeric types, finite values, row source links, formula-derived shear and bulk modulus, numeric-export order, missing-value preservation, and all 2,011 populated values.
+The committed workbook validator reads the declared dataset contract and validates all required worksheets, unique stable IDs, source/category/alias registries, CPD constant syntax, numeric types, finite values, row source links, formula-derived shear and bulk modulus, numeric-export order, and missing-value preservation. Record, source, and populated-value totals are derived rather than encoded in validation code.
 
 The workbook currently assigns one broad source portal to an entire material row. It does not retain a source edition and locator for each populated property or defensible property group. Its 48 `Representative` and 78 `Approximate` records are therefore retained only as screening data. The CalcPad library correctly applies `MAT_CLASS_SCREENING` to every populated value.
 
@@ -75,6 +75,7 @@ Validate repository-owned inputs and generated outputs:
 
 ```powershell
 python Tools/ValidateEngineeringMaterialsSource.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx
+python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd --check
 python Tools/GenerateThermophysicalLibrary.py Data/Sources/Thermophysical/ThermophysicalProperties.json Libraries/Thermophysical/ThermophysicalProperties.cpd --check
 python Tools/GenerateAiscWLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/StructuralSections.cpd --check
 python Tools/GenerateAiscHssLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscHssSections.cpd --check
@@ -82,4 +83,4 @@ python Tools/GenerateAiscChannelLibrary.py Data/Sources/AiscShapesV16/DratStruct
 python Tools/GenerateAiscAngleLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscAngleSections.cpd --check
 ```
 
-`Tools/VerifyRepository.ps1` runs the repository-owned schema and failure-mode tests plus all four structural-section `--check` commands. It does not download or require the external AISC workbook.
+`Tools/VerifyRepository.ps1` runs the repository-owned schema and failure-mode tests plus Engineering Materials and all four structural-section `--check` commands. It does not download or require the external AISC workbook.

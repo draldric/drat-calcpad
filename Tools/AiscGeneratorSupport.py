@@ -26,7 +26,6 @@ def load_family(
     sheet_name: str,
     families: Iterable[str],
     properties: list[tuple[str, str, str, str]],
-    expected_counts: dict[str, int],
     first_id: int,
 ) -> pd.DataFrame:
     """Load one DRAT family sheet after validating its curated source contract."""
@@ -81,10 +80,7 @@ def load_family(
     family_names = list(families)
     sections = data.copy().reset_index(drop=True)
     require(sections["Type"].isin(family_names).all(), f"{sheet_name} contains an unsupported shape family.")
-    for family, expected in expected_counts.items():
-        actual = int(sections["Type"].eq(family).sum())
-        require(actual == expected, f"Expected {expected} {family} records; found {actual}.")
-    require(len(sections) == sum(expected_counts.values()), "DRAT family record total is inconsistent.")
+    require(len(sections) > 0, f"{sheet_name} must contain at least one section record.")
 
     ids = pd.to_numeric(sections["Section_ID"], errors="coerce")
     require(ids.notna().all(), "Section_ID contains a non-numeric value.")

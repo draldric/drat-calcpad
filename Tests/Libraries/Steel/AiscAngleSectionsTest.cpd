@@ -5,7 +5,7 @@
 
 "AISC Single-Angle Test
 
-catalog_tests = and(AiscAngleItemCount ≡ 137; AiscAnglePropertyCount ≡ 20; n_rows(AiscAngleData) ≡ 137; n_cols(AiscAngleData) ≡ 21; AiscAngleDatasetStatus ≡ DB_OK)
+catalog_tests = and(AiscAngleItemCount > 0; AiscAnglePropertyCount ≡ 20; n_rows(AiscAngleData) ≡ AiscAngleItemCount; n_cols(AiscAngleData) ≡ AiscAnglePropertyCount + 1; AiscAngleDatasetStatus ≡ DB_OK)
 lookup_tests = and(L12X12X1 ≡ AISC_L12X12X1; AiscAngleWeight(L12X12X1) ≡ 77.8lb/ft; AiscAngleArea(L12X12X1) ≡ 23in^2; AiscAngleSx(L12X12X1) ≡ 36.5in^3; AiscAngleSy(L12X12X1) ≡ 36.5in^3; AiscAngleProperty(L12X12X1; AISC_ANGLE_P_IZ) ≡ 126in^4; AiscAngleProperty(L12X12X1; AISC_ANGLE_P_RZ) ≡ 2.34in; AiscAngleProperty(L12X12X1; AISC_ANGLE_P_SZ) ≡ 26.5in^3; AiscAnglePropertyStatus(999999; 1) ≡ DB_ERR_NAME; AiscAnglePropertyStatus(L12X12X1; 99) ≡ DB_ERR_PROPERTY)
 selection_tests = and(DBHasID(AiscAngleItemsAtLeast(AISC_ANGLE_P_SX; 35in^3); L12X12X1); len(AiscAngleItemsAtLeast(999; 1)) ≡ 0)
 

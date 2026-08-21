@@ -271,7 +271,7 @@ $block{
     values = AiscChannelApplyUnits(safe_property; col(AiscChannelData; safe_property + 1));
     if(property_ok; lookup_ge(values; AiscChannelItemIDs; minimum); find_eq([0]; 1; 1));
 }
-AiscChannelDataOK = and(AiscChannelItemCount ≡ 72; n_rows(AiscChannelData) ≡ 72; n_cols(AiscChannelData) ≡ AiscChannelPropertyCount + 1; norm_1(sort(col(AiscChannelData; 1)) - sort(AiscChannelItemIDs)) ≡ 0)
+AiscChannelDataOK = and(n_rows(AiscChannelData) ≡ AiscChannelItemCount; n_cols(AiscChannelData) ≡ AiscChannelPropertyCount + 1; norm_1(sort(col(AiscChannelData; 1)) - sort(AiscChannelItemIDs)) ≡ 0)
 AiscChannelDatasetStatus = if(AiscChannelDataOK; DB_OK; DB_ERR_MISSING)
 #def AiscChannelName$(item$)
     #if item$ ≡ 3001

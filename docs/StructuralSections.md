@@ -83,8 +83,8 @@ The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
 ## Regeneration and verification
 
 `Tools/GenerateAiscWLibrary.py`, `Tools/GenerateAiscHssLibrary.py`, `Tools/GenerateAiscChannelLibrary.py`, and `Tools/GenerateAiscAngleLibrary.py` are the auditable source-data transformations for the committed CalcPad libraries.
-They validate the repository workbook's dataset revision, exact property contract, stable IDs, columns, numeric cells, unique labels, and family counts before generating. Output is written to a verified temporary file and atomically replaces the maintained library only after validation succeeds. `--check` is read-only.
+They validate the repository workbook's dataset revision, exact property contract, stable IDs, columns, numeric cells, unique labels, and allowed families before generating. Record and per-family totals are derived from the validated rows, so adding a valid next section does not require changing generator or test counts. Output is written to a verified temporary file and atomically replaces the maintained library only after validation succeeds. `--check` is read-only.
 The curated source workbook is committed under `Data/Sources/` and excluded from runtime packages. The official AISC workbook is not committed.
 
 Run `Tests/Libraries/Steel/StructuralSectionsTest.cpd`, `Tests/Libraries/Steel/AiscHssSectionsTest.cpd`, and `Tests/Libraries/Steel/AiscChannelSectionsTest.cpd` in CalcPad CE and confirm `all_tests` is true.
-The regression tests lock record count, data-table dimensions, aliases, representative AISC values, lookup statuses, and unit-aware `Sx` screening queries.
+The regression tests tie data-table dimensions to generated registries and lock aliases, representative AISC values, lookup statuses, and unit-aware `Sx` screening queries.

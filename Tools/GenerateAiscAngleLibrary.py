@@ -52,7 +52,7 @@ def emit(lines: list[str], line: str = "") -> None:
 
 
 def build(workbook: Path) -> str:
-    sections = load_family(workbook, "Angle", ["L"], PROPERTIES, {"L": 137}, 4001)
+    sections = load_family(workbook, "Angle", ["L"], PROPERTIES, 4001)
 
     lines: list[str] = []
     emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)")
@@ -63,7 +63,7 @@ def build(workbook: Path) -> str:
     emit(lines, "#def AiscAngleLibraryRevision$ = 0.1.0")
     emit(lines, "#def AiscAngleLibraryDate$ = 2026-08-10")
     emit(lines, "#def AiscAngleLibrarySource$ = AISC Shapes Database v16.0, August 2023. https://www.aisc.org/aisc/publications/steel-construction-manual/aisc-shapes-database-v160/")
-    emit(lines, "#def AiscAngleLibraryScope$ = 137 AISC single L angles with tabulated US customary geometric properties. Double angles are intentionally excluded.")
+    emit(lines, f"#def AiscAngleLibraryScope$ = {len(sections)} AISC single L angles with tabulated US customary geometric properties. Double angles are intentionally excluded.")
     emit(lines, "#show")
     emit(lines, "'<style>table.data.angle-record td:nth-child(2),table.data.angle-record td:nth-child(2) p,table.data.angle-property td:nth-child(2),table.data.angle-property td:nth-child(2) p,table.data.angle-summary td:nth-child(2),table.data.angle-summary td:nth-child(2) p{text-align:right!important;overflow-wrap:anywhere;word-break:break-word;}</style>")
     emit(lines, "#hide")
@@ -100,7 +100,7 @@ def build(workbook: Path) -> str:
     emit(lines, "    items = if(property_ok; lookup_ge(values; AiscAngleItemIDs; minimum); find_eq([0]; 1; 1));")
     emit(lines, "    items;")
     emit(lines, "}")
-    emit(lines, "AiscAngleDataOK = and(AiscAngleItemCount ≡ 137; n_rows(AiscAngleData) ≡ AiscAngleItemCount; n_cols(AiscAngleData) ≡ AiscAnglePropertyCount + 1; norm_1(sort(col(AiscAngleData; 1)) - sort(AiscAngleItemIDs)) ≡ 0)")
+    emit(lines, "AiscAngleDataOK = and(n_rows(AiscAngleData) ≡ AiscAngleItemCount; n_cols(AiscAngleData) ≡ AiscAnglePropertyCount + 1; norm_1(sort(col(AiscAngleData; 1)) - sort(AiscAngleItemIDs)) ≡ 0)")
     emit(lines, "AiscAngleDatasetStatus = if(AiscAngleDataOK; DB_OK; DB_ERR_MISSING)")
     emit(lines)
     emit(lines, "#def AiscAngleName$(item$)")

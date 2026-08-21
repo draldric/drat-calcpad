@@ -5,7 +5,7 @@
 
 "AISC Channel Structural Sections Test
 
-catalog_tests = and(AiscChannelItemCount ≡ 72; AiscChannelPropertyCount ≡ 18; n_rows(AiscChannelData) ≡ 72; n_cols(AiscChannelData) ≡ 19; AiscChannelDatasetStatus ≡ DB_OK)
+catalog_tests = and(AiscChannelItemCount > 0; AiscChannelPropertyCount ≡ 18; n_rows(AiscChannelData) ≡ AiscChannelItemCount; n_cols(AiscChannelData) ≡ AiscChannelPropertyCount + 1; AiscChannelDatasetStatus ≡ DB_OK)
 alias_tests = and(C15X50 ≡ AISC_C15X50; MC12X50 ≡ AISC_MC12X50; AiscChannelHasItem(C15X50); AiscChannelHasItem(MC12X50); not(AiscChannelHasItem(999999)))
 standard_channel_tests = and(AiscChannelWeight(C15X50) ≡ 50lb/ft; AiscChannelArea(C15X50) ≡ 14.7in^2; AiscChannelProperty(C15X50; AISC_CHANNEL_P_D) ≡ 15in; AiscChannelProperty(C15X50; AISC_CHANNEL_P_X) ≡ 0.799in; AiscChannelProperty(C15X50; AISC_CHANNEL_P_EO) ≡ 0.583in; AiscChannelSx(C15X50) ≡ 53.8in^3; AiscChannelSy(C15X50) ≡ 3.77in^3)
 miscellaneous_channel_tests = and(AiscChannelWeight(MC12X50) ≡ 50lb/ft; AiscChannelProperty(MC12X50; AISC_CHANNEL_P_D) ≡ 12in; AiscChannelProperty(MC12X50; AISC_CHANNEL_P_BF) ≡ 4.14in; AiscChannelProperty(MC12X50; AISC_CHANNEL_P_IX) ≡ 269in^4; AiscChannelProperty(MC12X50; AISC_CHANNEL_P_SY) ≡ 5.64in^3; AiscChannelProperty(MC12X50; AISC_CHANNEL_P_CW) ≡ 411in^6)
