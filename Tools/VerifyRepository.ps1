@@ -219,13 +219,17 @@ function Test-EngineeringMaterialsSource {
 
     $sourcePath = Join-Path $script:repositoryRoot 'Data\Sources\EngineeringMaterials\EngineeringMaterialsDatabase.xlsx'
     $validatorPath = Join-Path $script:repositoryRoot 'Tools\ValidateEngineeringMaterialsSource.py'
+    $generatorPath = Join-Path $script:repositoryRoot 'Tools\GenerateEngineeringMaterialsLibrary.py'
+    $templatePath = Join-Path $script:repositoryRoot 'Tools\Templates\EngineeringMaterialsLibraryTemplate.cpd'
+    $libraryPath = Join-Path $script:repositoryRoot 'Libraries\Materials\EngineeringMaterials.cpd'
     $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\EngineeringMaterialsSourceTest.py'
-    foreach ($requiredPath in @($sourcePath, $validatorPath, $testPath)) {
+    $engineeringMaterialsPaths = @($sourcePath, $validatorPath, $generatorPath, $templatePath, $libraryPath, $testPath)
+    foreach ($requiredPath in $engineeringMaterialsPaths) {
         if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
             Add-VerificationFailure -Message "Engineering Materials source-validation input is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
         }
     }
-    if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf) -or -not (Test-Path -LiteralPath $validatorPath -PathType Leaf) -or -not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
+    if (@($engineeringMaterialsPaths | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) }).Count -gt 0) {
         return
     }
 
@@ -234,13 +238,18 @@ function Test-EngineeringMaterialsSource {
         Add-VerificationFailure -Message ('Engineering Materials source validation failed: ' + (($validationOutput | ForEach-Object { $_.ToString() }) -join ' '))
         return
     }
+    $generationOutput = & $python $generatorPath $sourcePath $libraryPath --template $templatePath --check 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Engineering Materials generated-library check failed: ' + (($generationOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
     $testOutput = & $python $testPath 2>&1
     if ($LASTEXITCODE -ne 0) {
         Add-VerificationFailure -Message ('Engineering Materials source tests failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
         return
     }
 
-    Write-Output '[PASS] Engineering Materials schema, IDs, numeric types, source links, derived values, and CPD export are consistent.'
+    Write-Output '[PASS] Engineering Materials workbook schema, deterministic generator, and committed CalcPad library are current.'
 }
 
 function Test-DatasetSourceLayout {

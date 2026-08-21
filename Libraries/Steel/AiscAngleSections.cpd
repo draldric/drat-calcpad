@@ -468,7 +468,7 @@ $block{
     items = if(property_ok; lookup_ge(values; AiscAngleItemIDs; minimum); find_eq([0]; 1; 1));
     items;
 }
-AiscAngleDataOK = and(AiscAngleItemCount ≡ 137; n_rows(AiscAngleData) ≡ AiscAngleItemCount; n_cols(AiscAngleData) ≡ AiscAnglePropertyCount + 1; norm_1(sort(col(AiscAngleData; 1)) - sort(AiscAngleItemIDs)) ≡ 0)
+AiscAngleDataOK = and(n_rows(AiscAngleData) ≡ AiscAngleItemCount; n_cols(AiscAngleData) ≡ AiscAnglePropertyCount + 1; norm_1(sort(col(AiscAngleData; 1)) - sort(AiscAngleItemIDs)) ≡ 0)
 AiscAngleDatasetStatus = if(AiscAngleDataOK; DB_OK; DB_ERR_MISSING)
 
 #def AiscAngleName$(item$)

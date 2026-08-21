@@ -920,7 +920,7 @@ $block{
     items = if(property_ok; lookup_ge(values; AiscWItemIDs; minimum); find_eq([0]; 1; 1));
     items;
 }
-AiscWDataOK = and(AiscWItemCount ≡ 289; n_rows(AiscWData) ≡ AiscWItemCount; n_cols(AiscWData) ≡ AiscWPropertyCount + 1; norm_1(sort(col(AiscWData; 1)) - sort(AiscWItemIDs)) ≡ 0)
+AiscWDataOK = and(n_rows(AiscWData) ≡ AiscWItemCount; n_cols(AiscWData) ≡ AiscWPropertyCount + 1; norm_1(sort(col(AiscWData; 1)) - sort(AiscWItemIDs)) ≡ 0)
 AiscWDatasetStatus = if(AiscWDataOK; DB_OK; DB_ERR_MISSING)
 
 #def AiscWName$(item$)

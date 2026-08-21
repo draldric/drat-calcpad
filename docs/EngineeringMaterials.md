@@ -99,7 +99,16 @@ A screening value is not a specified minimum or a design allowable and must be c
 
 ## Provenance and integrity
 
-The repository-owned workbook is maintained at `Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx` and is excluded from runtime distributions. `Tools/ValidateEngineeringMaterialsSource.py` validates its worksheets, IDs, numeric types, derived moduli, source links, missing values, and complete CPD numeric export.
+The repository-owned workbook is maintained at `Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx` and is excluded from runtime distributions. Its `Dataset Contract`, `Categories`, `Aliases`, `Property Dictionary`, and `Sources` sheets declare the generation contract; record counts and populated-value counts are derived. `Tools/ValidateEngineeringMaterialsSource.py` validates the complete workbook before `Tools/GenerateEngineeringMaterialsLibrary.py` renders the data into the stable CalcPad API template.
+
+To add a material, append a unique positive `Material_ID` and `CPD_Constant` to `Materials`, complete its classification/source fields and numeric values, and add the matching row to `CPD Numeric Export`. Add optional public constants to `Aliases`. No validator or generator change is required for a routine record addition. A property-schema or public-API behavior change may still require a template/code revision.
+
+Generate the maintained library atomically, or verify that it is current without writing:
+
+```powershell
+python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd
+python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd --check
+```
 
 The current workbook provides one broad source portal per material row, not an edition and locator for every populated property. Consequently, `MatProvenanceStatus` proves that a record has a known internal source ID and revision; it does not independently certify that each value was traced to a specific source record. This gap is a first-release blocker documented in the [dataset provenance audit](DataProvenance.md).
 
@@ -118,7 +127,7 @@ The library calculates these dataset-wide checks when it loads:
 - `EngineeringMaterialDatasetStatus`
 
 `EngineeringMaterialPropertyAvailableCounts`, `EngineeringMaterialAvailableValueCount`, `EngineeringMaterialPossibleValueCount`, and `EngineeringMaterialDatasetCompleteness` make coverage auditable.
-The regression worksheet locks the expected counts so a changed record layout, category boundary, or missing-value pattern is visible during verification.
+Regression checks verify table dimensions against the generated registries, so an intentional workbook record addition does not require regenerated validation code.
 
 ## Reporting tables
 
@@ -135,7 +144,7 @@ The predefined reporting macros are:
 - `ShowMatPropertyComparisonPlot$(id; items; property)` for a horizontal single-property comparison.
 - `ShowMatPropertyTradeoffPlot$(id; items; x_property; y_property)` for an x-y trade-off scatter plot.
 
-`ShowMatCatalog$` renders all 126 records and is intended for catalog review or dedicated reference sheets.
+`ShowMatCatalog$` renders every generated record and is intended for catalog review or dedicated reference sheets.
 Use `ShowMatCategory$` in ordinary calculations when a shorter selection table is more useful.
 Assign item and property vectors to variables before passing them to reporting macros; inline vector semicolons can be interpreted as macro argument separators by CalcPad.
 

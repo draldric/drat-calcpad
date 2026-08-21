@@ -48,7 +48,7 @@ def emit(lines: list[str], line: str = "") -> None:
 
 
 def build(workbook: Path) -> str:
-    sections = load_family(workbook, "HSS", ["HSS"], PROPERTIES, {"HSS": 714}, 2001)
+    sections = load_family(workbook, "HSS", ["HSS"], PROPERTIES, 2001)
 
     lines: list[str] = []
     emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)")
@@ -59,7 +59,7 @@ def build(workbook: Path) -> str:
     emit(lines, "#def AiscHssLibraryRevision$ = 0.1.0")
     emit(lines, "#def AiscHssLibraryDate$ = 2026-08-10")
     emit(lines, "#def AiscHssLibrarySource$ = AISC Shapes Database v16.0, August 2023. https://www.aisc.org/aisc/publications/steel-construction-manual/aisc-shapes-database-v160/")
-    emit(lines, "#def AiscHssLibraryScope$ = 714 AISC square, rectangular, and round HSS sections with tabulated US customary geometric properties. This library does not provide material strength, member capacity, or code checks.")
+    emit(lines, f"#def AiscHssLibraryScope$ = {len(sections)} AISC square, rectangular, and round HSS sections with tabulated US customary geometric properties. This library does not provide material strength, member capacity, or code checks.")
     emit(lines, "#show")
     emit(lines, "'<style>table.data.hss-record td:nth-child(2),table.data.hss-record td:nth-child(2) p,table.data.hss-property td:nth-child(2),table.data.hss-property td:nth-child(2) p,table.data.hss-summary td:nth-child(2),table.data.hss-summary td:nth-child(2) p{text-align:right!important;overflow-wrap:anywhere;word-break:break-word;}</style>")
     emit(lines, "#hide")
@@ -96,7 +96,7 @@ def build(workbook: Path) -> str:
     emit(lines, "    items = if(property_ok; lookup_ge(values; AiscHssItemIDs; minimum); find_eq([0]; 1; 1));")
     emit(lines, "    items;")
     emit(lines, "}")
-    emit(lines, "AiscHssDataOK = and(AiscHssItemCount ≡ 714; n_rows(AiscHssData) ≡ AiscHssItemCount; n_cols(AiscHssData) ≡ AiscHssPropertyCount + 1; norm_1(sort(col(AiscHssData; 1)) - sort(AiscHssItemIDs)) ≡ 0)")
+    emit(lines, "AiscHssDataOK = and(n_rows(AiscHssData) ≡ AiscHssItemCount; n_cols(AiscHssData) ≡ AiscHssPropertyCount + 1; norm_1(sort(col(AiscHssData; 1)) - sort(AiscHssItemIDs)) ≡ 0)")
     emit(lines, "AiscHssDatasetStatus = if(AiscHssDataOK; DB_OK; DB_ERR_MISSING)")
     emit(lines)
     emit(lines, "#def AiscHssName$(item$)")

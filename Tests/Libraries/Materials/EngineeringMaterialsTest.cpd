@@ -5,33 +5,31 @@
 
 "Engineering Materials Discovery and Classification Test
 
-expected_category_counts = [27; 27; 25; 7; 3; 13; 5; 9; 10]
 actual_category_counts = [MatCategoryCount(MAT_CAT_FERROUS_METAL); MatCategoryCount(MAT_CAT_NONFERROUS_METAL); MatCategoryCount(MAT_CAT_POLYMER); MatCategoryCount(MAT_CAT_ELASTOMER); MatCategoryCount(MAT_CAT_GLASS); MatCategoryCount(MAT_CAT_CERAMIC_RELATED); MatCategoryCount(MAT_CAT_COMPOSITE); MatCategoryCount(MAT_CAT_WOOD); MatCategoryCount(MAT_CAT_CONSTRUCTION)]
 
-catalog_tests = and(EngineeringMaterialItemCount ≡ 126; EngineeringMaterialPropertyCount ≡ 18; n_rows(EngineeringMaterialCatalog) ≡ 126; n_cols(EngineeringMaterialCatalog) ≡ 2)
-category_count_tests = norm_1(actual_category_counts - expected_category_counts) ≡ 0
+catalog_tests = and(EngineeringMaterialItemCount > 0; EngineeringMaterialPropertyCount ≡ 18; n_rows(EngineeringMaterialCatalog) ≡ EngineeringMaterialItemCount; n_cols(EngineeringMaterialCatalog) ≡ 2)
+category_count_tests = and(sum(actual_category_counts) ≡ EngineeringMaterialItemCount; min(actual_category_counts) > 0)
 category_mapping_tests = and(MatCategory(STEEL_ASTM_A36) ≡ MAT_CAT_FERROUS_METAL; MatCategory(ALUMINUM_6061_T6) ≡ MAT_CAT_NONFERROUS_METAL; MatCategory(POLYMER_PEEK) ≡ MAT_CAT_POLYMER; MatCategory(ELASTOMER_EPDM) ≡ MAT_CAT_ELASTOMER; MatCategory(GLASS_SODA_LIME) ≡ MAT_CAT_GLASS; MatCategory(CERAMIC_ALUMINA_96) ≡ MAT_CAT_CERAMIC_RELATED; MatCategory(COMPOSITE_CFRP_UD) ≡ MAT_CAT_COMPOSITE; MatCategory(WOOD_DOUGLAS_FIR) ≡ MAT_CAT_WOOD; MatCategory(CONCRETE_NORMAL_25MPA) ≡ MAT_CAT_CONSTRUCTION)
 
 glass_materials = MatItemsByCategory(MAT_CAT_GLASS)
 invalid_category_materials = MatItemsByCategory(999)
-category_filter_tests = and(len(glass_materials) ≡ 3; take(1; glass_materials) ≡ GLASS_SODA_LIME; take(3; glass_materials) ≡ GLASS_FUSED_SILICA; len(invalid_category_materials) ≡ 0; MatCategoryStatus(STEEL_ASTM_A36) ≡ DB_OK; MatCategoryStatus(999999) ≡ DB_ERR_NAME)
+category_filter_tests = and(DBHasID(glass_materials; GLASS_SODA_LIME); DBHasID(glass_materials; GLASS_FUSED_SILICA); len(invalid_category_materials) ≡ 0; MatCategoryStatus(STEEL_ASTM_A36) ≡ DB_OK; MatCategoryStatus(999999) ≡ DB_ERR_NAME)
 
 expected_A36_properties = [1; 2; 3; 4; 5; 6; 9; 10; 11; 12; 13; 14; 15; 16; 17; 18]
 available_A36_properties = MatAvailablePropertyIDs(STEEL_ASTM_A36)
 invalid_item_properties = MatAvailablePropertyIDs(999999)
 item_availability_tests = and(norm_1(available_A36_properties - expected_A36_properties) ≡ 0; MatAvailablePropertyCount(STEEL_ASTM_A36) ≡ 16; abs(MatItemCompleteness(STEEL_ASTM_A36) - 16/18) < 10^-12; len(invalid_item_properties) ≡ 0; MatPropertyAvailable(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH); not(MatPropertyAvailable(STEEL_ASTM_A36; MAT_P_COMPRESSIVE_STRENGTH)))
 
-expected_property_counts = [126; 126; 126; 126; 79; 126; 68; 67; 126; 102; 126; 126; 126; 126; 126; 126; 73; 110]
 yield_materials = MatItemsWithProperty(MAT_P_YIELD_STRENGTH)
 invalid_property_materials = MatItemsWithProperty(999)
-property_availability_tests = and(norm_1(EngineeringMaterialPropertyAvailableCounts - expected_property_counts) ≡ 0; MatPropertyAvailableCount(MAT_P_DENSITY) ≡ 126; MatPropertyAvailableCount(MAT_P_YIELD_STRENGTH) ≡ 79; len(yield_materials) ≡ 79; DBHasID(yield_materials; STEEL_ASTM_A36); not(DBHasID(yield_materials; ELASTOMER_EPDM)); len(invalid_property_materials) ≡ 0)
+property_availability_tests = and(len(EngineeringMaterialPropertyAvailableCounts) ≡ EngineeringMaterialPropertyCount; max(EngineeringMaterialPropertyAvailableCounts) ≤ EngineeringMaterialItemCount; min(EngineeringMaterialPropertyAvailableCounts) ≥ 0; MatPropertyAvailableCount(MAT_P_DENSITY) ≡ EngineeringMaterialItemCount; len(yield_materials) ≡ MatPropertyAvailableCount(MAT_P_YIELD_STRENGTH); DBHasID(yield_materials; STEEL_ASTM_A36); not(DBHasID(yield_materials; ELASTOMER_EPDM)); len(invalid_property_materials) ≡ 0)
 
 classification_registry_tests = and(MatClassificationKnown(MAT_CLASS_TYPICAL); MatClassificationKnown(MAT_CLASS_SCREENING); MatClassificationKnown(MAT_CLASS_SPECIFIED_MINIMUM); MatClassificationKnown(MAT_CLASS_DESIGN_ALLOWABLE); not(MatClassificationKnown(MAT_CLASS_UNKNOWN)); ValidationValuesUnique(EngineeringMaterialClassificationIDs))
 classification_tests = and(EngineeringMaterialDefaultClassification ≡ MAT_CLASS_SCREENING; MatClassification(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ MAT_CLASS_SCREENING; MatClassification(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH) ≡ MAT_CLASS_UNKNOWN; MatClassificationStatus(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ DB_OK; MatClassificationStatus(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH) ≡ DB_ERR_MISSING)
 
 provenance_tests = and(MatProvenanceStatus(STEEL_ASTM_A36) ≡ DB_OK; MatSourceKnown(MatSourceID(STEEL_ASTM_A36)); MatDataRevision(STEEL_ASTM_A36) ≡ 1; MatProvenanceStatus(999999) ≡ DB_ERR_NAME; MatPropertyProvenanceStatus(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ DB_OK; MatPropertyProvenanceStatus(ELASTOMER_EPDM; MAT_P_YIELD_STRENGTH) ≡ DB_ERR_MISSING; MatPropertyRecordStatus(STEEL_ASTM_A36; MAT_P_YIELD_STRENGTH) ≡ DB_OK)
 
-dataset_count_tests = and(EngineeringMaterialAvailableValueCount ≡ 2011; EngineeringMaterialPossibleValueCount ≡ 2268; abs(EngineeringMaterialDatasetCompleteness - 2011/2268) < 10^-12)
+dataset_count_tests = and(EngineeringMaterialAvailableValueCount ≡ sum(EngineeringMaterialPropertyAvailableCounts); EngineeringMaterialPossibleValueCount ≡ EngineeringMaterialItemCount*EngineeringMaterialPropertyCount; abs(EngineeringMaterialDatasetCompleteness - EngineeringMaterialAvailableValueCount/EngineeringMaterialPossibleValueCount) < 10^-12)
 dataset_integrity_tests = and(EngineeringMaterialCatalogOK; EngineeringMaterialCategoriesOK; EngineeringMaterialSourcesOK; EngineeringMaterialRevisionsOK; EngineeringMaterialClassificationsOK; EngineeringMaterialCompletenessOK; EngineeringMaterialDatasetStatus ≡ DB_OK)
 alias_tests = and(A36 ≡ STEEL_ASTM_A36; MatCategory(A36) ≡ MatCategory(STEEL_ASTM_A36); MatAvailablePropertyCount(A36) ≡ MatAvailablePropertyCount(STEEL_ASTM_A36))
 
@@ -40,18 +38,18 @@ selection_properties = [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS; MAT_P_YIELD_STRENGT
 ferrous_candidates = MatCandidateItems(MAT_CAT_FERROUS_METAL; selection_properties)
 all_elastic_candidates = MatCandidateItems(MAT_CAT_ALL; [MAT_P_DENSITY; MAT_P_YOUNGS_MODULUS])
 elastomer_yield_candidates = MatCandidateItems(MAT_CAT_ELASTOMER; [MAT_P_YIELD_STRENGTH])
-selection_contract_tests = and(MatCategoryFilterKnown(MAT_CAT_ALL); MatPropertySetKnown(selection_properties); not(MatPropertySetKnown(empty_property_set)); MatCategoryCount(MAT_CAT_ALL) ≡ 126; len(MatItemsByCategory(MAT_CAT_ALL)) ≡ 126)
-candidate_tests = and(MatCandidateStatus(MAT_CAT_FERROUS_METAL; selection_properties) ≡ DB_OK; len(ferrous_candidates) ≡ 26; MatValuesUnique(ferrous_candidates); len(all_elastic_candidates) ≡ 126; len(elastomer_yield_candidates) ≡ 1; take(1; elastomer_yield_candidates) ≡ ELASTOMER_TPU; MatCandidateStatus(999; selection_properties) ≡ DB_ERR_NAME; MatCandidateStatus(MAT_CAT_GLASS; [MAT_P_YIELD_STRENGTH]) ≡ DB_ERR_MISSING; MatCandidateStatus(MAT_CAT_GLASS; [999]) ≡ DB_ERR_PROPERTY)
+selection_contract_tests = and(MatCategoryFilterKnown(MAT_CAT_ALL); MatPropertySetKnown(selection_properties); not(MatPropertySetKnown(empty_property_set)); MatCategoryCount(MAT_CAT_ALL) ≡ EngineeringMaterialItemCount; len(MatItemsByCategory(MAT_CAT_ALL)) ≡ EngineeringMaterialItemCount)
+candidate_tests = and(MatCandidateStatus(MAT_CAT_FERROUS_METAL; selection_properties) ≡ DB_OK; len(ferrous_candidates) > 0; MatValuesUnique(ferrous_candidates); len(all_elastic_candidates) ≡ EngineeringMaterialItemCount; DBHasID(elastomer_yield_candidates; ELASTOMER_TPU); MatCandidateStatus(999; selection_properties) ≡ DB_ERR_NAME; MatCandidateStatus(MAT_CAT_GLASS; [MAT_P_YIELD_STRENGTH]) ≡ DB_ERR_MISSING; MatCandidateStatus(MAT_CAT_GLASS; [999]) ≡ DB_ERR_PROPERTY)
 
 yield_ranking_descending = MatRankCandidates(MAT_CAT_FERROUS_METAL; selection_properties; MAT_P_YIELD_STRENGTH; MAT_RANK_DESCENDING)
 yield_ranking_ascending = MatRankByProperty(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; MAT_RANK_ASCENDING)
 invalid_property_ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; selection_properties; 999; MAT_RANK_DESCENDING)
 invalid_direction_ranking = MatRankCandidates(MAT_CAT_FERROUS_METAL; selection_properties; MAT_P_YIELD_STRENGTH; 999)
-ranking_tests = and(MatRankingDirectionKnown(MAT_RANK_ASCENDING); MatRankingDirectionKnown(MAT_RANK_DESCENDING); not(MatRankingDirectionKnown(999)); MatRankingResultStatus(yield_ranking_descending) ≡ DB_OK; MatRankingCount(yield_ranking_descending) ≡ 26; n_cols(yield_ranking_descending) ≡ 3; take(1; MatRankedItems(yield_ranking_descending)) ≡ MARAGING_STEEL_18NI_250; take(1; MatRankedRawValues(yield_ranking_descending)) ≡ 1700; take(1; MatRankedRawValues(yield_ranking_ascending)) ≡ 170; MatRankingResultStatus(invalid_property_ranking) ≡ DB_ERR_PROPERTY; MatRankingCount(invalid_property_ranking) ≡ 0; len(MatRankedItems(invalid_property_ranking)) ≡ 0; MatRankingResultStatus(invalid_direction_ranking) ≡ DB_ERR_BAD_METHOD)
+ranking_tests = and(MatRankingDirectionKnown(MAT_RANK_ASCENDING); MatRankingDirectionKnown(MAT_RANK_DESCENDING); not(MatRankingDirectionKnown(999)); MatRankingResultStatus(yield_ranking_descending) ≡ DB_OK; MatRankingCount(yield_ranking_descending) ≡ len(ferrous_candidates); n_cols(yield_ranking_descending) ≡ 3; take(1; MatRankedItems(yield_ranking_descending)) ≡ MARAGING_STEEL_18NI_250; take(1; MatRankedRawValues(yield_ranking_descending)) ≡ 1700; take(1; MatRankedRawValues(yield_ranking_ascending)) ≡ 170; MatRankingResultStatus(invalid_property_ranking) ≡ DB_ERR_PROPERTY; MatRankingCount(invalid_property_ranking) ≡ 0; len(MatRankedItems(invalid_property_ranking)) ≡ 0; MatRankingResultStatus(invalid_direction_ranking) ≡ DB_ERR_BAD_METHOD)
 
 minimum_yield_items = MatItemsAtLeast(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1000MPa)
 maximum_yield_items = MatItemsAtMost(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 200MPa)
 range_yield_items = MatItemsBetween(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1000MPa; 1600MPa)
-threshold_tests = and(len(minimum_yield_items) ≡ 6; DBHasID(minimum_yield_items; MARAGING_STEEL_18NI_250); not(DBHasID(minimum_yield_items; STEEL_ASTM_A36)); len(maximum_yield_items) ≡ 2; len(range_yield_items) ≡ 5; DBHasID(range_yield_items; TOOL_STEEL_H13_HARDENED); not(DBHasID(range_yield_items; MARAGING_STEEL_18NI_250)); len(MatItemsBetween(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1600MPa; 1000MPa)) ≡ 0; len(MatItemsAtLeast(999; MAT_P_YIELD_STRENGTH; 1000MPa)) ≡ 0)
+threshold_tests = and(DBHasID(minimum_yield_items; MARAGING_STEEL_18NI_250); not(DBHasID(minimum_yield_items; STEEL_ASTM_A36)); len(maximum_yield_items) > 0; DBHasID(range_yield_items; TOOL_STEEL_H13_HARDENED); not(DBHasID(range_yield_items; MARAGING_STEEL_18NI_250)); len(MatItemsBetween(MAT_CAT_FERROUS_METAL; MAT_P_YIELD_STRENGTH; 1600MPa; 1000MPa)) ≡ 0; len(MatItemsAtLeast(999; MAT_P_YIELD_STRENGTH; 1000MPa)) ≡ 0)
 
 all_tests = and(catalog_tests; category_count_tests; category_mapping_tests; category_filter_tests; item_availability_tests; property_availability_tests; classification_registry_tests; classification_tests; provenance_tests; dataset_count_tests; dataset_integrity_tests; alias_tests; selection_contract_tests; candidate_tests; ranking_tests; threshold_tests)

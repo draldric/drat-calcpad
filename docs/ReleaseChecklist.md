@@ -62,6 +62,7 @@
 - [ ] Run `Tests/Distribution/DISTRIBUTION_TEST.ps1`.
 - [ ] Confirm the archive inventory and manifest cover every packaged file and library with matching SHA-256 hashes, Core and component APIs, identities, revisions, and required or optional compatibility ranges.
 - [ ] Confirm `GenerateThermophysicalLibrary.py --check` and its schema regression tests pass without modifying the checkout.
+- [ ] Confirm `GenerateEngineeringMaterialsLibrary.py --check` and its workbook-only record-addition regression test pass without modifying the checkout.
 - [ ] Confirm a prior version remains unchanged after update and the stable `Current` marker and manifest identify the new version.
 - [ ] Confirm build, package/install, and installation/project source-destination overlaps are rejected before copying, including junction aliases and uncreated descendants of aliased paths.
 - [ ] Generate Core-only and Materials-enabled projects from the newly installed `Current`, move both, and confirm neither worksheet nor metadata contains a development, installation, package, or absolute include path.
