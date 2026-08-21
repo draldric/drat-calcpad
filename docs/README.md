@@ -16,6 +16,7 @@ Use these guides according to the work you are doing:
 - [Versioning policy](Versioning.md) explains Core, component, library, and API versions.
 - [Compatibility matrix](Compatibility.md) summarizes supported Core and library combinations.
 - [Distribution and installation](Distribution.md) covers release bundles, managed installations, and portable projects.
+- [Dataset provenance](DataProvenance.md) records engineering-data sources, hashes, packaging, attribution, qualification, and release blockers.
 - [Repository automation](Automation.md) defines hosted verification, branch-protection checks, and the CalcPad qualification boundary.
 - [Release checklist](ReleaseChecklist.md) covers verification and packaging of a release.
 

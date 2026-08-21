@@ -7,6 +7,9 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Dataset provenance records under `Data/Sources/`, compatible generator dependencies, a consolidated source/redistribution audit, and the CoolProp MIT notice.
+- Engineering Materials workbook validation for worksheets, IDs, numeric types, derived moduli, source links, missing values, and the complete CPD numeric export.
+- Shared AISC generator schema validation, deterministic read-only checks, verified temporary output, atomic replacement, and failed-write preservation coverage.
 - Explicit worksheet-authoring API with H3-H6 helpers, semantic callouts, heading-free lists and definitions, compact records and comparisons, CalcPad-native equation blocks, citations, captions, result highlights, print grouping, regression coverage, and a focused pipe-insulation demo.
 - Generated Thermophysical Properties 0.1.0 library with traceable water and 50% ethylene-glycol temperature curves, unit-aware typed helpers, status-aware generic lookup, provenance reporting, schema validation, regression coverage, and a focused end-user demo.
 - Deterministic boundary and failure-mode coverage for empty and malformed registries, missing versus zero data, invalid beam records, modifiers, and extrema, incompatible Core/component/Plotting APIs, missing dependencies, rendered error evidence, and native CalcPad unit errors.

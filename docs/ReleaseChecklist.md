@@ -40,6 +40,9 @@
 ## Engineering data review
 
 - [ ] Confirm every changed value has a source and dataset revision.
+- [ ] Resolve every blocker in `docs/DataProvenance.md`, including AISC redistribution permission and property-level Engineering Materials citations.
+- [ ] Verify the independently downloaded AISC workbook hash and run all four AISC generators in `--check` mode.
+- [ ] Confirm raw workbooks and generator inputs are absent from the runtime package and third-party notices are included.
 - [ ] Confirm units and conversion mappings.
 - [ ] Confirm missing values remain explicit.
 - [ ] Confirm typical, screening, specified-minimum, and design-allowable classifications are not conflated.

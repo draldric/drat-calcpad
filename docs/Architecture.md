@@ -8,8 +8,8 @@ DRAT separates calculation infrastructure from worksheet and library content:
 Core/Src/                         Maintained Core modules
         └─ Tools/BuildCore.ps1
 Core/DratCore.cpd                 Generated, distributable Core bundle
-Libraries/                        Optional engineering data libraries
-Libraries/Thermophysical/Data/   Maintained raw property data
+Libraries/                        Optional runtime engineering libraries
+Data/Sources/                     Raw inputs and dataset provenance records
 Libraries/Thermophysical/*.cpd   Generated runtime library
 Templates/                        General calculation and categorized specialized templates
 Examples/                         Complete supported workflows

@@ -12,9 +12,10 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPOSITORY_ROOT / "Tools"))
 sys.dont_write_bytecode = True
 GENERATOR_PATH = REPOSITORY_ROOT / "Tools" / "GenerateThermophysicalLibrary.py"
-DATA_PATH = REPOSITORY_ROOT / "Libraries" / "Thermophysical" / "Data" / "ThermophysicalProperties.json"
+DATA_PATH = REPOSITORY_ROOT / "Data" / "Sources" / "Thermophysical" / "ThermophysicalProperties.json"
 MODULE_SPEC = importlib.util.spec_from_file_location("thermophysical_generator", GENERATOR_PATH)
 if MODULE_SPEC is None or MODULE_SPEC.loader is None:
     raise RuntimeError(f"Could not load generator module: {GENERATOR_PATH}")
@@ -95,6 +96,21 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
             output_path.write_text(generated + "'stale\n", encoding="utf-8", newline="\n")
             with self.assertRaisesRegex(GENERATOR.SchemaError, "stale"):
                 GENERATOR.write_or_check(output_path, generated, True)
+
+    def test_failed_validation_preserves_existing_output(self) -> None:
+        """An invalid source must fail before the maintained output is touched."""
+
+        invalid = copy.deepcopy(self.dataset)
+        invalid["curves"][0]["temperature_c"][1] = invalid["curves"][0]["temperature_c"][0]
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            output_path = Path(temporary_directory) / "ThermophysicalProperties.cpd"
+            original = "'previous maintained output\n"
+            output_path.write_text(original, encoding="utf-8", newline="\n")
+            with self.assertRaisesRegex(GENERATOR.SchemaError, "strictly increasing"):
+                generated = GENERATOR.generate_library(GENERATOR.validate_dataset(invalid))
+                GENERATOR.write_or_check(output_path, generated, False)
+            self.assertEqual(output_path.read_text(encoding="utf-8"), original)
+            self.assertEqual(list(output_path.parent.glob(f".{output_path.name}.*.tmp")), [])
 
 
 if __name__ == "__main__":

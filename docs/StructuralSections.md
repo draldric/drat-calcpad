@@ -20,7 +20,9 @@ The initial release contains the AISC W-shape, HSS, C/MC channel, and single-ang
 Each record stores nominal weight, area, dimensions, strong- and weak-axis elastic and plastic section properties, radii of gyration, and torsional properties.
 
 `StructuralSectionsLibrarySource$`, `StructuralSectionsLibraryRevision$`, and `StructuralSectionsLibraryScope$` expose the dataset basis in a worksheet.
-The source is the AISC Shapes Database v16.0, August 2023.
+The source is the AISC Shapes Database v16.0, August 2023. The official workbook used for qualification has SHA-256 `82d0ceb96a0d938ae1a6bd9637cb10a1e269225b5d668dce5b0bdc8d86013496`.
+
+The workbook is externally obtained and is not committed or packaged. AISC's published website terms restrict copying and redistribution, so public redistribution of the transformed embedded dataset requires an explicit permission decision before release. See the [dataset provenance audit](DataProvenance.md); attribution and free download are not treated as redistribution permission.
 
 This is a geometric-property lookup library only.
 It does not provide steel grade, material strength, member resistance, connection resistance, load combinations, or a code-based design check.
@@ -80,8 +82,8 @@ The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
 
 ## Regeneration and verification
 
-`Tools/GenerateAiscWLibrary.py` and `Tools/GenerateAiscHssLibrary.py` are the auditable source-data transformations for the committed CalcPad libraries.
-They read the official AISC workbook and expect exactly 289 W-shape and 714 HSS records respectively; a changed source layout or record count stops generation.
+`Tools/GenerateAiscWLibrary.py`, `Tools/GenerateAiscHssLibrary.py`, `Tools/GenerateAiscChannelLibrary.py`, and `Tools/GenerateAiscAngleLibrary.py` are the auditable source-data transformations for the committed CalcPad libraries.
+They validate required worksheets, columns, numeric cells, unique labels, and exact family counts before generating. Output is written to a verified temporary file and atomically replaces the maintained library only after validation succeeds. `--check` is read-only.
 The source workbook itself is not committed.
 
 Run `Tests/Libraries/Steel/StructuralSectionsTest.cpd`, `Tests/Libraries/Steel/AiscHssSectionsTest.cpd`, and `Tests/Libraries/Steel/AiscChannelSectionsTest.cpd` in CalcPad CE and confirm `all_tests` is true.

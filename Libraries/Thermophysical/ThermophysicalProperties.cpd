@@ -1,4 +1,4 @@
-'<!-- GENERATED FILE. Edit Libraries/Thermophysical/Data/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->
+'<!-- GENERATED FILE. Edit Data/Sources/Thermophysical/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->
 #if and(DRAT_CORE_API ≥ 40000; DRAT_CORE_API < 50000)
 #if and(DRAT_DATA_WRAPPER_API ≥ 303; DRAT_DATA_WRAPPER_API < 1000)
 #hide

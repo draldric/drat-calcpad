@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
 import pandas as pd
+
+from AiscGeneratorSupport import load_family
+from GeneratorSupport import GeneratorError, write_or_check
 
 
 PROPERTIES = [
@@ -48,13 +52,10 @@ def emit(lines: list[str], line: str = "") -> None:
 
 
 def build(workbook: Path) -> str:
-    sections = pd.read_excel(workbook, sheet_name="Database v16.0")
-    sections = sections[sections["Type"].eq("L")].reset_index(drop=True)
-    if len(sections) != 137:
-        raise ValueError(f"Expected 137 single angles; found {len(sections)}")
+    sections = load_family(workbook, ["L"], PROPERTIES, {"L": 137})
 
     lines: list[str] = []
-    emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 20000)")
+    emit(lines, "#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)")
     emit(lines, "#if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)")
     emit(lines, "#hide")
     emit(lines, "'<!-- AISC single-angle geometric-property library. Source: AISC Shapes Database v16.0 (August 2023). -->")
@@ -179,11 +180,25 @@ def build(workbook: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("source", type=Path, help="Official AISC Shapes Database v16.0 workbook.")
+    parser.add_argument("output", help="Generated CalcPad library path or - for stdout.")
+    parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
+    options = parser.parse_args()
+    try:
+        output = build(options.source)
+        if options.output == "-":
+            if options.check:
+                raise GeneratorError("--check requires a file output path.")
+            print(output, end="")
+        else:
+            write_or_check(Path(options.output), output, options.check)
+    except (GeneratorError, OSError, ValueError) as error:
+        print(f"AISC angle generator error: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        raise SystemExit("Usage: GenerateAiscAngleLibrary.py SOURCE.xlsx OUTPUT.cpd|-")
-    output = build(Path(sys.argv[1]))
-    if sys.argv[2] == "-":
-        print(output, end="")
-    else:
-        Path(sys.argv[2]).write_text(output, encoding="utf-8")
+    raise SystemExit(main())

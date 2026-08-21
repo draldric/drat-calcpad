@@ -39,6 +39,8 @@ Build a versioned release directory and ZIP archive with `Tools/BuildDistributio
 Install an extracted release with `Tools/InstallDratCalcpad.ps1`, or create a self-contained calculation folder with `Tools/NewDratProject.ps1`.
 See the [distribution guide](docs/Distribution.md) for the managed installation and portable-project workflows.
 Run `Tools/VerifyRepository.ps1` before opening a pull request to verify the generated Core, API versions, include graph, whitespace, Core tests, examples, and engineering template.
+
+Raw generator inputs and provenance records live under `Data/Sources/` and are excluded from runtime distributions. See the [dataset provenance audit](docs/DataProvenance.md) for source editions, hashes, attribution, redistribution dispositions, and unresolved release blockers.
 Pass `-SkipCalcPad` when only static checks are available, `-CalcPadCli <path>` when CalcPad CE is installed outside its default location, or `-PythonPath <path>` when Python 3 is not on `PATH`.
 
 Libraries do not include their own dependencies.

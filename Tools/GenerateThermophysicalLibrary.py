@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from GeneratorSupport import GeneratorError, write_or_check as safe_write_or_check
+
 
 UNIT_EXPRESSIONS = {
     "kg_per_m3": "kg/m^3",
@@ -25,7 +27,7 @@ REVISION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-class SchemaError(ValueError):
+class SchemaError(GeneratorError):
     """Report a deterministic raw-data schema failure."""
 
 
@@ -247,7 +249,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
         curve_rows.extend([key, f"{format_number(temperature)}°C", value] for temperature, value in zip(curve["temperature_c"], curve["values"]))
 
     lines: list[str] = [
-        "'<!-- GENERATED FILE. Edit Libraries/Thermophysical/Data/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->",
+        "'<!-- GENERATED FILE. Edit Data/Sources/Thermophysical/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->",
         "#if and(DRAT_CORE_API ≥ 40000; DRAT_CORE_API < 50000)",
         "#if and(DRAT_DATA_WRAPPER_API ≥ 303; DRAT_DATA_WRAPPER_API < 1000)",
         "#hide",
@@ -488,17 +490,12 @@ def generate_library(dataset: dict[str, Any]) -> str:
 
 
 def write_or_check(output_path: Path, generated: str, check: bool) -> None:
-    """Write generated output or verify that the committed output is current."""
+    """Check output or atomically replace it after temporary-file verification."""
 
-    if check:
-        try:
-            existing = output_path.read_text(encoding="utf-8")
-        except FileNotFoundError as error:
-            raise SchemaError(f"Generated library does not exist: {output_path}") from error
-        require(existing == generated, f"Generated library is stale: {output_path}")
-        return
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(generated, encoding="utf-8", newline="\n")
+    try:
+        safe_write_or_check(output_path, generated, check)
+    except GeneratorError as error:
+        raise SchemaError(str(error)) from error
 
 
 def parse_arguments(arguments: list[str]) -> argparse.Namespace:

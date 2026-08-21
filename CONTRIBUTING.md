@@ -16,11 +16,14 @@ Do not commit generated HTML, PDFs, editor settings, backups, or temporary files
 - Put reusable calculation behavior in `Core/Src/`.
 - Regenerate `Core/DratCore.cpd` after changing a Core source module.
 - Put optional engineering datasets and their lookup interfaces in `Libraries/`.
+- Put repository-owned raw generator inputs and provenance records in `Data/Sources/`; do not place raw inputs in runtime library folders.
+- Do not commit externally obtained datasets unless redistribution permission is explicit and recorded.
 - Use `Templates/` for supported starting points.
 - Use `Examples/` for complete workflows.
 - Add deterministic regressions to `Tests/Core/` for every changed public Core helper.
 
 Read the [architecture](docs/Architecture.md), [Core API](docs/CoreApi.md), and [library-authoring guide](docs/LibraryAuthoring.md) before changing a public contract.
+Read the [dataset provenance audit](docs/DataProvenance.md) before changing an embedded engineering dataset.
 
 ## CalcPad conventions
 

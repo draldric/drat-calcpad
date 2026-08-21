@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
 
 import pandas as pd
+
+from AiscGeneratorSupport import load_family
+from GeneratorSupport import GeneratorError, write_or_check
 
 
 PROPERTIES = [
@@ -31,13 +35,10 @@ def symbol(label: str) -> str:
 
 
 def build(workbook: Path) -> str:
-    data = pd.read_excel(workbook, sheet_name="Database v16.0")
-    data = data[data["Type"].isin(["C", "MC"])].reset_index(drop=True)
-    if len(data) != 72 or (data["Type"] == "C").sum() != 32 or (data["Type"] == "MC").sum() != 40:
-        raise ValueError("Expected 32 C and 40 MC records")
+    data = load_family(workbook, ["C", "MC"], PROPERTIES, {"C": 32, "MC": 40})
     L: list[str] = []
     e = L.append
-    e("#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 20000)"); e("#if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)")
+    e("#if and(DRAT_CORE_API ≥ 10000; DRAT_CORE_API < 50000)"); e("#if and(DRAT_DATA_WRAPPER_API ≥ 302; DRAT_DATA_WRAPPER_API < 1000)")
     e("#hide"); e("'<!-- AISC C and MC channel geometric-property library. Source: AISC Shapes Database v16.0 (August 2023). -->")
     e("#def AiscChannelLibraryName$ = AISC C and MC Channel Structural Sections Library"); e("#def AiscChannelLibraryRevision$ = 0.1.0"); e("#def AiscChannelLibraryDate$ = 2026-08-10")
     e("#def AiscChannelLibrarySource$ = AISC Shapes Database v16.0, August 2023. https://www.aisc.org/aisc/publications/steel-construction-manual/aisc-shapes-database-v160/")
@@ -85,7 +86,25 @@ def build(workbook: Path) -> str:
     return "\n".join(L) + "\n"
 
 
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("source", type=Path, help="Official AISC Shapes Database v16.0 workbook.")
+    parser.add_argument("output", help="Generated CalcPad library path or - for stdout.")
+    parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
+    options = parser.parse_args()
+    try:
+        output = build(options.source)
+        if options.output == "-":
+            if options.check:
+                raise GeneratorError("--check requires a file output path.")
+            print(output, end="")
+        else:
+            write_or_check(Path(options.output), output, options.check)
+    except (GeneratorError, OSError, ValueError) as error:
+        print(f"AISC channel generator error: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 3: raise SystemExit("Usage: GenerateAiscChannelLibrary.py SOURCE.xlsx OUTPUT.cpd|-")
-    output = build(Path(sys.argv[1]))
-    print(output, end="") if sys.argv[2] == "-" else Path(sys.argv[2]).write_text(output, encoding="utf-8")
+    raise SystemExit(main())

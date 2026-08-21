@@ -52,6 +52,10 @@ jobs:
               throw 'Changed-file whitespace verification failed.'
           }
 
+      - name: Install generator dependencies
+        shell: pwsh
+        run: python -m pip install -r requirements-generators.txt
+
       - name: Run hosted repository verification
         shell: pwsh
         run: |

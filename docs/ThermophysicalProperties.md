@@ -105,12 +105,12 @@ The worksheet owns its heading hierarchy.
 
 ## Raw data and generation
 
-The maintained source is `Libraries/Thermophysical/Data/ThermophysicalProperties.json`.
+The maintained source is `Data/Sources/Thermophysical/ThermophysicalProperties.json`.
 The committed `.cpd` library is generated:
 
 ```powershell
 python Tools/GenerateThermophysicalLibrary.py `
-    Libraries/Thermophysical/Data/ThermophysicalProperties.json `
+    Data/Sources/Thermophysical/ThermophysicalProperties.json `
     Libraries/Thermophysical/ThermophysicalProperties.cpd
 ```
 
@@ -118,7 +118,7 @@ Check that the generated file is current without rewriting it:
 
 ```powershell
 python Tools/GenerateThermophysicalLibrary.py `
-    Libraries/Thermophysical/Data/ThermophysicalProperties.json `
+    Data/Sources/Thermophysical/ThermophysicalProperties.json `
     Libraries/Thermophysical/ThermophysicalProperties.cpd `
     --check
 ```
@@ -133,6 +133,7 @@ It rejects unknown units, duplicate IDs or curve keys, duplicate public function
 
 The dataset should eventually be checked against independent governing sources, not only the engine used to generate it.
 Water and steam should be qualified against IAPWS values before the library claims an IAPWS or design-grade classification.
+The exact CoolProp version and complete input-pair calls also remain unresolved. The [dataset provenance audit](DataProvenance.md) records this release blocker and the raw-input packaging disposition.
 
 ## Planned expansion
 

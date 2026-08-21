@@ -284,7 +284,7 @@ New-Item -ItemType Directory -Path $packageTools -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'Tools\InstallDratCalcpad.ps1') -Destination $packageTools
 Copy-Item -LiteralPath (Join-Path $repositoryRoot 'Tools\NewDratProject.ps1') -Destination $packageTools
 
-foreach ($fileName in @('README.md', 'CHANGELOG.md', 'LICENSE')) {
+foreach ($fileName in @('README.md', 'CHANGELOG.md', 'LICENSE', 'THIRD-PARTY-NOTICES.md')) {
     Copy-Item -LiteralPath (Join-Path $repositoryRoot $fileName) -Destination $packageRoot
 }
 
