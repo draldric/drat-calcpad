@@ -7,6 +7,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Added
 
+- Explicit worksheet-authoring API with H3-H6 helpers, semantic callouts, heading-free lists and definitions, compact records and comparisons, CalcPad-native equation blocks, citations, captions, result highlights, print grouping, regression coverage, and a focused pipe-insulation demo.
 - Generated Thermophysical Properties 0.1.0 library with traceable water and 50% ethylene-glycol temperature curves, unit-aware typed helpers, status-aware generic lookup, provenance reporting, schema validation, regression coverage, and a focused end-user demo.
 - Deterministic boundary and failure-mode coverage for empty and malformed registries, missing versus zero data, invalid beam records, modifiers, and extrema, incompatible Core/component/Plotting APIs, missing dependencies, rendered error evidence, and native CalcPad unit errors.
 - Independent equilibrium and Euler-Bernoulli beam benchmarks covering point loads, uniform and triangular distributed loads, applied moments, support conditions, sign conventions, and alternate units.
@@ -42,7 +43,10 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
-- Core is versioned as 4.2.0 with worksheet-owned report headings, compact IEEE-style reference rows, stacked design-basis records, and record-level print grouping. Cover-page helpers remain the only Core macros that emit H1-H6 elements.
+- Core is versioned as 4.3.0 with Authoring API 1.0.0 and shared stylesheet 1.10.0.
+- Definitions 2.2.0 makes conclusion blocks render result values with units without exposing variable expressions and restores worksheet rendering modes when the block ends.
+- Authoring definitions use an open term-description layout, prose-valued table cells align with numeric values, and validation-summary counts use a compact structured footer.
+- Core 4.2.0 established worksheet-owned report headings, compact IEEE-style reference rows, stacked design-basis records, and record-level print grouping; cover-page helpers remained the only implicit heading producers.
 - Core is versioned as 4.1.2 with shape-safe reporting registries and release-hardening standards for tests, examples, templates, and maintainability comments.
 - Beam Analysis 0.6.1 rejects empty load families and prevents invalid model records from producing plausible high-level reactions, responses, or series.
 - DataWrapper 0.3.3 identifies itself as the DRAT Data Wrapper instead of retaining stale template metadata.

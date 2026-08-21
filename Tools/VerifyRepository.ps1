@@ -185,6 +185,7 @@ function Test-ApiVersions {
         'CheckRegistry.cpd' = 'DRAT_CHECK_REGISTRY_API'
         'CalculationStatus.cpd' = 'DRAT_CALCULATION_STATUS_API'
         'Reporting.cpd' = 'DRAT_REPORTING_API'
+        'Authoring.cpd' = 'DRAT_AUTHORING_API'
         'ReviewSummary.cpd' = 'DRAT_REVIEW_SUMMARY_API'
         'Plotting.cpd' = 'DRAT_PLOTTING_API'
     }
@@ -480,6 +481,7 @@ function Test-ArtifactConventions {
     }
 
     $coverHeadingMacros = @('CreateHeader$', 'CreateTitle$', 'CreatePurpose$', 'CreateScope$', 'BeginRevisions$')
+    $explicitHeadingMacros = @('H3$', 'H4$', 'H5$', 'H6$')
     foreach ($file in Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Core\Src') -File -Filter '*.cpd' | Sort-Object Name) {
         $activeMacro = $null
         $lineNumber = 0
@@ -494,13 +496,32 @@ function Test-ArtifactConventions {
                 $trimmedLine = $line.TrimStart()
                 $emitsHtmlHeading = [regex]::IsMatch($line, "'<h[1-6](?:\s|>)", [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
                 $emitsMarkdownHeading = [regex]::IsMatch($line, "^\s*'#{1,6}\s") -or $trimmedLine.StartsWith('"', [System.StringComparison]::Ordinal)
-                if (($emitsHtmlHeading -or $emitsMarkdownHeading) -and $activeMacro -notin $coverHeadingMacros) {
-                    Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName):$lineNumber emits an H1-H6 heading from non-cover macro $activeMacro. Worksheet source must own the report hierarchy."
+                $isApprovedHeadingMacro = $activeMacro -in $coverHeadingMacros -or ($file.Name -ceq 'Authoring.cpd' -and $activeMacro -in $explicitHeadingMacros)
+                if (($emitsHtmlHeading -or $emitsMarkdownHeading) -and -not $isApprovedHeadingMacro) {
+                    Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName):$lineNumber emits an H1-H6 heading from non-cover, non-authoring macro $activeMacro. Worksheet source must own the report hierarchy."
                 }
             }
 
             if ([regex]::IsMatch($line, '^\s*#end\s+def\s*$') -or ($definitionMatch.Success -and $line.Contains('='))) {
                 $activeMacro = $null
+            }
+        }
+    }
+
+    $singleTextAuthoringMacros = @(
+        'H3', 'H4', 'H5', 'H6',
+        'SectionIntro', 'CalculationStep',
+        'Note', 'Basis', 'Important', 'Warning', 'ErrorMessage',
+        'AddBullet', 'AddNumberedItem', 'EmptyState'
+    )
+    $singleTextAuthoringPattern = '(?<![A-Za-z0-9_])(?<macro>' + (($singleTextAuthoringMacros | ForEach-Object { [regex]::Escape($_) }) -join '|') + ')\$\([^\r\n)]*;[^\r\n)]*\)'
+    foreach ($file in Get-ChildItem -LiteralPath $script:repositoryRoot -Recurse -File -Filter '*.cpd' | Sort-Object FullName) {
+        $lineNumber = 0
+        foreach ($line in [System.IO.File]::ReadAllLines($file.FullName)) {
+            $lineNumber++
+            $argumentMatch = [regex]::Match($line, $singleTextAuthoringPattern)
+            if ($argumentMatch.Success) {
+                Add-VerificationFailure -Message "$(Get-RepositoryRelativePath -Path $file.FullName):$lineNumber passes a semicolon to single-text macro $($argumentMatch.Groups['macro'].Value)`$. CalcPad interprets it as another argument."
             }
         }
     }
@@ -524,13 +545,13 @@ function Test-ArtifactConventions {
     }
 
     $generalTemplateHeadingRequirements = @(
-        "'## References",
-        "'#### Design Criteria",
-        "'#### Assumptions",
-        "'#### Applicability and Limitations",
-        "'#### Reporting Registry Summary",
-        '"Definitions and Variables',
-        '"Conclusions'
+        'H3$(References)',
+        'H4$(Design Criteria)',
+        'H4$(Assumptions)',
+        'H4$(Applicability and Limitations)',
+        'H4$(Reporting Registry Summary)',
+        'H3$(Definitions and Variables)',
+        'H3$(Conclusions)'
     )
     foreach ($requiredHeading in $generalTemplateHeadingRequirements) {
         if (-not $generalTemplateText.Contains($requiredHeading)) {

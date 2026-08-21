@@ -6,6 +6,7 @@ Use these guides according to the work you are doing:
 - [Artifact standards](ArtifactStandards.md) defines the maintained roles of Core modules, tests, examples, and templates.
 - [Architecture](Architecture.md) describes the generated Core, direct library loading, and trusted calculation flow.
 - [Core API reference](CoreApi.md) lists the supported constants, functions, and reporting macros.
+- [Worksheet authoring components](Authoring.md) documents explicit headings, narrative components, equations, compact records, captions, results, and print helpers.
 - [Structural Sections library](StructuralSections.md) documents AISC W-shape lookup, screening, and reporting helpers.
 - [Static beam analysis library](BeamAnalysis.md) documents supported beam cases, response equations, and screening helpers.
 - [Thermophysical Properties library](ThermophysicalProperties.md) documents generated water and glycol property curves, typed lookups, provenance, statuses, and the expansion roadmap.

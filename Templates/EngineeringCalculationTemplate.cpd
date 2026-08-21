@@ -39,38 +39,38 @@ BeginRevisions$
 AddRevision$(0; Initial calculation; PREPARER NAME; YYYY-MM-DD)
 EndRevisions$
 
-'## References
+H3$(References)
 
 BeginReferences$
 AddReference$(REF_GOVERNING_STANDARD; GOVERNING STANDARD; STANDARD TITLE; EDITION / REVISION; APPLICABLE CLAUSE; Describe how the reference governs the calculation.)
 AddReference$(REF_INPUT_SOURCE; DRAWING / SPECIFICATION / DATASET; INPUT SOURCE TITLE; REVISION / DATE; APPLICABLE LOCATION; Identify the origin of calculation inputs.)
 EndReferences$
 
-"Design Basis and Assumptions
+H3$(Design Basis and Assumptions)
 
-'#### Design Criteria
+H4$(Design Criteria)
 
 BeginDesignCriteria$
 AddDesignCriterion$(CRITERION_PRIMARY; PRIMARY DESIGN CRITERION; STATE THE REQUIRED LIMIT OR ACCEPTANCE CONDITION.; REF_GOVERNING_STANDARD; APPLICABLE CLAUSE; Explain how the criterion is applied.)
 EndDesignCriteria$
 
-'#### Assumptions
+H4$(Assumptions)
 
 BeginAssumptions$
 AddAssumption$(ASSUMPTION_PRIMARY; ANALYSIS / GEOMETRY / LOADING / MATERIAL; STATE THE ENGINEERING ASSUMPTION.; State the evidence or engineering basis.; REF_INPUT_SOURCE)
 EndAssumptions$
 
-'#### Applicability and Limitations
+H4$(Applicability and Limitations)
 
 BeginLimitations$
 AddLimitation$(LIMITATION_PRIMARY; STATE THE BOUND, EXCLUSION, OR CONDITION OF USE.; Explain the consequence if the limitation is exceeded.; State the review, verification, or additional analysis required.; RPT_NO_REFERENCE)
 EndLimitations$
 
-'#### Reporting Registry Summary
+H4$(Reporting Registry Summary)
 
 ShowReportingSummary$
 
-"Definitions and Variables
+H3$(Definitions and Variables)
 
 'Replace the unitless demonstration entries with the symbols and units used by the calculation.
 BeginVariables$
@@ -79,16 +79,16 @@ AddVariable$(capacity; Available capacity; 1)
 AddVariable$(warning_threshold; Warning threshold; 1)
 EndVariables$
 
-"Inputs
+H3$(Inputs)
 
-'#### Saved Inputs
+H4$(Saved Inputs)
 
 'Replace these demonstration inputs with calculation-specific values.
 demand = 80
 capacity = 100
 warning_threshold = CHK_DEFAULT_WARNING
 
-'#### Input Validation
+H4$(Input Validation)
 #hide
 demand_validation = ValidationNonnegativeResult(demand)
 capacity_validation = ValidationPositiveResult(capacity)
@@ -106,18 +106,18 @@ input_validation = ValidationResultRegistrySummaryStatus(InputValidationRegistry
 inputs_valid = ValidationResultRegistryInputsValid(InputValidationRegistry; InputValidationRegistryErrors)
 #show
 
-"Methodology
+H3$(Methodology)
 
 'Describe the governing method, equations, models, and acceptance criteria.
 'For this demonstration, utilization is the magnitude of demand divided by positive capacity.
 
-"Calculations
+H3$(Calculations)
 
 #hide
 utilization = CheckUpperUtilization(demand; capacity)
 #show
 
-"Engineering Checks
+H3$(Engineering Checks)
 
 BeginCheckRegistry$
 AddUpperCheck$(CHECK_UPPER_LIMIT; Upper-limit demonstration; demand; capacity; warning_threshold; Demand ≤ capacity; inputs_valid)
@@ -128,21 +128,19 @@ overall_check_status = CheckResultRegistrySummaryStatus(EngineeringCheckRegistry
 calculation_status = CalculationStatusFromRegistries(InputValidationRegistry; InputValidationRegistryErrors; EngineeringCheckRegistry; EngineeringCheckRegistryErrors)
 #show
 
-"Results
+H3$(Results)
 
 ShowCalculationStatusFromRegistries$
 
-'#### Document Review Summary
+H4$(Document Review Summary)
 
 ShowDocumentReviewSummary$
 
-"Conclusions
+H3$(Conclusions)
 
 BeginConclusions$
-#novar
 AddConclusion$(Governing utilization; CheckResultRegistryGoverningUtilization(EngineeringCheckRegistry))
 AddCalculationStatusConclusion$(Document calculation status; calculation_status)
 AddValidationConclusion$(Overall input validation; input_validation)
 AddCheckConclusion$(Overall check status; overall_check_status)
 EndConclusions$
-#equ
