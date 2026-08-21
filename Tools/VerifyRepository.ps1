@@ -74,9 +74,15 @@ function Convert-VersionToApi {
 }
 
 function Test-CoreBundle {
+    $startingFailureCount = $script:verificationFailures.Count
     $buildScript = Join-Path $script:repositoryRoot 'Tools\BuildCore.ps1'
-    if (-not (Test-Path -LiteralPath $buildScript -PathType Leaf)) {
-        Add-VerificationFailure -Message 'Tools\BuildCore.ps1 is missing.'
+    $buildTest = Join-Path $script:repositoryRoot 'Tests\Tooling\BuildCoreTest.ps1'
+    foreach ($requiredPath in @($buildScript, $buildTest)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            Add-VerificationFailure -Message "Core build tooling is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
+        }
+    }
+    if ($script:verificationFailures.Count -ne $startingFailureCount) {
         return
     }
 
@@ -89,7 +95,14 @@ function Test-CoreBundle {
         return
     }
 
+    $testOutput = & $powerShellPath -NoProfile -File $buildTest 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Atomic Core build tests failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+
     Write-Output '[PASS] Generated Core bundle is current.'
+    Write-Output '[PASS] Core generation is atomic, failure-safe, and regression tested.'
 }
 
 function Resolve-PythonExecutable {

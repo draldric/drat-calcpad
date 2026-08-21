@@ -62,6 +62,8 @@ The order is part of the Core contract because later modules use constants and m
 
 Run `Tools/BuildCore.ps1` after changing a Core source module.
 Run `Tools/BuildCore.ps1 -Check` to compare the committed bundle with the sources without modifying it.
+The normal build assembles the complete bundle in memory, writes and verifies a uniquely named temporary file beside `DratCore.cpd`, and atomically replaces the maintained bundle only after verification succeeds.
+Missing sources, failed temporary writes, failed validation, and failed replacement leave the prior maintained bundle unchanged, and handled build paths remove their temporary files.
 
 ## Trusted calculation flow
 

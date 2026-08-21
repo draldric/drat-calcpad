@@ -33,6 +33,7 @@ Worksheets load the generated core bundle before any optional libraries:
 Maintain the individual core modules in `Core/Src/`.
 Run `Tools/BuildCore.ps1` after changing a core source module, and commit the regenerated `Core/DratCore.cpd`.
 Run `Tools/BuildCore.ps1 -Check` to verify that the committed bundle is current.
+Core generation verifies a same-directory temporary bundle before atomically replacing the maintained output; failed builds preserve the previous `DratCore.cpd`.
 
 Build a versioned release directory and ZIP archive with `Tools/BuildDistribution.ps1 -Archive`.
 Install an extracted release with `Tools/InstallDratCalcpad.ps1`, or create a self-contained calculation folder with `Tools/NewDratProject.ps1`.
