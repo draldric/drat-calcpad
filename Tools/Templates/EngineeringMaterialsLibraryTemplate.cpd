@@ -103,27 +103,27 @@ MatCandidateStatus(category; required_properties) = switch(not(MatCategoryFilter
 
 MatPROPStatus(item; property) = _
 $block{
-    item_ok = MatHasItem(item); 
-    property_ok = MatHasProperty(property); 
-    status = switch(not(item_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; DBTableStatus(EngineeringMaterialData; item; property + 1)); 
-    status; 
+    item_ok = MatHasItem(item);
+    property_ok = MatHasProperty(property);
+    status = switch(not(item_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; DBTableStatus(EngineeringMaterialData; item; property + 1));
+    status;
 }
 
 MatPROPRaw(item; property) = _
 $block{
-    status = MatPROPStatus(item; property); 
-    raw = if(DBIsFatal(status); 0/0; DBTableRaw(EngineeringMaterialData; item; property + 1)); 
-    raw; 
+    status = MatPROPStatus(item; property);
+    raw = if(DBIsFatal(status); 0/0; DBTableRaw(EngineeringMaterialData; item; property + 1));
+    raw;
 }
 
 MatApplyUnits(property; value) = switch(property ≡ MAT_P_DENSITY; setunits(value; kg/m^3); property ≡ MAT_P_YOUNGS_MODULUS; setunits(value; GPa); property ≡ MAT_P_SHEAR_MODULUS; setunits(value; GPa); property ≡ MAT_P_POISSON_RATIO; value; property ≡ MAT_P_YIELD_STRENGTH; setunits(value; MPa); property ≡ MAT_P_TENSILE_STRENGTH; setunits(value; MPa); property ≡ MAT_P_COMPRESSIVE_STRENGTH; setunits(value; MPa); property ≡ MAT_P_FLEXURAL_STRENGTH; setunits(value; MPa); property ≡ MAT_P_ELONGATION; value; property ≡ MAT_P_FRACTURE_TOUGHNESS; setunits(value; MPa*m^0.5); property ≡ MAT_P_THERMAL_CONDUCTIVITY; setunits(value; W/(m*K)); property ≡ MAT_P_SPECIFIC_HEAT; setunits(value; J/(kg*K)); property ≡ MAT_P_CTE; setunits(value*10^-6; 1/K); property ≡ MAT_P_ELECTRICAL_RESISTIVITY; setunits(value; Ω*m); property ≡ MAT_P_TRANSITION_TEMPERATURE; setunits(value; °C); property ≡ MAT_P_MAX_SERVICE_TEMPERATURE; setunits(value; °C); property ≡ MAT_P_HARDNESS_VICKERS; value; property ≡ MAT_P_BULK_MODULUS; setunits(value; GPa); 0/0)
 
 MatPROP(item; property) = _
 $block{
-    status = MatPROPStatus(item; property); 
-    raw = if(DBIsFatal(status); 0/0; MatPROPRaw(item; property)); 
-    value = if(DBIsFatal(status); 0/0; MatApplyUnits(property; raw)); 
-    value; 
+    status = MatPROPStatus(item; property);
+    raw = if(DBIsFatal(status); 0/0; MatPROPRaw(item; property));
+    value = if(DBIsFatal(status); 0/0; MatApplyUnits(property; raw));
+    value;
 }
 
 MatRankingDirectionKnown(direction) = or(direction ≡ MAT_RANK_ASCENDING; direction ≡ MAT_RANK_DESCENDING)
