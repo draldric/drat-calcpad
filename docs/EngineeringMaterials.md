@@ -99,6 +99,10 @@ A screening value is not a specified minimum or a design allowable and must be c
 
 ## Provenance and integrity
 
+The repository-owned workbook is maintained at `Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx` and is excluded from runtime distributions. `Tools/ValidateEngineeringMaterialsSource.py` validates its worksheets, IDs, numeric types, derived moduli, source links, missing values, and complete CPD numeric export.
+
+The current workbook provides one broad source portal per material row, not an edition and locator for every populated property. Consequently, `MatProvenanceStatus` proves that a record has a known internal source ID and revision; it does not independently certify that each value was traced to a specific source record. This gap is a first-release blocker documented in the [dataset provenance audit](DataProvenance.md).
+
 `MatProvenanceStatus(item)` validates the source and dataset revision for a material record.
 `MatPropertyProvenanceStatus(item; property)` applies that validation to an available property.
 `MatPropertyRecordStatus(item; property)` combines value availability, category, provenance, and classification checks into one status.

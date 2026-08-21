@@ -20,7 +20,9 @@ The initial release contains the AISC W-shape, HSS, C/MC channel, and single-ang
 Each record stores nominal weight, area, dimensions, strong- and weak-axis elastic and plastic section properties, radii of gyration, and torsional properties.
 
 `StructuralSectionsLibrarySource$`, `StructuralSectionsLibraryRevision$`, and `StructuralSectionsLibraryScope$` expose the dataset basis in a worksheet.
-The source is the AISC Shapes Database v16.0, August 2023.
+The source basis is the AISC Shapes Database v16.0, August 2023. The official workbook used to prepare and qualify the DRAT compilation has SHA-256 `82d0ceb96a0d938ae1a6bd9637cb10a1e269225b5d668dce5b0bdc8d86013496`.
+
+The official workbook is neither committed nor redistributed. DRAT maintains `Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx`, its own family-sheet compilation of the factual values used by these APIs. It contains only the supported W, HSS, C/MC channel, and single-angle records and the properties listed below. See the [dataset provenance audit](DataProvenance.md).
 
 This is a geometric-property lookup library only.
 It does not provide steel grade, material strength, member resistance, connection resistance, load combinations, or a code-based design check.
@@ -80,9 +82,9 @@ The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
 
 ## Regeneration and verification
 
-`Tools/GenerateAiscWLibrary.py` and `Tools/GenerateAiscHssLibrary.py` are the auditable source-data transformations for the committed CalcPad libraries.
-They read the official AISC workbook and expect exactly 289 W-shape and 714 HSS records respectively; a changed source layout or record count stops generation.
-The source workbook itself is not committed.
+`Tools/GenerateAiscWLibrary.py`, `Tools/GenerateAiscHssLibrary.py`, `Tools/GenerateAiscChannelLibrary.py`, and `Tools/GenerateAiscAngleLibrary.py` are the auditable source-data transformations for the committed CalcPad libraries.
+They validate the repository workbook's dataset revision, exact property contract, stable IDs, columns, numeric cells, unique labels, and family counts before generating. Output is written to a verified temporary file and atomically replaces the maintained library only after validation succeeds. `--check` is read-only.
+The curated source workbook is committed under `Data/Sources/` and excluded from runtime packages. The official AISC workbook is not committed.
 
 Run `Tests/Libraries/Steel/StructuralSectionsTest.cpd`, `Tests/Libraries/Steel/AiscHssSectionsTest.cpd`, and `Tests/Libraries/Steel/AiscChannelSectionsTest.cpd` in CalcPad CE and confirm `all_tests` is true.
 The regression tests lock record count, data-table dimensions, aliases, representative AISC values, lookup statuses, and unit-aware `Sx` screening queries.

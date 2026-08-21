@@ -19,8 +19,8 @@ artifacts/
 └── DRAT-Calcpad-VERSION.zip
 ```
 
-The bundle contains the generated Core, supported libraries, templates, examples, documentation, install tools, changelog, and license.
-It intentionally excludes the modular Core source and repository tests.
+The bundle contains the generated Core, supported libraries, templates, examples, documentation, install tools, changelog, license, and third-party notices.
+It intentionally excludes the modular Core source, repository tests, `Data/Sources/`, raw workbooks, and generator JSON inputs.
 
 The schema-version-2 `manifest.json` records the Core version, every component API, every packaged library identity and revision, required and optional compatibility ranges, packaged file paths, and SHA-256 hashes.
 The installer rejects missing, modified, duplicated, unsafe, or unlisted package files and rejects metadata that differs from the declarations inside the packaged Core or libraries.

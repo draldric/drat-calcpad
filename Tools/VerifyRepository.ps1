@@ -133,7 +133,7 @@ function Test-ThermophysicalGenerator {
     }
 
     $generatorPath = Join-Path $script:repositoryRoot 'Tools\GenerateThermophysicalLibrary.py'
-    $sourcePath = Join-Path $script:repositoryRoot 'Libraries\Thermophysical\Data\ThermophysicalProperties.json'
+    $sourcePath = Join-Path $script:repositoryRoot 'Data\Sources\Thermophysical\ThermophysicalProperties.json'
     $outputPath = Join-Path $script:repositoryRoot 'Libraries\Thermophysical\ThermophysicalProperties.cpd'
     $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\ThermophysicalGeneratorTest.py'
     foreach ($requiredPath in @($generatorPath, $sourcePath, $outputPath, $testPath)) {
@@ -157,6 +157,130 @@ function Test-ThermophysicalGenerator {
     }
 
     Write-Output '[PASS] Thermophysical raw-data schema, generator regressions, and committed CalcPad library are current.'
+}
+
+function Test-AiscGenerators {
+    $startingFailureCount = $script:verificationFailures.Count
+    $python = Resolve-PythonExecutable
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        Add-VerificationFailure -Message 'Python 3 was not found. Pass -PythonPath to verify the AISC dataset generators.'
+        return
+    }
+
+    $sourcePath = Join-Path $script:repositoryRoot 'Data\Sources\AiscShapesV16\DratStructuralSectionsSource.xlsx'
+    $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\AiscGeneratorTest.py'
+    $checks = @(
+        @{ Generator = 'Tools\GenerateAiscWLibrary.py'; Output = 'Libraries\Steel\StructuralSections.cpd' },
+        @{ Generator = 'Tools\GenerateAiscHssLibrary.py'; Output = 'Libraries\Steel\AiscHssSections.cpd' },
+        @{ Generator = 'Tools\GenerateAiscChannelLibrary.py'; Output = 'Libraries\Steel\AiscChannelSections.cpd' },
+        @{ Generator = 'Tools\GenerateAiscAngleLibrary.py'; Output = 'Libraries\Steel\AiscAngleSections.cpd' }
+    )
+    foreach ($requiredPath in @($sourcePath, $testPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            Add-VerificationFailure -Message "AISC generation input is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
+        }
+    }
+    foreach ($check in $checks) {
+        foreach ($relativePath in @($check.Generator, $check.Output)) {
+            $requiredPath = Join-Path $script:repositoryRoot $relativePath
+            if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+                Add-VerificationFailure -Message "AISC generation input is missing: $relativePath"
+            }
+        }
+    }
+    if ($script:verificationFailures.Count -ne $startingFailureCount) {
+        return
+    }
+
+    foreach ($check in $checks) {
+        $generatorPath = Join-Path $script:repositoryRoot $check.Generator
+        $outputPath = Join-Path $script:repositoryRoot $check.Output
+        $generatorOutput = & $python $generatorPath $sourcePath $outputPath --check 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Add-VerificationFailure -Message ('AISC generated-library check failed: ' + (($generatorOutput | ForEach-Object { $_.ToString() }) -join ' '))
+            return
+        }
+    }
+    $testOutput = & $python $testPath 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('AISC generator schema tests failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+
+    Write-Output '[PASS] Curated AISC source schema, stable IDs, deterministic generators, and committed CalcPad libraries are current.'
+}
+
+function Test-EngineeringMaterialsSource {
+    $python = Resolve-PythonExecutable
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        Add-VerificationFailure -Message 'Python 3 was not found. Pass -PythonPath to verify the Engineering Materials source workbook.'
+        return
+    }
+
+    $sourcePath = Join-Path $script:repositoryRoot 'Data\Sources\EngineeringMaterials\EngineeringMaterialsDatabase.xlsx'
+    $validatorPath = Join-Path $script:repositoryRoot 'Tools\ValidateEngineeringMaterialsSource.py'
+    $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\EngineeringMaterialsSourceTest.py'
+    foreach ($requiredPath in @($sourcePath, $validatorPath, $testPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            Add-VerificationFailure -Message "Engineering Materials source-validation input is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
+        }
+    }
+    if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf) -or -not (Test-Path -LiteralPath $validatorPath -PathType Leaf) -or -not (Test-Path -LiteralPath $testPath -PathType Leaf)) {
+        return
+    }
+
+    $validationOutput = & $python $validatorPath $sourcePath 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Engineering Materials source validation failed: ' + (($validationOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+    $testOutput = & $python $testPath 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Add-VerificationFailure -Message ('Engineering Materials source tests failed: ' + (($testOutput | ForEach-Object { $_.ToString() }) -join ' '))
+        return
+    }
+
+    Write-Output '[PASS] Engineering Materials schema, IDs, numeric types, source links, derived values, and CPD export are consistent.'
+}
+
+function Test-DatasetSourceLayout {
+    $requirementsPath = Join-Path $script:repositoryRoot 'requirements-generators.txt'
+    $noticesPath = Join-Path $script:repositoryRoot 'THIRD-PARTY-NOTICES.md'
+    $auditPath = Join-Path $script:repositoryRoot 'docs\DataProvenance.md'
+    foreach ($requiredPath in @($requirementsPath, $noticesPath, $auditPath)) {
+        if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
+            Add-VerificationFailure -Message "Dataset provenance file is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
+        }
+    }
+
+    if (Test-Path -LiteralPath $requirementsPath -PathType Leaf) {
+        $requirements = [System.IO.File]::ReadAllText($requirementsPath)
+        foreach ($dependency in @('pandas', 'openpyxl')) {
+            if ($requirements -notmatch "(?m)^$dependency[<>=]") {
+                Add-VerificationFailure -Message "requirements-generators.txt does not constrain $dependency."
+            }
+        }
+    }
+
+    $rawRuntimeInputs = @(
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Libraries') -File -Recurse |
+            Where-Object Extension -In @('.xlsx', '.xls', '.json')
+    )
+    foreach ($file in $rawRuntimeInputs) {
+        Add-VerificationFailure -Message "Raw generator input must be outside Libraries: $(Get-RepositoryRelativePath -Path $file.FullName)"
+    }
+
+    $unexpectedAiscWorkbooks = @(
+        Get-ChildItem -LiteralPath (Join-Path $script:repositoryRoot 'Data\Sources\AiscShapesV16') -File -Recurse |
+            Where-Object { $_.Extension -In @('.xlsx', '.xls') -and $_.Name -cne 'DratStructuralSectionsSource.xlsx' }
+    )
+    foreach ($file in $unexpectedAiscWorkbooks) {
+        Add-VerificationFailure -Message "Only the curated DRAT structural-section workbook may be committed: $(Get-RepositoryRelativePath -Path $file.FullName)"
+    }
+
+    if ($rawRuntimeInputs.Count -eq 0 -and $unexpectedAiscWorkbooks.Count -eq 0) {
+        Write-Output '[PASS] Raw dataset inputs are separated from runtime libraries; the official AISC workbook remains uncommitted.'
+    }
 }
 
 function Test-ApiVersions {
@@ -599,6 +723,7 @@ function Test-CiConfiguration {
         'full checkout history' = '(?m)^\s{10}fetch-depth:\s*0\s*$'
         'immutable checkout pin' = '(?m)^\s{8}uses:\s*actions/checkout@[0-9a-f]{40}\s+#\s+v\d+\.\d+\.\d+\s*$'
         'changed-file whitespace check' = 'git diff --check'
+        'generator dependency installation' = 'python -m pip install -r requirements-generators\.txt'
         'clean-checkout guard' = 'git status --porcelain --untracked-files=all'
         'hosted verifier command' = '(?m)^\s*\./Tools/VerifyRepository\.ps1\s+-SkipCalcPad\s*$'
         'job summary boundary' = 'GITHUB_STEP_SUMMARY'
@@ -1064,6 +1189,9 @@ function Remove-CalcPadOutput {
 Write-Output "Verifying $repositoryRoot"
 Test-CoreBundle
 Test-ThermophysicalGenerator
+Test-AiscGenerators
+Test-EngineeringMaterialsSource
+Test-DatasetSourceLayout
 Test-ApiVersions
 Test-IncludeGraph
 Test-ArtifactConventions

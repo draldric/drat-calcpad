@@ -358,7 +358,6 @@ try {
         'Libraries\Analysis\BeamAnalysis.cpd',
         'Libraries\Materials\EngineeringMaterials.cpd',
         'Libraries\Thermophysical\ThermophysicalProperties.cpd',
-        'Libraries\Thermophysical\Data\ThermophysicalProperties.json',
         'Libraries\Steel\AiscAngleSections.cpd',
         'Libraries\Steel\AiscChannelSections.cpd',
         'Libraries\Steel\AiscHssSections.cpd',
@@ -371,12 +370,15 @@ try {
         'Tools\NewDratProject.ps1',
         'README.md',
         'CHANGELOG.md',
-        'LICENSE'
+        'LICENSE',
+        'THIRD-PARTY-NOTICES.md'
     )) {
         Assert-DistributionTest -Condition (Test-Path -LiteralPath (Join-Path $packageRoot $requiredPath) -PathType Leaf) -Message "Required distribution file is missing: $requiredPath"
     }
     Assert-DistributionTest -Condition (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'Core\Src'))) -Message 'Core source modules must not be included in the runtime distribution.'
     Assert-DistributionTest -Condition (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'Tests'))) -Message 'Repository tests must not be included in the runtime distribution.'
+    Assert-DistributionTest -Condition (-not (Test-Path -LiteralPath (Join-Path $packageRoot 'Data'))) -Message 'Raw generator inputs and provenance workbooks must not be included in the runtime distribution.'
+    Assert-DistributionTest -Condition (@(Get-ChildItem -LiteralPath $packageRoot -File -Recurse | Where-Object Extension -In @('.xlsx', '.xls', '.json')).Count -eq 1) -Message 'Runtime distribution contains an unexpected raw workbook or JSON dataset.'
     Assert-ManifestFileRecords -Root $packageRoot -Records @($manifest.files) -Exclude @('manifest.json')
 
     $expectedLibraryPaths = @(
