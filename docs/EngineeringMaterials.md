@@ -99,9 +99,9 @@ A screening value is not a specified minimum or a design allowable and must be c
 
 ## Provenance and integrity
 
-The repository-owned workbook is maintained at `Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx` and is excluded from runtime distributions. Its `Dataset Contract`, `Categories`, `Aliases`, `Property Dictionary`, and `Sources` sheets declare the generation contract; record counts and populated-value counts are derived. `Tools/ValidateEngineeringMaterialsSource.py` validates the complete workbook before `Tools/GenerateEngineeringMaterialsLibrary.py` renders the data into the stable CalcPad API template.
+The repository-owned workbook is maintained at `Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx` and is excluded from runtime distributions. Its `Dataset Contract`, `Categories`, `Aliases`, `Property Dictionary`, `Sources`, `Citations`, and `Property Provenance` sheets declare the generation contract; record counts, populated-value counts, and provenance coverage are derived. `Tools/ValidateEngineeringMaterialsSource.py` validates the complete workbook before `Tools/GenerateEngineeringMaterialsLibrary.py` renders the data into the stable CalcPad API template.
 
-To add a material, append a unique positive `Material_ID` and `CPD_Constant` to `Materials`, complete its classification/source fields and numeric values, and add the matching row to `CPD Numeric Export`. Add optional public constants to `Aliases`. No validator or generator change is required for a routine record addition. A property-schema or public-API behavior change may still require a template/code revision.
+To add a material, append a unique positive `Material_ID` and `CPD_Constant` to `Materials`, complete its classification/source fields and numeric values, add the matching row to `CPD Numeric Export`, and add one `Property Provenance` row for every populated property. Reuse an appropriate citation or add it to `Citations`. Add optional public constants to `Aliases`. No validator or generator change is required for a routine record addition. A property-schema or public-API behavior change may still require a template/code revision.
 
 Generate the maintained library atomically, or verify that it is current without writing:
 
@@ -110,10 +110,12 @@ python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMate
 python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd --check
 ```
 
-The current workbook provides one broad source portal per material row, not an edition and locator for every populated property. Consequently, `MatProvenanceStatus` proves that a record has a known internal source ID and revision; it does not independently certify that each value was traced to a specific source record. This gap is a first-release blocker documented in the [dataset provenance audit](DataProvenance.md).
+The current workbook explicitly maps all 2,011 populated values to citations, but those migrated citations are qualified only as level 1 `Source-only`: a broad source portal is known, while edition/revision and record locators remain unresolved. Level 2 `Grouped` and level 3 `Property-record` require a stable edition or revision and locator. The contract currently requires level 3 for release, so the known gap remains visible and machine-testable rather than being treated as complete.
 
 `MatProvenanceStatus(item)` validates the source and dataset revision for a material record.
-`MatPropertyProvenanceStatus(item; property)` applies that validation to an available property.
+`MatPropertyProvenanceStatus(item; property)` validates the property-to-citation mapping and its qualification level.
+`MatPropertyCitationID(item; property)` and `MatPropertyProvenanceLevel(item; property)` expose the generated record.
+`MatPropertyReleaseProvenanceStatus(item; property)` applies the workbook's minimum release level without suppressing a valid screening value.
 `MatPropertyRecordStatus(item; property)` combines value availability, category, provenance, and classification checks into one status.
 
 The library calculates these dataset-wide checks when it loads:
@@ -124,10 +126,20 @@ The library calculates these dataset-wide checks when it loads:
 - `EngineeringMaterialRevisionsOK`
 - `EngineeringMaterialClassificationsOK`
 - `EngineeringMaterialCompletenessOK`
+- `EngineeringMaterialCitationsOK`
+- `EngineeringMaterialProvenanceOK`
+- `EngineeringMaterialReleaseProvenanceOK`
 - `EngineeringMaterialDatasetStatus`
+- `EngineeringMaterialReleaseProvenanceStatus`
 
 `EngineeringMaterialPropertyAvailableCounts`, `EngineeringMaterialAvailableValueCount`, `EngineeringMaterialPossibleValueCount`, and `EngineeringMaterialDatasetCompleteness` make coverage auditable.
 Regression checks verify table dimensions against the generated registries, so an intentional workbook record addition does not require regenerated validation code.
+
+Run the stricter release gate separately. It intentionally fails until every retained value meets the contract level:
+
+```powershell
+python Tools/ValidateEngineeringMaterialsSource.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx --release
+```
 
 ## Reporting tables
 

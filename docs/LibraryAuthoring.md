@@ -97,8 +97,7 @@ Store enough metadata to reproduce and review each property result.
 At minimum, retain source ID and dataset revision.
 For curves, also retain valid minimum and maximum query values.
 
-The Engineering Materials library uses one metadata row per material because all properties for that record currently share a source and revision.
-Use per-property metadata when sources or revisions differ by property.
+The Engineering Materials library retains one material metadata row for compatibility and also generates one property-provenance row for every populated value. Citation IDs and qualification levels are workbook-owned; incomplete citations remain explicit rather than being inferred from a broad source URL.
 Its category and availability indexes are derived from the same material and property registries used by public lookups.
 Its current populated values are classified as screening data; stronger classifications require supporting source data rather than a reporting-only label change.
 

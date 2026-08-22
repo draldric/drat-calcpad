@@ -37,6 +37,8 @@ MatHasItem(item) = DBHasID(EngineeringMaterialItemIDs; item)
 MatHasProperty(property) = DBHasID(EngineeringMaterialPropertyIDs; property)
 MatHasCategory(category) = DBHasID(EngineeringMaterialCategoryIDs; category)
 MatClassificationKnown(classification) = DBHasID(EngineeringMaterialClassificationIDs; classification)
+MatProvenanceLevelKnown(level) = DBHasID(EngineeringMaterialProvenanceLevelIDs; level)
+MatCitationKnown(citation_id) = DBHasID(EngineeringMaterialCitationIDs; citation_id)
 MatValuesUnique(values) = if(len(values) ≤ 1; 1; count(first(sort(values); len(values) - 1) - last(sort(values); len(values) - 1); 0; 1) ≡ 0)
 MatIntegerValues(values) = norm_1(values - round(values)) ≤ 10^-12
 MatCategoryFilterKnown(category) = or(category ≡ MAT_CAT_ALL; MatHasCategory(category))
@@ -212,7 +214,35 @@ $block{
     status;
 }
 
-MatPropertyProvenanceStatus(item; property) = if(MatPROPStatus(item; property) ≡ DB_OK; MatProvenanceStatus(item); MatPROPStatus(item; property))
+MatCitationSourceID(citation_id) = DBTableRaw(EngineeringMaterialCitations; citation_id; 2)
+MatCitationQualificationLevel(citation_id) = DBTableRaw(EngineeringMaterialCitations; citation_id; 3)
+MatPropertyCitationID(item; property) = DBTableRaw(EngineeringMaterialPropertyProvenance; DBKey(item; property); 2)
+MatPropertyProvenanceLevel(item; property) = DBTableRaw(EngineeringMaterialPropertyProvenance; DBKey(item; property); 3)
+
+MatCitationStatus(citation_id) = _
+$block{
+    source_status = DBTableStatus(EngineeringMaterialCitations; citation_id; 2);
+    level_status = DBTableStatus(EngineeringMaterialCitations; citation_id; 3);
+    source_id = if(source_status ≡ DB_OK; MatCitationSourceID(citation_id); 0);
+    level = if(level_status ≡ DB_OK; MatCitationQualificationLevel(citation_id); 0);
+    status = switch(not(MatCitationKnown(citation_id)); DB_ERR_NAME; source_status ≠ DB_OK; source_status; level_status ≠ DB_OK; level_status; not(MatSourceKnown(source_id)); DB_ERR_MISSING; not(MatProvenanceLevelKnown(level)); DB_ERR_MISSING; DB_OK);
+    status;
+}
+
+MatPropertyProvenanceStatus(item; property) = _
+$block{
+    property_status = MatPROPStatus(item; property);
+    citation_status = DBTableStatus(EngineeringMaterialPropertyProvenance; DBKey(item; property); 2);
+    level_status = DBTableStatus(EngineeringMaterialPropertyProvenance; DBKey(item; property); 3);
+    citation_id = if(citation_status ≡ DB_OK; MatPropertyCitationID(item; property); 0);
+    level = if(level_status ≡ DB_OK; MatPropertyProvenanceLevel(item; property); 0);
+    registry_status = if(MatCitationKnown(citation_id); MatCitationStatus(citation_id); DB_ERR_MISSING);
+    citation_level = if(registry_status ≡ DB_OK; MatCitationQualificationLevel(citation_id); 0);
+    status = switch(property_status ≠ DB_OK; property_status; citation_status ≠ DB_OK; citation_status; level_status ≠ DB_OK; level_status; registry_status ≠ DB_OK; registry_status; not(MatProvenanceLevelKnown(level)); DB_ERR_MISSING; citation_level < level; DB_ERR_MISSING; DB_OK);
+    status;
+}
+
+MatPropertyReleaseProvenanceStatus(item; property) = switch(MatPropertyProvenanceStatus(item; property) ≠ DB_OK; MatPropertyProvenanceStatus(item; property); MatPropertyProvenanceLevel(item; property) < EngineeringMaterialMinimumReleaseProvenanceLevel; DB_ERR_MISSING; DB_OK)
 MatPropertyRecordStatus(item; property) = switch(MatPROPStatus(item; property) ≠ DB_OK; MatPROPStatus(item; property); MatCategoryStatus(item) ≠ DB_OK; MatCategoryStatus(item); MatPropertyProvenanceStatus(item; property) ≠ DB_OK; MatPropertyProvenanceStatus(item; property); MatClassificationStatus(item; property))
 
 EngineeringMaterialPropertyAvailableCounts = [MatPropertyAvailableCount(1); MatPropertyAvailableCount(2); MatPropertyAvailableCount(3); MatPropertyAvailableCount(4); MatPropertyAvailableCount(5); MatPropertyAvailableCount(6); MatPropertyAvailableCount(7); MatPropertyAvailableCount(8); MatPropertyAvailableCount(9); MatPropertyAvailableCount(10); MatPropertyAvailableCount(11); MatPropertyAvailableCount(12); MatPropertyAvailableCount(13); MatPropertyAvailableCount(14); MatPropertyAvailableCount(15); MatPropertyAvailableCount(16); MatPropertyAvailableCount(17); MatPropertyAvailableCount(18)]
@@ -226,7 +256,11 @@ EngineeringMaterialSourcesOK = and(min(col(EngineeringMaterialMetadata; 2)) ≥ 
 EngineeringMaterialRevisionsOK = and(min(col(EngineeringMaterialMetadata; 3)) ≥ 1; MatIntegerValues(col(EngineeringMaterialMetadata; 3)))
 EngineeringMaterialClassificationsOK = and(MatClassificationKnown(EngineeringMaterialDefaultClassification); EngineeringMaterialDefaultClassification ≡ MAT_CLASS_SCREENING)
 EngineeringMaterialCompletenessOK = and(min(EngineeringMaterialPropertyAvailableCounts) > 0; EngineeringMaterialAvailableValueCount ≤ EngineeringMaterialPossibleValueCount)
-EngineeringMaterialDatasetStatus = if(and(EngineeringMaterialCatalogOK; EngineeringMaterialCategoriesOK; EngineeringMaterialSourcesOK; EngineeringMaterialRevisionsOK; EngineeringMaterialClassificationsOK; EngineeringMaterialCompletenessOK); DB_OK; DB_ERR_MISSING)
+EngineeringMaterialCitationsOK = and(n_rows(EngineeringMaterialCitations) ≡ len(EngineeringMaterialCitationIDs); n_cols(EngineeringMaterialCitations) ≡ 3; MatValuesUnique(EngineeringMaterialCitationIDs); MatValuesUnique(col(EngineeringMaterialCitations; 1)); min(col(EngineeringMaterialCitations; 2)) ≥ MAT_SRC_1; max(col(EngineeringMaterialCitations; 2)) ≤ MAT_SRC_11; min(col(EngineeringMaterialCitations; 3)) ≥ MAT_PROV_SOURCE_ONLY; max(col(EngineeringMaterialCitations; 3)) ≤ MAT_PROV_PROPERTY_RECORD; MatIntegerValues(col(EngineeringMaterialCitations; 1)); MatIntegerValues(col(EngineeringMaterialCitations; 2)); MatIntegerValues(col(EngineeringMaterialCitations; 3)))
+EngineeringMaterialProvenanceOK = and(n_rows(EngineeringMaterialPropertyProvenance) ≡ EngineeringMaterialAvailableValueCount; n_cols(EngineeringMaterialPropertyProvenance) ≡ 3; MatValuesUnique(col(EngineeringMaterialPropertyProvenance; 1)); min(col(EngineeringMaterialPropertyProvenance; 2)) ≥ take(1; EngineeringMaterialCitationIDs); max(col(EngineeringMaterialPropertyProvenance; 2)) ≤ take(len(EngineeringMaterialCitationIDs); EngineeringMaterialCitationIDs); min(col(EngineeringMaterialPropertyProvenance; 3)) ≥ MAT_PROV_SOURCE_ONLY; max(col(EngineeringMaterialPropertyProvenance; 3)) ≤ MAT_PROV_PROPERTY_RECORD; MatIntegerValues(col(EngineeringMaterialPropertyProvenance; 1)); MatIntegerValues(col(EngineeringMaterialPropertyProvenance; 2)); MatIntegerValues(col(EngineeringMaterialPropertyProvenance; 3)))
+EngineeringMaterialReleaseProvenanceOK = and(EngineeringMaterialProvenanceOK; min(col(EngineeringMaterialPropertyProvenance; 3)) ≥ EngineeringMaterialMinimumReleaseProvenanceLevel)
+EngineeringMaterialDatasetStatus = if(and(EngineeringMaterialCatalogOK; EngineeringMaterialCategoriesOK; EngineeringMaterialSourcesOK; EngineeringMaterialRevisionsOK; EngineeringMaterialClassificationsOK; EngineeringMaterialCompletenessOK; EngineeringMaterialCitationsOK; EngineeringMaterialProvenanceOK); DB_OK; DB_ERR_MISSING)
+EngineeringMaterialReleaseProvenanceStatus = if(EngineeringMaterialReleaseProvenanceOK; DB_OK; DB_ERR_MISSING)
 
 MatRho(item) = MatPROP(item; MAT_P_DENSITY)
 MatE(item) = MatPROP(item; MAT_P_YOUNGS_MODULUS)
@@ -320,6 +354,23 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
 {{PROPERTY_UNITS}}
 
 {{SOURCE_NAMES}}
+
+{{CITATION_NAMES}}
+
+#def MatProvenanceLevelName$(level$)
+    #if level$ ≡ MAT_PROV_SOURCE_ONLY
+        'Source-only
+    #end if
+    #if level$ ≡ MAT_PROV_GROUPED
+        'Grouped citation
+    #end if
+    #if level$ ≡ MAT_PROV_PROPERTY_RECORD
+        'Property-record citation
+    #end if
+    #if not(MatProvenanceLevelKnown(level$))
+        '<span class="err">Unknown material provenance level</span>
+    #end if
+#end def
 
 #def ShowMatDatasetSummary$
     #hide
@@ -772,6 +823,9 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
 	    ζMAT_source = if(DBIsFatal(ζMAT_status); 0; MatSourceID(item$))
 	    ζMAT_revision = if(DBIsFatal(ζMAT_status); 0; MatDataRevision(item$))
 	    ζMAT_classification = if(DBIsFatal(ζMAT_status); MAT_CLASS_UNKNOWN; MatClassification(item$; property$))
+	    ζMAT_citation = if(DBIsFatal(ζMAT_status); 0; MatPropertyCitationID(item$; property$))
+	    ζMAT_provenance_level = if(DBIsFatal(ζMAT_status); 0; MatPropertyProvenanceLevel(item$; property$))
+	    ζMAT_release_provenance_status = if(DBIsFatal(ζMAT_status); ζMAT_status; MatPropertyReleaseProvenanceStatus(item$; property$))
 	    #show
 	    #novar
 	    '<table class="bordered data material-property" style="width:95%">
@@ -792,6 +846,15 @@ MatBulk(item) = MatPROP(item; MAT_P_BULK_MODULUS)
 		        MatClassificationName$(ζMAT_classification)
 		        '</td></tr>
 		        '<tr><td><strong>Dataset revision</strong></td><td>'ζMAT_revision'</td></tr>
+		        '<tr><td><strong>Provenance qualification</strong></td><td>
+		        MatProvenanceLevelName$(ζMAT_provenance_level)
+		        '</td></tr>
+		        '<tr><td><strong>Release provenance status</strong></td><td>
+		        DBStatus$(ζMAT_release_provenance_status)
+		        '</td></tr>
+		        '<tr><td><strong>Citation</strong></td><td>
+		        MatCitation$(ζMAT_citation)
+		        '</td></tr>
 		        '<tr><td><strong>Source registry</strong></td><td>
 		        MatSource$(ζMAT_source)
 		        '</td></tr>
