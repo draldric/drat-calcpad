@@ -15,7 +15,7 @@ from ValidateEngineeringMaterialsSource import load_and_validate
 
 TOKENS = (
     "LIBRARY_METADATA", "DATA_DEFINITIONS", "SOURCE_AND_DATA", "MATERIAL_NAMES",
-    "PROPERTY_NAMES", "PROPERTY_UNITS", "SOURCE_NAMES",
+    "PROPERTY_NAMES", "PROPERTY_UNITS", "SOURCE_NAMES", "CITATION_NAMES",
 )
 
 
@@ -102,6 +102,12 @@ def _data_definitions(dataset: dict[str, object]) -> str:
     lines.extend((
         f"EngineeringMaterialPropertyIDs = {_vector(properties['Property_ID'].tolist())}",
         "EngineeringMaterialPropertyCount = len(EngineeringMaterialPropertyIDs)",
+        "",
+        "MAT_PROV_SOURCE_ONLY = 1",
+        "MAT_PROV_GROUPED = 2",
+        "MAT_PROV_PROPERTY_RECORD = 3",
+        "EngineeringMaterialProvenanceLevelIDs = [MAT_PROV_SOURCE_ONLY; MAT_PROV_GROUPED; MAT_PROV_PROPERTY_RECORD]",
+        f"EngineeringMaterialMinimumReleaseProvenanceLevel = {int(dataset['contract']['Minimum_Release_Provenance_Level'])}",
     ))
     return "\n".join(lines)
 
@@ -120,6 +126,14 @@ def _source_and_data(dataset: dict[str, object]) -> str:
         "MatSourceKnown(source_id) = DBHasID(EngineeringMaterialSourceIDs; source_id)",
         "",
     ))
+    citations = dataset["citations"]
+    citation_levels = {"Source-only": 1, "Grouped": 2, "Property-record": 3}
+    citation_rows = [[int(row["Citation_ID"]), int(row["Source_ID"]), citation_levels[_text(row["Qualification_Status"])]] for _, row in citations.iterrows()]
+    lines.append(f"EngineeringMaterialCitationIDs = {_vector(citations['Citation_ID'].tolist())}")
+    lines.append(f"EngineeringMaterialCitations = {_matrix(citation_rows, missing)}")
+    provenance_rows = [[int(row["Material_ID"]) * 1000 + int(row["Property_ID"]), int(row["Citation_ID"]), int(row["Qualification_Level"])] for _, row in dataset["provenance"].iterrows()]
+    lines.append(f"EngineeringMaterialPropertyProvenance = {_matrix(provenance_rows, missing)}")
+    lines.append("")
     data_rows = export.values.tolist()
     lines.append(f"EngineeringMaterialData = {_matrix(data_rows, missing)}")
     revision = int(contract["Data_Revision"])
@@ -165,6 +179,16 @@ def _source_names(dataset: dict[str, object]) -> str:
     return _lookup_macro("MatSource", "source_id", rows, "MatSourceKnown", "Unknown material source ID")
 
 
+def _citation_names(dataset: dict[str, object]) -> str:
+    rows: list[tuple[str, str]] = []
+    for _, row in dataset["citations"].iterrows():
+        edition = _text(row["Edition_or_Revision"]) if pd.notna(row["Edition_or_Revision"]) and _text(row["Edition_or_Revision"]) else "edition unresolved"
+        locator = _text(row["Locator"]) if pd.notna(row["Locator"]) and _text(row["Locator"]) else "locator unresolved"
+        display = f"{_text(row['Citation_Title'])} — {edition}; {locator}; {_text(row['URL'])}"
+        rows.append((str(int(row["Citation_ID"])), display))
+    return _lookup_macro("MatCitation", "citation_id", rows, "MatCitationKnown", "Unknown material citation ID")
+
+
 def generate_library(source: Path, template_path: Path) -> str:
     dataset = load_and_validate(source)
     require(template_path.is_file(), f"Engineering Materials template does not exist: {template_path}")
@@ -173,7 +197,7 @@ def generate_library(source: Path, template_path: Path) -> str:
         "LIBRARY_METADATA": _metadata(dataset), "DATA_DEFINITIONS": _data_definitions(dataset),
         "SOURCE_AND_DATA": _source_and_data(dataset), "MATERIAL_NAMES": _material_names(dataset),
         "PROPERTY_NAMES": _property_names(dataset), "PROPERTY_UNITS": _property_units(dataset),
-        "SOURCE_NAMES": _source_names(dataset),
+        "SOURCE_NAMES": _source_names(dataset), "CITATION_NAMES": _citation_names(dataset),
     }
     for token in TOKENS:
         marker = "{{" + token + "}}"

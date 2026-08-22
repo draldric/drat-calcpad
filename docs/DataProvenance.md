@@ -6,7 +6,7 @@ This audit covers every distributed DRAT engineering dataset as of 2026-08-20. A
 
 | Runtime dataset | Source and revision | Raw-input disposition | Generated-output disposition | Qualification state |
 |---|---|---|---|---|
-| Engineering Materials 1.4.0 | Repository workbook 1.0.0, 2026-08-07; 11 row-level source portals | Committed under `Data/Sources/EngineeringMaterials`; excluded from runtime packages | Packaged as screening data | Blocked: property-level citations and source revisions are incomplete |
+| Engineering Materials 1.5.0 | Repository workbook 1.1.0, 2026-08-21; 11 citation records and 2,011 property mappings | Committed under `Data/Sources/EngineeringMaterials`; excluded from runtime packages | Packaged as screening data | Blocked: all mappings are source-only; editions and property-record locators remain incomplete |
 | AISC W shapes 0.1.0 | DRAT structural-section source 1.0.0; values based on AISC Shapes Database v16.0, August 2023 | Repository workbook committed under `Data/Sources/AiscShapesV16`; excluded from runtime packages | Embedded selected factual values packaged | Qualified against the recorded source hash and deterministic generation checks |
 | AISC HSS 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC C/MC channels 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
@@ -37,9 +37,11 @@ The project disposition is to publish DRAT's own curated compilation of factual 
 
 ## Engineering Materials verification
 
-The committed workbook validator reads the declared dataset contract and validates all required worksheets, unique stable IDs, source/category/alias registries, CPD constant syntax, numeric types, finite values, row source links, formula-derived shear and bulk modulus, numeric-export order, and missing-value preservation. Record, source, and populated-value totals are derived rather than encoded in validation code.
+The committed workbook validator reads the declared dataset contract and validates all required worksheets, unique stable IDs, source/citation/category/alias registries, CPD constant syntax, numeric types, finite values, row source links, exact property-provenance coverage, citation qualification, formula-derived shear and bulk modulus, numeric-export order, and missing-value preservation. Record, source, citation, provenance, and populated-value totals are derived rather than encoded in validation code.
 
-The workbook currently assigns one broad source portal to an entire material row. It does not retain a source edition and locator for each populated property or defensible property group. Its 48 `Representative` and 78 `Approximate` records are therefore retained only as screening data. The CalcPad library correctly applies `MAT_CLASS_SCREENING` to every populated value.
+Ordinary validation and generation accept explicitly incomplete level 1 records so maintenance remains atomic and auditable. `ValidateEngineeringMaterialsSource.py --release` separately enforces the workbook's minimum release level and currently fails because none of the 2,011 values has a level 3 property-record citation. This failure is expected until real editions and locators are entered; no citation was fabricated during migration.
+
+The workbook maps every populated property to a citation record, but the migrated citation records still represent broad source portals and do not retain editions or property-record locators. Its 48 `Representative` and 78 `Approximate` records are therefore retained only as screening data. The CalcPad library correctly applies `MAT_CLASS_SCREENING` to every populated value and reports the release-provenance gap separately.
 
 Release qualification requires one of these dispositions for every populated value:
 

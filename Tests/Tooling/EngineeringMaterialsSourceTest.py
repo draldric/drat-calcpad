@@ -53,7 +53,35 @@ class EngineeringMaterialsSourceTests(unittest.TestCase):
         self.assertEqual(summary["materials"], 126)
         self.assertEqual(summary["properties"], 18)
         self.assertEqual(summary["populated_values"], 2011)
+        self.assertEqual(summary["citations"], 11)
+        self.assertEqual(summary["qualified_values"], 0)
         self.assertEqual(GENERATOR.generate_library(SOURCE, TEMPLATE), LIBRARY.read_text(encoding="utf-8"))
+
+    def test_release_gate_rejects_source_only_provenance(self) -> None:
+        with self.assertRaisesRegex(SUPPORT.GeneratorError, "Release provenance gate failed: 0 of 2011"):
+            VALIDATOR.validate_workbook(SOURCE, require_release_provenance=True)
+
+    def test_missing_property_provenance_is_rejected(self) -> None:
+        self.frames["Property Provenance"] = self.frames["Property Provenance"].iloc[1:].reset_index(drop=True)
+        self.write_workbook()
+        with self.assertRaisesRegex(SUPPORT.GeneratorError, "exactly one row for every populated"):
+            VALIDATOR.load_and_validate(self.workbook)
+
+    def test_qualified_citation_requires_revision_and_locator(self) -> None:
+        self.frames["Citations"].loc[0, "Qualification_Status"] = "Property-record"
+        self.frames["Property Provenance"].loc[0, "Qualification_Level"] = 3
+        self.write_workbook()
+        with self.assertRaisesRegex(SUPPORT.GeneratorError, "requires an edition or revision"):
+            VALIDATOR.load_and_validate(self.workbook)
+
+    def test_release_gate_accepts_fully_qualified_provenance(self) -> None:
+        self.frames["Citations"]["Qualification_Status"] = "Property-record"
+        self.frames["Citations"]["Edition_or_Revision"] = "Test revision"
+        self.frames["Citations"]["Locator"] = "Test record locator"
+        self.frames["Property Provenance"]["Qualification_Level"] = 3
+        self.write_workbook()
+        summary = VALIDATOR.validate_workbook(self.workbook, require_release_provenance=True)
+        self.assertEqual(summary["qualified_values"], 2011)
 
     def test_duplicate_material_id_is_rejected(self) -> None:
         self.frames["Materials"].loc[1, "Material_ID"] = self.frames["Materials"].loc[0, "Material_ID"]
@@ -96,6 +124,9 @@ class EngineeringMaterialsSourceTests(unittest.TestCase):
         exported = self.frames["CPD Numeric Export"].iloc[-1].copy()
         exported["Material_ID"] = 6011
         self.frames["CPD Numeric Export"] = pd.concat([self.frames["CPD Numeric Export"], exported.to_frame().T], ignore_index=True)
+        provenance = self.frames["Property Provenance"][self.frames["Property Provenance"]["Material_ID"] == self.frames["Materials"].iloc[-2]["Material_ID"]].copy()
+        provenance["Material_ID"] = 6011
+        self.frames["Property Provenance"] = pd.concat([self.frames["Property Provenance"], provenance], ignore_index=True)
         self.write_workbook()
 
         generated = GENERATOR.generate_library(self.workbook, TEMPLATE)
