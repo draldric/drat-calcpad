@@ -1,12 +1,12 @@
 # Engineering dataset provenance and release disposition
 
-This audit covers every distributed DRAT engineering dataset as of 2026-08-22. A dataset status of `DB_OK` proves the embedded table's internal shape and IDs; it does not prove technical accuracy, legal redistribution rights, or design applicability.
+This audit covers every distributed DRAT engineering dataset as of 2026-08-23. A dataset status of `DB_OK` proves the embedded table's internal shape and IDs; it does not prove technical accuracy, legal redistribution rights, or design applicability.
 
 ## Dataset inventory
 
 | Runtime dataset | Source and revision | Raw-input disposition | Generated-output disposition | Qualification state |
 |---|---|---|---|---|
-| Engineering Materials 1.6.0 | Repository workbook 1.2.0, 2026-08-22; 13 citation records and 2,007 property mappings | Committed under `Data/Sources/EngineeringMaterials`; excluded from runtime packages | Packaged as screening data | Blocked: 12 Forta DX 2205 mappings are property-record qualified; 1,995 mappings remain source-only |
+| Engineering Materials 1.7.0 | Repository workbook 1.3.0, 2026-08-23; 15 citation records and 1,993 property mappings | Committed under `Data/Sources/EngineeringMaterials`; excluded from runtime packages | Packaged as screening data | Blocked: 30 mappings are property-record qualified across Forta DX 2205 and Core 304/304L; 1,963 mappings remain source-only |
 | AISC W shapes 0.1.0 | DRAT structural-section source 1.0.0; values based on AISC Shapes Database v16.0, August 2023 | Repository workbook committed under `Data/Sources/AiscShapesV16`; excluded from runtime packages | Embedded selected factual values packaged | Qualified against the recorded source hash and deterministic generation checks |
 | AISC HSS 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC C/MC channels 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
@@ -39,9 +39,9 @@ The project disposition is to publish DRAT's own curated compilation of factual 
 
 The committed workbook validator reads the declared dataset contract and validates all required worksheets, unique stable IDs, source/citation/category/alias registries, CPD constant syntax, numeric types, finite values, row source links, exact property-provenance coverage, citation qualification, formula-derived shear and bulk modulus, numeric-export order, and missing-value preservation. Record, source, citation, provenance, and populated-value totals are derived rather than encoded in validation code.
 
-Ordinary validation and generation accept explicitly incomplete level 1 records so maintenance remains atomic and auditable. `ValidateEngineeringMaterialsSource.py --release` separately enforces the workbook's minimum release level and currently fails because only 12 of 2,007 values have level 3 property-record citations. This failure remains expected until real editions and locators are entered for the other records.
+Ordinary validation and generation accept explicitly incomplete level 1 records so maintenance remains atomic and auditable. `ValidateEngineeringMaterialsSource.py --release` separately enforces the workbook's minimum release level and currently fails because only 30 of 1,993 values have level 3 property-record citations. This failure remains expected until real editions and locators are entered for the other records.
 
-The workbook maps every populated property to a citation record, but most migrated citation records still represent broad source portals and do not retain editions or property-record locators. The Forta DX 2205 pilot records Outokumpu CMS revision `a7abe2a9-7ebb-45aa-88bf-ce0e9d4aca12`, printed-page and table locators, property-specific evidence, conversions, and formula bases. Its values remain screening data, and the CalcPad library reports the release-provenance gap separately.
+The workbook maps every populated property to a citation record, but most migrated citation records still represent broad source portals and do not retain editions or property-record locators. Forta DX 2205 records Outokumpu CMS revision `a7abe2a9-7ebb-45aa-88bf-ce0e9d4aca12`; Core 304/4301 and Core 304L/4307 record revision `025e9931-a1d5-4c8f-8ff5-f881d38916da`. Both batches retain table locators, property-specific evidence, conversions, product-form applicability, and any lower-bound choice. Their values remain screening data, and the CalcPad library reports the release-provenance gap separately.
 
 Release qualification requires one of these dispositions for every populated value:
 

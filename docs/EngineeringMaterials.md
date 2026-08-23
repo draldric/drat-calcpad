@@ -110,9 +110,11 @@ python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMate
 python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd --check
 ```
 
-The current workbook explicitly maps all 2,007 populated values to citations. Twelve Forta DX 2205 properties are qualified at level 3 against exact tables in a revision-identified Outokumpu datasheet; the other 1,995 migrated mappings remain level 1 `Source-only`. Level 2 `Grouped` and level 3 `Property-record` require a stable edition or revision and locator. The contract requires level 3 for release, so the remaining gap stays visible and machine-testable.
+The current workbook explicitly maps all 1,993 populated values to citations. Thirty properties are qualified at level 3 against exact tables in revision-identified Outokumpu datasheets: 12 for Forta DX 2205 and 18 across Core 304/4301 and Core 304L/4307. The other 1,963 migrated mappings remain level 1 `Source-only`. Level 2 `Grouped` and level 3 `Property-record` require a stable edition or revision and locator. The contract requires level 3 for release, so the remaining gap stays visible and machine-testable.
 
 The Forta DX 2205 pilot narrows applicability to solution-annealed UNS S32205 plate, sheet, and strip. It uses ASTM A240 mechanical minimums and cited room-temperature physical properties. Three mismatched values were corrected, while four values without support in the selected source were removed. The library continues to classify the values conservatively as screening data.
+
+The Core 304/304L batch narrows applicability to solution-annealed cold-rolled coil and sheet. It uses EN 10088-2 mechanical properties and cited room-temperature physical properties. The tensile field records the lower bound of the cited range. Fourteen unsupported legacy values were removed across the pair, including Poisson ratio and its formula-derived shear and bulk moduli. The workbook formulas remain the source of derived and export values rather than materialized copies.
 
 `MatProvenanceStatus(item)` validates the source and dataset revision for a material record.
 `MatPropertyProvenanceStatus(item; property)` validates the property-to-citation mapping and its qualification level.

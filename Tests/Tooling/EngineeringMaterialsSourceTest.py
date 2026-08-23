@@ -52,13 +52,13 @@ class EngineeringMaterialsSourceTests(unittest.TestCase):
         summary = VALIDATOR.validate_workbook(SOURCE)
         self.assertEqual(summary["materials"], 126)
         self.assertEqual(summary["properties"], 18)
-        self.assertEqual(summary["populated_values"], 2007)
-        self.assertEqual(summary["citations"], 13)
-        self.assertEqual(summary["qualified_values"], 12)
+        self.assertEqual(summary["populated_values"], 1993)
+        self.assertEqual(summary["citations"], 15)
+        self.assertEqual(summary["qualified_values"], 30)
         self.assertEqual(GENERATOR.generate_library(SOURCE, TEMPLATE), LIBRARY.read_text(encoding="utf-8"))
 
     def test_release_gate_rejects_source_only_provenance(self) -> None:
-        with self.assertRaisesRegex(SUPPORT.GeneratorError, "Release provenance gate failed: 12 of 2007"):
+        with self.assertRaisesRegex(SUPPORT.GeneratorError, "Release provenance gate failed: 30 of 1993"):
             VALIDATOR.validate_workbook(SOURCE, require_release_provenance=True)
 
     def test_forta_2205_pilot_is_property_record_qualified(self) -> None:
@@ -72,6 +72,39 @@ class EngineeringMaterialsSourceTests(unittest.TestCase):
         self.assertAlmostEqual(float(material["Electrical_Resistivity_ohm_m"]), 8e-7)
         for column in ("Fracture_Toughness_MPa_sqrt_m", "Transition_Temperature_C", "Max_Service_Temperature_C", "Hardness_HV"):
             self.assertTrue(pd.isna(material[column]))
+
+    def test_core_304_and_304l_batch_is_property_record_qualified(self) -> None:
+        dataset = VALIDATOR.load_and_validate(SOURCE)
+        materials = dataset["materials"].set_index("Material_ID")
+        expected = {
+            1101: {"Yield_Strength_MPa": 230, "Tensile_Strength_MPa": 540},
+            1102: {"Yield_Strength_MPa": 220, "Tensile_Strength_MPa": 520},
+        }
+        for material_id, strengths in expected.items():
+            material = materials.loc[material_id]
+            provenance = dataset["provenance"][dataset["provenance"]["Material_ID"] == material_id]
+            self.assertEqual(len(provenance), 9)
+            self.assertEqual(set(provenance["Qualification_Level"].astype(int)), {3})
+            self.assertEqual(set(provenance["Citation_ID"].astype(int)), {14, 15})
+            self.assertEqual(float(material["Density_kg_m3"]), 7900)
+            self.assertEqual(float(material["Youngs_Modulus_GPa"]), 200)
+            self.assertEqual(float(material["Yield_Strength_MPa"]), strengths["Yield_Strength_MPa"])
+            self.assertEqual(float(material["Tensile_Strength_MPa"]), strengths["Tensile_Strength_MPa"])
+            self.assertAlmostEqual(float(material["Elongation_Fraction"]), 0.45)
+            self.assertEqual(float(material["Thermal_Conductivity_W_mK"]), 15)
+            self.assertEqual(float(material["Specific_Heat_J_kgK"]), 500)
+            self.assertEqual(float(material["CTE_um_mK"]), 16)
+            self.assertAlmostEqual(float(material["Electrical_Resistivity_ohm_m"]), 7.3e-7)
+            for column in (
+                "Poisson_Ratio",
+                "Shear_Modulus_GPa_Derived",
+                "Bulk_Modulus_GPa_Derived",
+                "Fracture_Toughness_MPa_sqrt_m",
+                "Transition_Temperature_C",
+                "Max_Service_Temperature_C",
+                "Hardness_HV",
+            ):
+                self.assertTrue(pd.isna(material[column]))
 
     def test_missing_property_provenance_is_rejected(self) -> None:
         self.frames["Property Provenance"] = self.frames["Property Provenance"].iloc[1:].reset_index(drop=True)
@@ -93,7 +126,7 @@ class EngineeringMaterialsSourceTests(unittest.TestCase):
         self.frames["Property Provenance"]["Qualification_Level"] = 3
         self.write_workbook()
         summary = VALIDATOR.validate_workbook(self.workbook, require_release_provenance=True)
-        self.assertEqual(summary["qualified_values"], 2007)
+        self.assertEqual(summary["qualified_values"], 1993)
 
     def test_duplicate_material_id_is_rejected(self) -> None:
         self.frames["Materials"].loc[1, "Material_ID"] = self.frames["Materials"].loc[0, "Material_ID"]
