@@ -3,8 +3,8 @@
 ## Identification
 
 - Repository input: `EngineeringMaterialsDatabase.xlsx`
-- Repository revision: 1.1.0, dated 2026-08-21 inside the workbook
-- Coverage: 126 material records, 18 properties, and 2,011 populated material-property values
+- Repository revision: 1.2.0, dated 2026-08-22 inside the workbook
+- Coverage: 126 material records, 18 properties, and 2,007 populated material-property values
 - Classification: screening values only
 - Reference condition: nominal or representative values near 20-25 C unless a record note states otherwise
 
@@ -14,7 +14,9 @@ The workbook is the repository-maintained compilation input. It is not needed at
 
 ## Provenance qualification
 
-The `Property Provenance` sheet contains exactly one row for every populated value and links it to the `Citations` registry. Migrated records are explicitly level 1 `Source-only`: the broad portal is useful for discovery, but does not identify an edition, table, page, product-data-sheet revision, or individual property record. The workbook therefore records complete mapping coverage without claiming complete citation qualification.
+The `Property Provenance` sheet contains exactly one row for every populated value and links it to the `Citations` registry. Most migrated records remain explicitly level 1 `Source-only`: the broad portal is useful for discovery, but does not identify an edition, table, page, product-data-sheet revision, or individual property record. The Forta DX 2205 pilot has 12 level 3 property records tied to a stable Outokumpu datasheet revision and exact tables. The workbook therefore distinguishes complete mapping coverage from citation qualification.
+
+For Forta DX 2205, the workbook now uses ASTM A240 plate, sheet, and strip minimums from Outokumpu Table 6 and physical properties from Tables 9 and 11. Tensile strength, thermal conductivity, and resistivity were corrected to the cited values. Unsupported fracture toughness, transition temperature, maximum service temperature, and Vickers hardness values were removed rather than inferred.
 
 All populated values remain classified as `MAT_CLASS_SCREENING`. None may be represented as a specified minimum, certified property, or design allowable. Missing cells remain blank in the workbook and `DB_MISSING` in CalcPad; they must not be inferred or replaced by zero.
 
