@@ -110,7 +110,9 @@ python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMate
 python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd --check
 ```
 
-The current workbook explicitly maps all 2,011 populated values to citations, but those migrated citations are qualified only as level 1 `Source-only`: a broad source portal is known, while edition/revision and record locators remain unresolved. Level 2 `Grouped` and level 3 `Property-record` require a stable edition or revision and locator. The contract currently requires level 3 for release, so the known gap remains visible and machine-testable rather than being treated as complete.
+The current workbook explicitly maps all 2,007 populated values to citations. Twelve Forta DX 2205 properties are qualified at level 3 against exact tables in a revision-identified Outokumpu datasheet; the other 1,995 migrated mappings remain level 1 `Source-only`. Level 2 `Grouped` and level 3 `Property-record` require a stable edition or revision and locator. The contract requires level 3 for release, so the remaining gap stays visible and machine-testable.
+
+The Forta DX 2205 pilot narrows applicability to solution-annealed UNS S32205 plate, sheet, and strip. It uses ASTM A240 mechanical minimums and cited room-temperature physical properties. Three mismatched values were corrected, while four values without support in the selected source were removed. The library continues to classify the values conservatively as screening data.
 
 `MatProvenanceStatus(item)` validates the source and dataset revision for a material record.
 `MatPropertyProvenanceStatus(item; property)` validates the property-to-citation mapping and its qualification level.
