@@ -46,6 +46,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
+- Left-aligned general table value columns and table-contained prose, overriding CalcPad's default right alignment and document-paragraph justification while preserving explicit component-specific alignment.
 - Core generation now verifies a unique same-directory temporary bundle and atomically replaces `DratCore.cpd`, preserving the previous output and cleaning temporary files when generation fails.
 - Core is versioned as 4.3.0 with Authoring API 1.0.0 and shared stylesheet 1.10.0.
 - Definitions 2.2.0 makes conclusion blocks render result values with units without exposing variable expressions and restores worksheet rendering modes when the block ends.

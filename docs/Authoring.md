@@ -86,9 +86,9 @@ AddKeyText$(Operating case; Normal operation)
 EndKeyValueTable$
 ```
 
-`AddKeyValue$` renders a CalcPad expression in a right-aligned value cell.
-`AddKeyText$` renders prose in the same right-aligned value column.
-Labels and alternative names remain left aligned, keeping every two-column component visually consistent.
+`AddKeyValue$` renders a CalcPad expression in a left-aligned value cell.
+`AddKeyText$` renders prose in the same left-aligned value column.
+Labels and alternative names also remain left aligned, keeping every two-column component visually consistent.
 
 ## Equations and local definitions
 

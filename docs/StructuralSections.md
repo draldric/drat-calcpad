@@ -77,7 +77,7 @@ In addition to dimensions and conventional section properties, it provides centr
 - `ShowAiscChannelDatasetSummary$`, `ShowAiscChannelRecord$(item)`, and `ShowAiscChannelProperties$(item)` provide the matching channel reports.
 - `ShowAiscAngleDatasetSummary$`, `ShowAiscAngleRecord$(item)`, and `ShowAiscAngleProperties$(item)` provide the matching single-angle reports.
 
-All values in the reporting tables are right aligned, while descriptions remain left aligned.
+Values and descriptions in the reporting tables are left aligned. Purpose-specific ID, unit, status, and compact numeric-summary cells retain their explicit alignment rules.
 The full worksheet example is `Examples/StructuralSectionsDemo.cpd`.
 
 ## Regeneration and verification
