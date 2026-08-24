@@ -12,8 +12,10 @@ IDEAL_TYPES = {
     "IdealGasHelmholtzPlanckEinstein",
     "IdealGasHelmholtzPlanckEinsteinFunctionT",
     "IdealGasHelmholtzEnthalpyEntropyOffset",
+    "IdealGasHelmholtzCP0Constant",
+    "IdealGasHelmholtzCP0PolyT",
 }
-RESIDUAL_TYPES = {"ResidualHelmholtzPower", "ResidualHelmholtzGaussian", "ResidualHelmholtzNonAnalytic"}
+RESIDUAL_TYPES = {"ResidualHelmholtzPower", "ResidualHelmholtzGaussian", "ResidualHelmholtzNonAnalytic", "ResidualHelmholtzExponential", "ResidualHelmholtzGaoB"}
 
 
 def validate_helmholtz(
@@ -118,12 +120,23 @@ def _validate_terms(terms: list[Any], path: str, require: Callable[[bool, str], 
             require_number(term.get("a2"), f"{path}[{index}].a2")
         elif term_type == "IdealGasHelmholtzLogTau":
             require_number(term.get("a"), f"{path}[{index}].a")
+        elif term_type == "IdealGasHelmholtzCP0Constant":
+            for field in ("cp_over_R", "Tc", "T0"):
+                require_number(term.get(field), f"{path}[{index}].{field}")
+        elif term_type == "IdealGasHelmholtzCP0PolyT":
+            _validate_parallel_arrays(term, ("c", "t"), f"{path}[{index}]", require, require_list, require_number)
+            for field in ("Tc", "T0"):
+                require_number(term.get(field), f"{path}[{index}].{field}")
         elif term_type == "ResidualHelmholtzPower":
             _validate_parallel_arrays(term, ("n", "d", "t", "l"), f"{path}[{index}]", require, require_list, require_number)
         elif term_type == "ResidualHelmholtzGaussian":
             _validate_parallel_arrays(term, ("n", "d", "t", "eta", "epsilon", "beta", "gamma"), f"{path}[{index}]", require, require_list, require_number)
         elif term_type == "ResidualHelmholtzNonAnalytic":
             _validate_parallel_arrays(term, ("n", "a", "b", "beta", "A", "B", "C", "D"), f"{path}[{index}]", require, require_list, require_number)
+        elif term_type == "ResidualHelmholtzExponential":
+            _validate_parallel_arrays(term, ("n", "d", "t", "g", "l"), f"{path}[{index}]", require, require_list, require_number)
+        elif term_type == "ResidualHelmholtzGaoB":
+            _validate_parallel_arrays(term, ("n", "d", "t", "eta", "beta", "gamma", "epsilon", "b"), f"{path}[{index}]", require, require_list, require_number)
 
 
 def _validate_parallel_arrays(record: dict[str, Any], fields: tuple[str, ...], path: str, require: Callable[[bool, str], None], require_list: Callable[[Any, str], list[Any]], require_number: Callable[[Any, str], float]) -> None:
@@ -282,19 +295,44 @@ def _ideal_expressions(fluid: dict[str, Any], f: Callable[[Any], str]) -> dict[s
         elif kind == "IdealGasHelmholtzLogTau":
             parts["base"].append(f"{f(term['a'])}*ln(tau)")
             parts["tau"].append(f"{f(term['a'])}/tau")
-            parts["tautau"].append(f"-{f(term['a'])}/tau^2")
+            parts["tautau"].append(f"{f(-float(term['a']))}/tau^2")
         elif kind == "IdealGasHelmholtzPower":
             for n, t in zip(term["n"], term["t"]):
                 parts["base"].append(f"{f(n)}*tau^{f(t)}")
                 parts["tau"].append(f"{f(float(n)*float(t))}*tau^{f(float(t)-1)}")
                 parts["tautau"].append(f"{f(float(n)*float(t)*(float(t)-1))}*tau^{f(float(t)-2)}")
+        elif kind == "IdealGasHelmholtzCP0Constant":
+            cp_over_R = float(term["cp_over_R"])
+            tau0 = float(term["Tc"]) / float(term["T0"])
+            parts["base"].append(f"{f(cp_over_R)} + {f(-cp_over_R)}*tau/{f(tau0)} + {f(cp_over_R)}*ln(tau/{f(tau0)})")
+            parts["tau"].append(f"{f(cp_over_R)}/tau + {f(-cp_over_R)}/{f(tau0)}")
+            parts["tautau"].append(f"{f(-cp_over_R)}/tau^2")
+        elif kind == "IdealGasHelmholtzCP0PolyT":
+            Tc = float(term["Tc"])
+            T0 = float(term["T0"])
+            tau0 = Tc / T0
+            for coefficient, exponent in zip(term["c"], term["t"]):
+                c = float(coefficient)
+                t = float(exponent)
+                if t == 0:
+                    parts["base"].append(f"{f(c)} + {f(-c)}*tau/{f(tau0)} + {f(c)}*ln(tau/{f(tau0)})")
+                    parts["tau"].append(f"{f(c)}/tau + {f(-c)}/{f(tau0)}")
+                    parts["tautau"].append(f"{f(-c)}/tau^2")
+                elif t == -1:
+                    parts["base"].append(f"{f(c)}*tau/{f(Tc)}*ln({f(tau0)}/tau) + {f(c)}/{f(Tc)}*(tau - {f(tau0)})")
+                    parts["tau"].append(f"{f(c)}/{f(Tc)}*ln({f(tau0)}/tau)")
+                    parts["tautau"].append(f"{f(-c)}/(tau*{f(Tc)})")
+                else:
+                    parts["base"].append(f"{f(-c)}*{f(Tc)}^{f(t)}*tau^{f(-t)}/({f(t)}*{f(t + 1)}) + {f(-c)}*{f(T0)}^{f(t + 1)}*tau/({f(Tc)}*{f(t + 1)}) + {f(c)}*{f(T0)}^{f(t)}/{f(t)}")
+                    parts["tau"].append(f"{f(c)}*{f(Tc)}^{f(t)}*tau^{f(-t - 1)}/{f(t + 1)} + {f(-c)}*{f(Tc)}^{f(t)}/({f(tau0)}^{f(t + 1)}*{f(t + 1)})")
+                    parts["tautau"].append(f"{f(-c)}*({f(Tc)}/tau)^{f(t)}/tau^2")
         elif kind in {"IdealGasHelmholtzPlanckEinstein", "IdealGasHelmholtzPlanckEinsteinFunctionT"}:
             theta_values = term["t"] if kind == "IdealGasHelmholtzPlanckEinstein" else [value / term["Tcrit"] for value in term["v"]]
             for n, theta in zip(term["n"], theta_values):
                 e = f(theta)
                 parts["base"].append(f"{f(n)}*ln(1 - exp(-{e}*tau))")
                 parts["tau"].append(f"{f(n)}*{e}/(exp({e}*tau) - 1)")
-                parts["tautau"].append(f"-{f(n)}*{e}^2*exp({e}*tau)/(exp({e}*tau) - 1)^2")
+                parts["tautau"].append(f"{f(-float(n))}*{e}^2*exp({e}*tau)/(exp({e}*tau) - 1)^2")
     return {key: " + ".join(values) if values else "0" for key, values in parts.items()}
 
 
@@ -304,12 +342,14 @@ def _residual_expressions(fluid: dict[str, Any], f: Callable[[Any], str]) -> dic
         kind = group["type"]
         count = len(group["n"])
         for index in range(count):
-            if kind == "ResidualHelmholtzPower":
+            if kind in {"ResidualHelmholtzPower", "ResidualHelmholtzExponential"}:
                 n, d, t, l = (float(group[key][index]) for key in ("n", "d", "t", "l"))
-                exp_factor = "" if l == 0 else f"*exp(-delta^{f(l)})"
+                coefficient = 1.0 if kind == "ResidualHelmholtzPower" else float(group["g"][index])
+                exp_factor = "" if kind == "ResidualHelmholtzPower" and l == 0 else f"*exp(-{f(coefficient)}*delta^{f(l)})"
                 base = f"{f(n)}*delta^{f(d)}*tau^{f(t)}{exp_factor}"
-                A = f"({f(d)}/delta" + ("" if l == 0 else f" - {f(l)}*delta^{f(l-1)}") + ")"
-                A2 = f"(-{f(d)}/delta^2" + ("" if l == 0 else f" - {f(l*(l-1))}*delta^{f(l-2)}") + ")"
+                has_decay = not (kind == "ResidualHelmholtzPower" and l == 0)
+                A = f"({f(d)}/delta" + ("" if not has_decay else f" - {f(coefficient*l)}*delta^{f(l-1)}") + ")"
+                A2 = f"(-{f(d)}/delta^2" + ("" if not has_decay else f" - {f(coefficient*l*(l-1))}*delta^{f(l-2)}") + ")"
                 B = f"({f(t)}/tau)"
                 parts["base"].append(base)
                 parts["delta"].append(f"({base})*{A}")
@@ -324,6 +364,20 @@ def _residual_expressions(fluid: dict[str, Any], f: Callable[[Any], str]) -> dic
                 A2 = f"(-{f(d)}/delta^2 - {f(2*eta)})"
                 B = f"({f(t)}/tau - {f(2*beta)}*(tau - {f(gamma)}))"
                 B2 = f"(-{f(t)}/tau^2 - {f(2*beta)})"
+                parts["base"].append(base)
+                parts["delta"].append(f"({base})*{A}")
+                parts["deltadelta"].append(f"({base})*({A}^2 + {A2})")
+                parts["tau"].append(f"({base})*{B}")
+                parts["tautau"].append(f"({base})*({B}^2 + {B2})")
+                parts["deltatau"].append(f"({base})*{A}*{B}")
+            elif kind == "ResidualHelmholtzGaoB":
+                n, d, t, eta, beta, gamma, epsilon, b = (float(group[key][index]) for key in ("n", "d", "t", "eta", "beta", "gamma", "epsilon", "b"))
+                denominator = f"({f(b)} + {f(beta)}*(tau - {f(gamma)})^2)"
+                base = f"{f(n)}*delta^{f(d)}*tau^{f(t)}*exp({f(eta)}*(delta - {f(epsilon)})^2 + 1/{denominator})"
+                A = f"({f(d)}/delta + {f(2*eta)}*(delta - {f(epsilon)}))"
+                A2 = f"(-{f(d)}/delta^2 + {f(2*eta)})"
+                B = f"({f(t)}/tau - {f(2*beta)}*(tau - {f(gamma)})/{denominator}^2)"
+                B2 = f"(-{f(t)}/tau^2 - {f(2*beta)}/{denominator}^2 + {f(8*beta*beta)}*(tau - {f(gamma)})^2/{denominator}^3)"
                 parts["base"].append(base)
                 parts["delta"].append(f"({base})*{A}")
                 parts["deltadelta"].append(f"({base})*({A}^2 + {A2})")

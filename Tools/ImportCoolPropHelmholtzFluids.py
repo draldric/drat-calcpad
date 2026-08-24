@@ -47,6 +47,126 @@ UPSTREAM_FLUIDS = {
         "doi": "10.1063/1.555991",
         "valid_temperature_max_K": 1100.0,
     },
+    "R11": {
+        "id": 303,
+        "constant": "THERMO_R11",
+        "function_prefix": "HelmholtzR11",
+        "display_name": "R11",
+        "description": "Pure trichlorofluoromethane using the Jacobsen et al. reference Helmholtz equation of state.",
+        "source_id": 5,
+        "source_constant": "THERMO_SRC_R11_EOS",
+        "citation": "Jacobsen, Penoncello, and Lemmon, A Fundamental Equation for Trichlorofluoromethane R-11, Fluid Phase Equilibria 80, 45-56, 1992",
+        "reference_note": "Primary EOS DOI 10.1016/0378-3812(92)87054-Q.",
+        "eos_citation": "Jacobsen-FPE-1992",
+        "eos_index": 0,
+        "valid_temperature_max_K": 625.0,
+    },
+    "R12": {
+        "id": 304,
+        "constant": "THERMO_R12",
+        "function_prefix": "HelmholtzR12",
+        "display_name": "R12",
+        "description": "Pure dichlorodifluoromethane using the Marx et al. reference Helmholtz equation of state.",
+        "source_id": 6,
+        "source_constant": "THERMO_SRC_R12_EOS",
+        "citation": "Marx, Pruss, and Wagner, Neue Zustandsgleichung fuer R 12, R 22, R 11 und R 113, VDI Verlag, 1992",
+        "reference_note": "Primary EOS reference is VDI Fortschritt-Berichte series 19 number 57.",
+        "eos_citation": "Marx-BOOK-1992",
+        "eos_index": 0,
+        "valid_temperature_max_K": 525.0,
+    },
+    "R13": {
+        "id": 305,
+        "constant": "THERMO_R13",
+        "function_prefix": "HelmholtzR13",
+        "display_name": "R13",
+        "description": "Pure chlorotrifluoromethane using the Platzer et al. reference Helmholtz equation of state.",
+        "source_id": 7,
+        "source_constant": "THERMO_SRC_R13_EOS",
+        "citation": "Platzer, Polt, and Maurer, Thermophysical Properties of Refrigerants, Springer-Verlag, 1990",
+        "reference_note": "Primary reference DOI 10.1007/978-3-662-02608-3.",
+        "eos_citation": "Platzer-BOOK-1990",
+        "eos_index": 0,
+        "valid_temperature_max_K": 450.0,
+    },
+    "R134a": {
+        "id": 306,
+        "constant": "THERMO_R134A",
+        "function_prefix": "HelmholtzR134A",
+        "display_name": "R134a",
+        "description": "Pure 1,1,1,2-tetrafluoroethane using the Tillner-Roth and Baehr reference Helmholtz equation of state.",
+        "source_id": 8,
+        "source_constant": "THERMO_SRC_R134A_EOS",
+        "citation": "Tillner-Roth and Baehr, An International Standard Formulation for the Thermodynamic Properties of R134a, J. Phys. Chem. Ref. Data 23, 657-729, 1994",
+        "doi": "10.1063/1.555958",
+        "eos_citation": "TillnerRoth-JPCRD-1994",
+        "valid_temperature_max_K": 455.0,
+    },
+    "R32": {
+        "id": 307,
+        "constant": "THERMO_R32",
+        "function_prefix": "HelmholtzR32",
+        "display_name": "R32",
+        "description": "Pure difluoromethane using the Tillner-Roth and Yokozeki reference Helmholtz equation of state.",
+        "source_id": 9,
+        "source_constant": "THERMO_SRC_R32_EOS",
+        "citation": "Tillner-Roth and Yokozeki, An International Standard Equation of State for Difluoromethane R-32, J. Phys. Chem. Ref. Data 26, 1273-1328, 1997",
+        "doi": "10.1063/1.556002",
+        "eos_citation": "TillnerRoth-JPCRD-1997",
+        "valid_temperature_max_K": 435.0,
+    },
+    "R1234yf": {
+        "id": 308,
+        "constant": "THERMO_R1234YF",
+        "function_prefix": "HelmholtzR1234YF",
+        "display_name": "R1234yf",
+        "description": "Pure 2,3,3,3-tetrafluoropropene using the Lemmon and Akasaka reference Helmholtz equation of state.",
+        "source_id": 10,
+        "source_constant": "THERMO_SRC_R1234YF_EOS",
+        "citation": "Lemmon and Akasaka, An International Standard Formulation for 2,3,3,3-Tetrafluoroprop-1-ene R1234yf, Int. J. Thermophys. 43, 2022",
+        "doi": "10.1007/s10765-022-03015-y",
+        "eos_citation": "Lemmon-IJT-2022",
+        "valid_temperature_max_K": 410.0,
+    },
+    "n-Propane": {
+        "id": 309,
+        "constant": "THERMO_R290",
+        "function_prefix": "HelmholtzR290",
+        "display_name": "R290 (propane)",
+        "description": "Pure propane using the Lemmon et al. reference Helmholtz equation of state.",
+        "source_id": 11,
+        "source_constant": "THERMO_SRC_R290_EOS",
+        "citation": "Lemmon, McLinden, and Wagner, Thermodynamic Properties of Propane, J. Chem. Eng. Data 54, 3141-3180, 2009",
+        "doi": "10.1021/je900217v",
+        "eos_citation": "Lemmon-JCED-2009",
+        "valid_temperature_max_K": 650.0,
+    },
+    "IsoButane": {
+        "id": 310,
+        "constant": "THERMO_R600A",
+        "function_prefix": "HelmholtzR600A",
+        "display_name": "R600a (isobutane)",
+        "description": "Pure isobutane using the Buecker and Wagner reference Helmholtz equation of state.",
+        "source_id": 12,
+        "source_constant": "THERMO_SRC_R600A_EOS",
+        "citation": "Buecker and Wagner, A Reference Equation of State for Isobutane, J. Phys. Chem. Ref. Data 35, 929-1019, 2006",
+        "doi": "10.1063/1.1901687",
+        "eos_citation": "Buecker-JPCRD-2006B",
+        "valid_temperature_max_K": 575.0,
+    },
+    "Ammonia": {
+        "id": 311,
+        "constant": "THERMO_R717",
+        "function_prefix": "HelmholtzR717",
+        "display_name": "R717 (ammonia)",
+        "description": "Pure ammonia using the Gao et al. reference Helmholtz equation of state.",
+        "source_id": 13,
+        "source_constant": "THERMO_SRC_R717_EOS",
+        "citation": "Gao, Wu, Bell, and Lemmon, Thermodynamic Properties of Ammonia from the Melting Line to 725 K and 1000 MPa, J. Phys. Chem. Ref. Data 49, 2020",
+        "eos_citation": "Gao-JPCRD-2020",
+        "reference_note": "Primary equation selected by the pinned CoolProp default EOS ordering.",
+        "valid_temperature_max_K": 725.0,
+    },
 }
 
 ALLOWED_IDEAL_TYPES = {
@@ -56,11 +176,15 @@ ALLOWED_IDEAL_TYPES = {
     "IdealGasHelmholtzPlanckEinstein",
     "IdealGasHelmholtzPlanckEinsteinFunctionT",
     "IdealGasHelmholtzEnthalpyEntropyOffset",
+    "IdealGasHelmholtzCP0Constant",
+    "IdealGasHelmholtzCP0PolyT",
 }
 ALLOWED_RESIDUAL_TYPES = {
     "ResidualHelmholtzPower",
     "ResidualHelmholtzGaussian",
     "ResidualHelmholtzNonAnalytic",
+    "ResidualHelmholtzExponential",
+    "ResidualHelmholtzGaoB",
 }
 
 
@@ -86,16 +210,18 @@ def select_fluid(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
     require(name in UPSTREAM_FLUIDS, f"Unsupported CoolProp fluid record: {name!r}")
     config = UPSTREAM_FLUIDS[name]
     eos_records = raw.get("EOS")
-    require(isinstance(eos_records, list) and len(eos_records) == 1, f"{name} must contain exactly one EOS record.")
-    eos = eos_records[0]
+    eos_index = config.get("eos_index", 0)
+    require(isinstance(eos_records, list) and len(eos_records) > eos_index, f"{name} does not contain the configured EOS record.")
+    eos = eos_records[eos_index]
     ideal_types = {term.get("type") for term in eos.get("alpha0", [])}
     residual_types = {term.get("type") for term in eos.get("alphar", [])}
     require(ideal_types <= ALLOWED_IDEAL_TYPES, f"{name} has unsupported ideal Helmholtz terms: {sorted(ideal_types - ALLOWED_IDEAL_TYPES)}")
     require(residual_types <= ALLOWED_RESIDUAL_TYPES, f"{name} has unsupported residual Helmholtz terms: {sorted(residual_types - ALLOWED_RESIDUAL_TYPES)}")
-    require(eos.get("BibTeX_EOS") in {"Span-JPCRD-2000", "Span-JPCRD-1996"}, f"{name} EOS citation changed upstream.")
+    expected_citation = config.get("eos_citation", "Span-JPCRD-2000" if name == "Nitrogen" else "Span-JPCRD-1996")
+    require(eos.get("BibTeX_EOS") == expected_citation, f"{name} EOS citation changed upstream.")
     p_sat = raw.get("ANCILLARIES", {}).get("pS", {})
     rho_liquid = raw.get("ANCILLARIES", {}).get("rhoL", {})
-    require(p_sat.get("type") == "pL" and p_sat.get("using_tau_r") is True, f"{name} saturation-pressure form changed upstream.")
+    require(p_sat.get("type") in {"pL", "pV"} and p_sat.get("using_tau_r") is True, f"{name} saturation-pressure form changed upstream.")
     require(rho_liquid.get("type") == "rhoLnoexp", f"{name} saturated-liquid-density form changed upstream.")
     reducing = eos.get("STATES", {}).get("reducing", {})
     fluid = {
@@ -105,7 +231,7 @@ def select_fluid(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         "name": config["display_name"],
         "description": config["description"],
         "source_id": config["source_id"],
-        "aliases": raw["INFO"]["ALIASES"],
+        "aliases": list(dict.fromkeys([name, *raw["INFO"]["ALIASES"]])),
         "cas": raw["INFO"]["CAS"],
         "molar_mass_kg_per_mol": eos["molar_mass"],
         "gas_constant_J_per_molK": eos["gas_constant"],
@@ -121,6 +247,9 @@ def select_fluid(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         "upstream_file": path.name,
         "upstream_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
     }
+    reference_note = config.get("reference_note")
+    if reference_note is None:
+        reference_note = f"Primary EOS DOI {config['doi']}."
     source = {
         "id": config["source_id"],
         "constant": config["source_constant"],
@@ -128,7 +257,7 @@ def select_fluid(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         "citation": config["citation"],
         "revision": f"CoolProp record at pinned revision for {eos['BibTeX_EOS']}",
         "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
-        "notes": f"Primary EOS DOI {config['doi']}. Imported from the pinned CoolProp pure-fluid JSON record.",
+        "notes": f"{reference_note} Imported from the pinned CoolProp pure-fluid JSON record.",
     }
     return source, fluid
 

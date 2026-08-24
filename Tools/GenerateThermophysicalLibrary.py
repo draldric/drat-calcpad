@@ -303,6 +303,16 @@ def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any])
     lines.extend(("", f"ThermoSourceIDs = {calc_vector([item['id'] for item in sources])}", ""))
     for fluid in fluids:
         lines.append(f"{fluid['constant']} = {fluid['id']}")
+    fluid_constants = {fluid["constant"] for fluid in fluids}
+    if {"THERMO_CARBON_DIOXIDE", "THERMO_R290", "THERMO_R600A", "THERMO_R717"} <= fluid_constants:
+        lines.extend(
+            (
+                "THERMO_R744 = THERMO_CARBON_DIOXIDE",
+                "THERMO_PROPANE = THERMO_R290",
+                "THERMO_ISOBUTANE = THERMO_R600A",
+                "THERMO_AMMONIA = THERMO_R717",
+            )
+        )
     lines.extend(("", f"ThermoFluidIDs = {calc_vector([item['id'] for item in fluids])}", ""))
     for prop in properties:
         lines.append(f"{prop['constant']} = {prop['id']}")
@@ -375,7 +385,10 @@ def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any])
             "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); value = if(status ≡ THERMO_PROPS_OK; switch(fluid ≡ THERMO_WATER; If97PROPPT(output; pressure; temperature); HelmholtzHasFluid(fluid); HelmholtzPropertyPT(output; fluid; pressure; temperature); If97Undefined(output)); If97Undefined(output)); value;}",
             "",
             "#def ThermoPropsStatus$(status$)",
-            "    #if status$ < THERMO_PROPS_ERR_FLUID",
+            "    #if status$ ≡ THERMO_PROPS_OK",
+            "        '<span class=\"ok\">Valid thermophysical state</span>",
+            "    #end if",
+            "    #if and(status$ > THERMO_PROPS_OK; status$ < THERMO_PROPS_ERR_FLUID)",
             "        If97Status$(status$)",
             "    #end if",
             "    #if status$ ≡ THERMO_PROPS_ERR_FLUID",

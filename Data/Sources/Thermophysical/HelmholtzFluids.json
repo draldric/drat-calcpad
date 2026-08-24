@@ -24,6 +24,87 @@
       "revision": "CoolProp record at pinned revision for Span-JPCRD-1996",
       "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
       "notes": "Primary EOS DOI 10.1063/1.555991. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 5,
+      "constant": "THERMO_SRC_R11_EOS",
+      "name": "R11 reference equation of state",
+      "citation": "Jacobsen, Penoncello, and Lemmon, A Fundamental Equation for Trichlorofluoromethane R-11, Fluid Phase Equilibria 80, 45-56, 1992",
+      "revision": "CoolProp record at pinned revision for Jacobsen-FPE-1992",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1016/0378-3812(92)87054-Q. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 6,
+      "constant": "THERMO_SRC_R12_EOS",
+      "name": "R12 reference equation of state",
+      "citation": "Marx, Pruss, and Wagner, Neue Zustandsgleichung fuer R 12, R 22, R 11 und R 113, VDI Verlag, 1992",
+      "revision": "CoolProp record at pinned revision for Marx-BOOK-1992",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS reference is VDI Fortschritt-Berichte series 19 number 57. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 7,
+      "constant": "THERMO_SRC_R13_EOS",
+      "name": "R13 reference equation of state",
+      "citation": "Platzer, Polt, and Maurer, Thermophysical Properties of Refrigerants, Springer-Verlag, 1990",
+      "revision": "CoolProp record at pinned revision for Platzer-BOOK-1990",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary reference DOI 10.1007/978-3-662-02608-3. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 8,
+      "constant": "THERMO_SRC_R134A_EOS",
+      "name": "R134a reference equation of state",
+      "citation": "Tillner-Roth and Baehr, An International Standard Formulation for the Thermodynamic Properties of R134a, J. Phys. Chem. Ref. Data 23, 657-729, 1994",
+      "revision": "CoolProp record at pinned revision for TillnerRoth-JPCRD-1994",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1063/1.555958. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 9,
+      "constant": "THERMO_SRC_R32_EOS",
+      "name": "R32 reference equation of state",
+      "citation": "Tillner-Roth and Yokozeki, An International Standard Equation of State for Difluoromethane R-32, J. Phys. Chem. Ref. Data 26, 1273-1328, 1997",
+      "revision": "CoolProp record at pinned revision for TillnerRoth-JPCRD-1997",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1063/1.556002. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 10,
+      "constant": "THERMO_SRC_R1234YF_EOS",
+      "name": "R1234yf reference equation of state",
+      "citation": "Lemmon and Akasaka, An International Standard Formulation for 2,3,3,3-Tetrafluoroprop-1-ene R1234yf, Int. J. Thermophys. 43, 2022",
+      "revision": "CoolProp record at pinned revision for Lemmon-IJT-2022",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1007/s10765-022-03015-y. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 11,
+      "constant": "THERMO_SRC_R290_EOS",
+      "name": "R290 (propane) reference equation of state",
+      "citation": "Lemmon, McLinden, and Wagner, Thermodynamic Properties of Propane, J. Chem. Eng. Data 54, 3141-3180, 2009",
+      "revision": "CoolProp record at pinned revision for Lemmon-JCED-2009",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1021/je900217v. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 12,
+      "constant": "THERMO_SRC_R600A_EOS",
+      "name": "R600a (isobutane) reference equation of state",
+      "citation": "Buecker and Wagner, A Reference Equation of State for Isobutane, J. Phys. Chem. Ref. Data 35, 929-1019, 2006",
+      "revision": "CoolProp record at pinned revision for Buecker-JPCRD-2006B",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1063/1.1901687. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 13,
+      "constant": "THERMO_SRC_R717_EOS",
+      "name": "R717 (ammonia) reference equation of state",
+      "citation": "Gao, Wu, Bell, and Lemmon, Thermodynamic Properties of Ammonia from the Melting Line to 725 K and 1000 MPa, J. Phys. Chem. Ref. Data 49, 2020",
+      "revision": "CoolProp record at pinned revision for Gao-JPCRD-2020",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary equation selected by the pinned CoolProp default EOS ordering. Imported from the pinned CoolProp pure-fluid JSON record."
     }
   ],
   "fluids": [
@@ -35,6 +116,7 @@
       "description": "Pure nitrogen using the Span et al. reference Helmholtz equation of state.",
       "source_id": 3,
       "aliases": [
+        "Nitrogen",
         "nitrogen",
         "NITROGEN",
         "N2",
@@ -316,8 +398,8 @@
         ],
         "type": "rhoLnoexp"
       },
-      "upstream_file": "CoolProp-Nitrogen.json",
-      "upstream_sha256": "9a4590845c5490bc9195a48d113758e7ad45ab4f273ef89b6722896642e7fcd5"
+      "upstream_file": "Nitrogen.json",
+      "upstream_sha256": "8973388805476d675873db7623314e4253a8cf451008c143601e87ed11b466ef"
     },
     {
       "id": 302,
@@ -327,6 +409,7 @@
       "description": "Pure carbon dioxide using the Span-Wagner reference Helmholtz equation of state.",
       "source_id": 4,
       "aliases": [
+        "CarbonDioxide",
         "R744",
         "co2",
         "CO2",
@@ -666,8 +749,1986 @@
         ],
         "type": "rhoLnoexp"
       },
-      "upstream_file": "CoolProp-CarbonDioxide.json",
-      "upstream_sha256": "9d3ebf8fcce8052f06e0d0fabca849309d2a4a638e9dcccc1ac9efd1e32af75e"
+      "upstream_file": "CarbonDioxide.json",
+      "upstream_sha256": "8e7992bb6e2e00a43421d4b5929f3ca1c7a86f2692911e3b225fc615697c7068"
+    },
+    {
+      "id": 303,
+      "constant": "THERMO_R11",
+      "function_prefix": "HelmholtzR11",
+      "name": "R11",
+      "description": "Pure trichlorofluoromethane using the Jacobsen et al. reference Helmholtz equation of state.",
+      "source_id": 5,
+      "aliases": [
+        "R11"
+      ],
+      "cas": "75-69-4",
+      "molar_mass_kg_per_mol": 0.137368,
+      "gas_constant_J_per_molK": 8.31451,
+      "temperature_min_K": 162.68,
+      "temperature_max_K": 625.0,
+      "pressure_max_Pa": 100000000,
+      "reducing_temperature_K": 471.11,
+      "reducing_molar_density_mol_per_m3": 4032.962,
+      "ideal": [
+        {
+          "a1": 0,
+          "a2": 0,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": -1,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "T0": 298,
+          "Tc": 471.11,
+          "cp_over_R": 4.00564923248634,
+          "type": "IdealGasHelmholtzCP0Constant"
+        },
+        {
+          "T0": 298,
+          "Tc": 471.11,
+          "c": [
+            0.0002228874581905608
+          ],
+          "t": [
+            1
+          ],
+          "type": "IdealGasHelmholtzCP0PolyT"
+        },
+        {
+          "n": [
+            1,
+            2,
+            1,
+            2,
+            1,
+            2
+          ],
+          "t": [
+            3.313613168898983,
+            2.586756086688884,
+            1.634512228566577,
+            1.215500498821931,
+            1.06738046316147,
+            0.7360191462715714
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        },
+        {
+          "a1": -20.0312014458899,
+          "a2": 12.6387040144928,
+          "reference": "IIR",
+          "type": "IdealGasHelmholtzEnthalpyEntropyOffset"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            4,
+            4,
+            5,
+            5,
+            5,
+            6,
+            8,
+            1,
+            1,
+            2,
+            2,
+            2,
+            3,
+            4,
+            6,
+            10,
+            3,
+            5,
+            8,
+            9,
+            9
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            4,
+            6,
+            6,
+            6,
+            6
+          ],
+          "n": [
+            1.25993633881,
+            -2.60818574641,
+            0.00982122542463,
+            -1.06085385839,
+            1.2282036351,
+            0.118000776439,
+            -0.000698956926463,
+            -0.0355428373358,
+            0.00197169579643,
+            -0.00848363012252,
+            0.00417997567653,
+            -0.000242772533848,
+            0.00313371368974,
+            3.96182646586e-06,
+            0.339736319502,
+            -0.203010634531,
+            -0.1060178599,
+            0.45156488259,
+            -0.339265767612,
+            0.114338523359,
+            0.0319537833995,
+            0.036790825978,
+            -9.61768948364e-06,
+            0.00246717966418,
+            -0.00167030256045,
+            0.00240710110806,
+            0.00156214678738,
+            -0.00323352596704
+          ],
+          "t": [
+            0.5,
+            1.5,
+            5,
+            1,
+            1.5,
+            0,
+            5,
+            2,
+            3,
+            1,
+            2,
+            4,
+            1,
+            4,
+            5,
+            6,
+            3.5,
+            5.5,
+            7.5,
+            3,
+            2.5,
+            5,
+            1.5,
+            11,
+            9,
+            13,
+            5,
+            9
+          ],
+          "type": "ResidualHelmholtzPower"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 162.68,
+        "Tmax": 471.05,
+        "T_r": 471.06,
+        "reducing_value": 4394000.0,
+        "n": [
+          0.002488999538674866,
+          0.17252290950983326,
+          -6.293222945340061,
+          -0.07387863714475532,
+          -3.286105292292795,
+          2.274584153170513
+        ],
+        "t": [
+          0.002,
+          0.901,
+          0.973,
+          2.808,
+          4.144,
+          16.732
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 162.68,
+        "Tmax": 471.05,
+        "T_r": 471.06,
+        "reducing_value": 4113.0394269407725,
+        "n": [
+          0.1369999075358185,
+          2.5657629003804248,
+          -0.5933415750742217,
+          0.7576689326270665,
+          -0.21901132344678031,
+          0.21836410566455441
+        ],
+        "t": [
+          0.128,
+          0.465,
+          0.948,
+          1.743,
+          2.364,
+          7.362
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "R11.json",
+      "upstream_sha256": "441aa33cfcb546f03973021d8383fa320428a9fe75c93b63bb2631327d65cd56"
+    },
+    {
+      "id": 304,
+      "constant": "THERMO_R12",
+      "function_prefix": "HelmholtzR12",
+      "name": "R12",
+      "description": "Pure dichlorodifluoromethane using the Marx et al. reference Helmholtz equation of state.",
+      "source_id": 6,
+      "aliases": [
+        "R12"
+      ],
+      "cas": "75-71-8",
+      "molar_mass_kg_per_mol": 0.120913,
+      "gas_constant_J_per_molK": 8.314471,
+      "temperature_min_K": 116.099,
+      "temperature_max_K": 525.0,
+      "pressure_max_Pa": 200000000,
+      "reducing_temperature_K": 385.12,
+      "reducing_molar_density_mol_per_m3": 4672.781255944357,
+      "ideal": [
+        {
+          "a1": 10.0100905,
+          "a2": -4.66434985,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 3.00361975,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            3.16062357,
+            0.371258136,
+            3.56226039,
+            2.12152336
+          ],
+          "t": [
+            3.72204562,
+            6.30985083,
+            1.78037889,
+            1.07087607
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        },
+        {
+          "a1": -24.7279903483588,
+          "a2": 14.0673715241366,
+          "reference": "IIR",
+          "type": "IdealGasHelmholtzEnthalpyEntropyOffset"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            1,
+            1,
+            2,
+            4,
+            6,
+            8,
+            1,
+            1,
+            5,
+            7,
+            12,
+            12,
+            14,
+            1,
+            9,
+            1,
+            1,
+            3,
+            3,
+            5,
+            9
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            3,
+            4
+          ],
+          "n": [
+            2.075343402,
+            -2.962525996,
+            0.01001589616,
+            0.01781347612,
+            0.02556929157,
+            0.002352142637,
+            -8.495553314e-05,
+            -0.01535945599,
+            -0.2108816776,
+            -0.01654228806,
+            -0.0118131613,
+            -4.16029583e-05,
+            2.784861664e-05,
+            1.618686433e-06,
+            -0.1064614686,
+            0.0009369665207,
+            0.02590095447,
+            -0.04347025025,
+            0.1012308449,
+            -0.1100003438,
+            -0.003361012009,
+            0.0003789190008
+          ],
+          "t": [
+            0.5,
+            1,
+            2,
+            2.5,
+            -0.5,
+            0,
+            0,
+            -0.5,
+            1.5,
+            2.5,
+            -0.5,
+            0,
+            0.5,
+            -0.5,
+            4,
+            4,
+            2,
+            4,
+            12,
+            14,
+            0,
+            14
+          ],
+          "type": "ResidualHelmholtzPower"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 116.09900000000002,
+        "Tmax": 385.11999999999927,
+        "T_r": 385.12,
+        "reducing_value": 4136100.0000000005,
+        "n": [
+          -0.4180899251614923,
+          -6.821426208906223,
+          1.4450198472690974,
+          -1.4837613030063526,
+          -2.1731387101462754,
+          -5.72739817030707
+        ],
+        "t": [
+          0.894,
+          1.009,
+          1.274,
+          3.0,
+          4.927,
+          19.696
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 116.09900000000002,
+        "Tmax": 385.11999999999927,
+        "T_r": 385.12,
+        "reducing_value": 4672.781255944357,
+        "n": [
+          2.6029953147390845,
+          -1.289157172326326,
+          1.8650658616334526,
+          -0.7403291941448226,
+          24.389351468278143,
+          -67.79326638866661
+        ],
+        "t": [
+          0.391,
+          0.803,
+          1.301,
+          2.566,
+          12.555,
+          16.134
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "R12.json",
+      "upstream_sha256": "5c791dac13ae5136784e77863199e57d5f80e29dad28766045fa63d387903d9f"
+    },
+    {
+      "id": 305,
+      "constant": "THERMO_R13",
+      "function_prefix": "HelmholtzR13",
+      "name": "R13",
+      "description": "Pure chlorotrifluoromethane using the Platzer et al. reference Helmholtz equation of state.",
+      "source_id": 7,
+      "aliases": [
+        "R13"
+      ],
+      "cas": "75-72-9",
+      "molar_mass_kg_per_mol": 0.104459,
+      "gas_constant_J_per_molK": 8.31451,
+      "temperature_min_K": 92,
+      "temperature_max_K": 450.0,
+      "pressure_max_Pa": 50000000,
+      "reducing_temperature_K": 301.88,
+      "reducing_molar_density_mol_per_m3": 5570.98,
+      "ideal": [
+        {
+          "a1": 0,
+          "a2": 0,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": -1,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "T0": 298.15,
+          "Tc": 301.88,
+          "c": [
+            2.4766458,
+            0.018074269,
+            2.1945535e-05,
+            -8.5810657e-08,
+            6.3199171e-11
+          ],
+          "t": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "type": "IdealGasHelmholtzCP0PolyT"
+        },
+        {
+          "a1": -17.2649115260318,
+          "a2": 13.7187307950669,
+          "reference": "IIR",
+          "type": "IdealGasHelmholtzEnthalpyEntropyOffset"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            3,
+            3,
+            4,
+            4,
+            5,
+            0,
+            0,
+            0
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "n": [
+            0.761143010172,
+            -1.94465098795,
+            0.940938700406,
+            -1.08107050239,
+            0.117501564976,
+            0.228305167217,
+            -0.403338888789,
+            0.37558571342,
+            -0.0617543677315,
+            0.170326226881,
+            0.0536612457231,
+            -0.151603010301,
+            0.0252033265074,
+            -0.62834655992,
+            0.792797111341,
+            -0.134038992692
+          ],
+          "t": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            0,
+            1,
+            2,
+            0,
+            1,
+            0,
+            1,
+            1,
+            3,
+            4,
+            5
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "d": [
+            2,
+            2,
+            2,
+            0,
+            0,
+            0
+          ],
+          "g": [
+            0.98230055,
+            0.98230055,
+            0.98230055,
+            0.98230055,
+            0.98230055,
+            0.98230055
+          ],
+          "l": [
+            2,
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "n": [
+            -0.0399863840975,
+            0.436410910529,
+            -0.448724904991,
+            0.62834655992,
+            -0.792797111341,
+            0.134038992692
+          ],
+          "t": [
+            3,
+            4,
+            5,
+            3,
+            4,
+            5
+          ],
+          "type": "ResidualHelmholtzExponential"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 98.15000000000002,
+        "Tmax": 301.8799999999995,
+        "T_r": 301.88,
+        "reducing_value": 3879000.0,
+        "n": [
+          -0.0007921318343566953,
+          -5.996195643967384,
+          -0.19260162903514982,
+          -3.374201633035978,
+          5653.865616057301,
+          -6159.322602726868
+        ],
+        "t": [
+          0.183,
+          0.974,
+          1.79,
+          4.508,
+          17.458,
+          17.588
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 98.15000000000002,
+        "Tmax": 301.8799999999995,
+        "T_r": 301.88,
+        "reducing_value": 5580.0,
+        "n": [
+          0.5805008657064199,
+          110.54560557681266,
+          -110.25028269746312,
+          87.64846842137001,
+          -146.66580327727502,
+          669.8318898661124
+        ],
+        "t": [
+          0.12,
+          1.19,
+          1.219,
+          6.955,
+          8.289,
+          17.746
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "R13.json",
+      "upstream_sha256": "20e42f946ca3a4d1f66c8c038d31b1d29c3cce4644e355aa88ff1a1a6e981493"
+    },
+    {
+      "id": 306,
+      "constant": "THERMO_R134A",
+      "function_prefix": "HelmholtzR134A",
+      "name": "R134a",
+      "description": "Pure 1,1,1,2-tetrafluoroethane using the Tillner-Roth and Baehr reference Helmholtz equation of state.",
+      "source_id": 8,
+      "aliases": [
+        "R134a",
+        "R134A"
+      ],
+      "cas": "811-97-2",
+      "molar_mass_kg_per_mol": 0.102032,
+      "gas_constant_J_per_molK": 8.314471,
+      "temperature_min_K": 169.85,
+      "temperature_max_K": 455.0,
+      "pressure_max_Pa": 70000000,
+      "reducing_temperature_K": 374.18,
+      "reducing_molar_density_mol_per_m3": 4978.830171000001,
+      "ideal": [
+        {
+          "a1": -1.019535,
+          "a2": 9.047135,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": -1.629789,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            -9.723916,
+            -3.92717
+          ],
+          "t": [
+            -0.5,
+            -0.75
+          ],
+          "type": "IdealGasHelmholtzPower"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            2,
+            1,
+            3,
+            6,
+            6,
+            1,
+            1,
+            2,
+            5,
+            2,
+            2,
+            4,
+            1,
+            4,
+            1,
+            2,
+            4,
+            1,
+            5,
+            3,
+            10
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            4
+          ],
+          "n": [
+            0.05586817,
+            0.498223,
+            0.02458698,
+            0.0008570145,
+            0.0004788584,
+            -1.800808,
+            0.2671641,
+            -0.04781652,
+            0.01423987,
+            0.3324062,
+            -0.007485907,
+            0.0001017263,
+            -0.5184567,
+            -0.08692288,
+            0.2057144,
+            -0.005000457,
+            0.0004603262,
+            -0.003497836,
+            0.006995038,
+            -0.01452184,
+            -0.0001285458
+          ],
+          "t": [
+            -0.5,
+            0,
+            0,
+            0,
+            1.5,
+            1.5,
+            2,
+            2,
+            1,
+            3,
+            5,
+            1,
+            5,
+            5,
+            6,
+            10,
+            10,
+            10,
+            18,
+            22,
+            50
+          ],
+          "type": "ResidualHelmholtzPower"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 169.85,
+        "Tmax": 374.20999999999935,
+        "T_r": 374.21,
+        "reducing_value": 4059280.0,
+        "n": [
+          0.4331478287291047,
+          -9.090302559074352,
+          2.1476074125217703,
+          -1.557687007603464,
+          -3.5020328972698604,
+          14.958442337201044
+        ],
+        "t": [
+          0.845,
+          0.99,
+          1.14,
+          2.651,
+          4.507,
+          17.235
+        ],
+        "type": "pV",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 169.85,
+        "Tmax": 374.20999999999935,
+        "T_r": 374.21,
+        "reducing_value": 5017.053,
+        "n": [
+          18.772731940930015,
+          -51.49939472178225,
+          40.793536440596085,
+          -1481.6500471538966,
+          1600.534434298925,
+          -67338.52423732559
+        ],
+        "t": [
+          0.673,
+          0.994,
+          1.257,
+          5.783,
+          5.943,
+          19.94
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "R134a.json",
+      "upstream_sha256": "a00f41b1c9f195d822c3bd22be1a3aabe56f07ca1a66d38c166f81922c8d01a1"
+    },
+    {
+      "id": 307,
+      "constant": "THERMO_R32",
+      "function_prefix": "HelmholtzR32",
+      "name": "R32",
+      "description": "Pure difluoromethane using the Tillner-Roth and Yokozeki reference Helmholtz equation of state.",
+      "source_id": 9,
+      "aliases": [
+        "R32"
+      ],
+      "cas": "75-10-5",
+      "molar_mass_kg_per_mol": 0.052024,
+      "gas_constant_J_per_molK": 8.314471,
+      "temperature_min_K": 136.34,
+      "temperature_max_K": 435.0,
+      "pressure_max_Pa": 70000000,
+      "reducing_temperature_K": 351.255,
+      "reducing_molar_density_mol_per_m3": 8150.084599999999,
+      "ideal": [
+        {
+          "a1": -8.258096,
+          "a2": 6.353098,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 3.004486,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            1.160761,
+            2.645151,
+            5.794987,
+            1.129475
+          ],
+          "t": [
+            2.2718538,
+            11.914421,
+            5.1415638,
+            32.768217
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            2,
+            5,
+            1,
+            1,
+            3,
+            8,
+            4,
+            4,
+            4,
+            8,
+            3,
+            5,
+            1,
+            1,
+            3,
+            1,
+            2,
+            3
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            4,
+            3,
+            1,
+            4,
+            1,
+            2,
+            2,
+            1,
+            1,
+            1,
+            1
+          ],
+          "n": [
+            1.046634,
+            -0.5451165,
+            -0.002448595,
+            -0.04877002,
+            0.03520158,
+            0.00162275,
+            2.377225e-05,
+            0.029149,
+            0.003386203,
+            -0.004202444,
+            0.0004782025,
+            -0.005504323,
+            -0.02418396,
+            0.4209034,
+            -0.4616537,
+            -1.200513,
+            -2.59155,
+            -1.400145,
+            0.8263017
+          ],
+          "t": [
+            0.25,
+            1,
+            -0.25,
+            -1,
+            2,
+            2,
+            0.75,
+            0.25,
+            18,
+            26,
+            -1,
+            25,
+            1.75,
+            4,
+            5,
+            1,
+            1.5,
+            1,
+            0.5
+          ],
+          "type": "ResidualHelmholtzPower"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 136.34,
+        "Tmax": 351.2549999999992,
+        "T_r": 351.255,
+        "reducing_value": 5782000.0,
+        "n": [
+          0.019194334673139708,
+          -6.794802163795212,
+          9.276391392786632,
+          -12.327153852761946,
+          28.46579606476374,
+          -28.570870718190093
+        ],
+        "t": [
+          0.531,
+          0.979,
+          2.203,
+          2.382,
+          3.421,
+          3.558
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 136.34,
+        "Tmax": 351.2549999999992,
+        "T_r": 351.255,
+        "reducing_value": 8150.084599999999,
+        "n": [
+          3.0283368557227064,
+          -13.30754793568124,
+          53.97035773548243,
+          -41.10515088784585,
+          0.6410010855629815,
+          -18.757652443918627
+        ],
+        "t": [
+          0.358,
+          0.676,
+          0.831,
+          0.88,
+          2.592,
+          16.556
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "R32.json",
+      "upstream_sha256": "0416143bcf9a892ed5664ca9989945e7db57f07348e1a91764b9837f14d89204"
+    },
+    {
+      "id": 308,
+      "constant": "THERMO_R1234YF",
+      "function_prefix": "HelmholtzR1234YF",
+      "name": "R1234yf",
+      "description": "Pure 2,3,3,3-tetrafluoropropene using the Lemmon and Akasaka reference Helmholtz equation of state.",
+      "source_id": 10,
+      "aliases": [
+        "R1234yf",
+        "R1234YF"
+      ],
+      "cas": "754-12-1",
+      "molar_mass_kg_per_mol": 0.1140416,
+      "gas_constant_J_per_molK": 8.314462618,
+      "temperature_min_K": 121.6,
+      "temperature_max_K": 410.0,
+      "pressure_max_Pa": 100000000,
+      "reducing_temperature_K": 367.85,
+      "reducing_molar_density_mol_per_m3": 4180.0,
+      "ideal": [
+        {
+          "a1": -12.081525543189,
+          "a2": 8.52896238365,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 3.0,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            8.65,
+            9.75,
+            2.11
+          ],
+          "t": [
+            1.3918716868288703,
+            4.268044039690091,
+            12.233247247519369
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            4,
+            1,
+            1,
+            2,
+            3,
+            1,
+            3,
+            2,
+            2,
+            7
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            1,
+            2,
+            1
+          ],
+          "n": [
+            0.0340387,
+            1.912859,
+            -2.1984719881617,
+            -0.8147645305033,
+            0.2288282,
+            -1.65436,
+            -1.446628,
+            0.5961722,
+            -0.6148209,
+            -0.0180069
+          ],
+          "t": [
+            1.0,
+            0.222,
+            0.61,
+            1.122,
+            0.5,
+            2.14,
+            2.284,
+            1.05,
+            2.33,
+            0.778
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "beta": [
+            1016.0,
+            1000.0,
+            1.16,
+            1.2,
+            1.26,
+            1.6,
+            0.87
+          ],
+          "d": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "epsilon": [
+            0.96,
+            0.96,
+            0.853,
+            1.15,
+            1.3,
+            1.5,
+            0.762
+          ],
+          "eta": [
+            28.1,
+            28.0,
+            1.307,
+            1.96,
+            1.25,
+            1.0,
+            2.2
+          ],
+          "gamma": [
+            1.061,
+            1.062,
+            1.3,
+            1.04,
+            1.0,
+            1.14,
+            1.1
+          ],
+          "n": [
+            0.2845275,
+            -0.3050809,
+            2.198935,
+            -0.4270329,
+            -0.4015581,
+            0.1179587,
+            -0.3141002
+          ],
+          "t": [
+            1.0,
+            2.0,
+            1.236,
+            1.6,
+            1.85,
+            0.7,
+            1.75
+          ],
+          "type": "ResidualHelmholtzGaussian"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 121.6,
+        "Tmax": 367.849999,
+        "T_r": 367.85,
+        "reducing_value": 3384400.0,
+        "n": [
+          -7.4507,
+          2.164,
+          -1.674,
+          -3.318,
+          -1.617
+        ],
+        "t": [
+          1.0,
+          1.5,
+          3.0,
+          4.0,
+          9.0
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 121.6,
+        "Tmax": 367.849999,
+        "T_r": 367.85,
+        "reducing_value": 4180.0,
+        "n": [
+          3.392,
+          -4.119,
+          8.932,
+          -8.525,
+          3.384
+        ],
+        "t": [
+          0.4,
+          0.7,
+          1.1,
+          1.5,
+          2.1
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "R1234yf.json",
+      "upstream_sha256": "86490603cc73fd3cad9b1b13b7c81ea6818b6f8e50d5a36cd44a75ef083bcfb0"
+    },
+    {
+      "id": 309,
+      "constant": "THERMO_R290",
+      "function_prefix": "HelmholtzR290",
+      "name": "R290 (propane)",
+      "description": "Pure propane using the Lemmon et al. reference Helmholtz equation of state.",
+      "source_id": 11,
+      "aliases": [
+        "n-Propane",
+        "Propane",
+        "propane",
+        "R290",
+        "C3H8",
+        "PROPANE",
+        "N-PROPANE",
+        "NC3H8",
+        "n-C3H8"
+      ],
+      "cas": "74-98-6",
+      "molar_mass_kg_per_mol": 0.04409562,
+      "gas_constant_J_per_molK": 8.314472,
+      "temperature_min_K": 85.525,
+      "temperature_max_K": 650.0,
+      "pressure_max_Pa": 1000000000,
+      "reducing_temperature_K": 369.89,
+      "reducing_molar_density_mol_per_m3": 5000.000000000001,
+      "ideal": [
+        {
+          "a1": -4.970583,
+          "a2": 4.29352,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 3,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            3.043,
+            5.874,
+            9.337,
+            7.922
+          ],
+          "t": [
+            1.062478,
+            3.344237,
+            5.363757,
+            11.762957
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            4,
+            1,
+            1,
+            2,
+            2,
+            1,
+            3,
+            6,
+            6,
+            2,
+            3
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2
+          ],
+          "n": [
+            0.042910051,
+            1.7313671,
+            -2.4516524,
+            0.34157466,
+            -0.46047898,
+            -0.66847295,
+            0.20889705,
+            0.19421381,
+            -0.22917851,
+            -0.60405866,
+            0.066680654
+          ],
+          "t": [
+            1,
+            0.33,
+            0.8,
+            0.43,
+            0.9,
+            2.46,
+            2.09,
+            0.88,
+            1.09,
+            3.25,
+            4.62
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "beta": [
+            2.33,
+            3.47,
+            3.15,
+            3.19,
+            0.92,
+            18.8,
+            547.8
+          ],
+          "d": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            4,
+            1
+          ],
+          "epsilon": [
+            1.283,
+            0.6936,
+            0.788,
+            0.473,
+            0.8577,
+            0.271,
+            0.948
+          ],
+          "eta": [
+            0.963,
+            1.977,
+            1.917,
+            2.307,
+            2.546,
+            3.28,
+            14.6
+          ],
+          "gamma": [
+            0.684,
+            0.829,
+            1.419,
+            0.817,
+            1.5,
+            1.426,
+            1.093
+          ],
+          "n": [
+            0.017534618,
+            0.33874242,
+            0.22228777,
+            -0.23219062,
+            -0.09220694,
+            -0.47575718,
+            -0.017486824
+          ],
+          "t": [
+            0.76,
+            2.5,
+            2.75,
+            3.05,
+            2.55,
+            8.4,
+            6.75
+          ],
+          "type": "ResidualHelmholtzGaussian"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 85.52500000000002,
+        "Tmax": 369.8899999999991,
+        "T_r": 369.89,
+        "reducing_value": 4251200.0,
+        "n": [
+          -23.998635747391152,
+          18.313017605233238,
+          -0.42240851966839504,
+          -2.7378298813798962,
+          0.257888414168987,
+          -1.3113462226130785
+        ],
+        "t": [
+          1.05,
+          1.084,
+          2.259,
+          4.287,
+          7.66,
+          18.584
+        ],
+        "type": "pV",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 85.52500000000002,
+        "Tmax": 369.8899999999991,
+        "T_r": 369.89,
+        "reducing_value": 5000.000000000001,
+        "n": [
+          2.104068052280433,
+          0.3371892411622086,
+          0.4401223810964251,
+          -3.5679018989260567,
+          59.93889697061387,
+          -70.9402469085883
+        ],
+        "t": [
+          0.368,
+          0.875,
+          3.009,
+          9.51,
+          15.381,
+          17.001
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "n-Propane.json",
+      "upstream_sha256": "ef6a744881f59b29172a0fe8bc53fd0f693a66efd73cee312cf686b9ff0d6636"
+    },
+    {
+      "id": 310,
+      "constant": "THERMO_R600A",
+      "function_prefix": "HelmholtzR600A",
+      "name": "R600a (isobutane)",
+      "description": "Pure isobutane using the Buecker and Wagner reference Helmholtz equation of state.",
+      "source_id": 12,
+      "aliases": [
+        "IsoButane",
+        "isobutane",
+        "Isobutane",
+        "ISOBUTANE",
+        "R600A",
+        "R600a",
+        "ISOBUTAN"
+      ],
+      "cas": "75-28-5",
+      "molar_mass_kg_per_mol": 0.0581222,
+      "gas_constant_J_per_molK": 8.314472,
+      "temperature_min_K": 113.73,
+      "temperature_max_K": 575.0,
+      "pressure_max_Pa": 35000000,
+      "reducing_temperature_K": 407.81,
+      "reducing_molar_density_mol_per_m3": 3879.756788283995,
+      "ideal": [
+        {
+          "a1": 11.60865546,
+          "a2": -5.29450411,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 3.05956619,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            4.94641014,
+            4.09475197,
+            15.6632824,
+            9.73918122
+          ],
+          "t": [
+            0.951277902,
+            2.387895885,
+            4.346904269,
+            10.36885864
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        },
+        {
+          "a1": -17.6081648486994,
+          "a2": 10.3134499204439,
+          "reference": "IIR",
+          "type": "IdealGasHelmholtzEnthalpyEntropyOffset"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            1,
+            1,
+            2,
+            3,
+            4,
+            4,
+            1,
+            1,
+            2,
+            7,
+            8,
+            8,
+            1,
+            2,
+            3,
+            3,
+            4,
+            5,
+            5,
+            10,
+            2,
+            6
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          "n": [
+            2.0686820727966,
+            -3.6400098615204,
+            0.51968754427244,
+            0.17745845870123,
+            -0.12361807851599,
+            0.045145314010528,
+            0.03047647996598,
+            0.75508387706302,
+            -0.85885381015629,
+            0.036324009830684,
+            -0.01954879945055,
+            -0.004445239290496,
+            0.004641076366646,
+            -0.071444097992825,
+            -0.080765060030713,
+            0.15560460945053,
+            0.0020318752160332,
+            -0.10624883571689,
+            0.039807690546305,
+            0.016371431292386,
+            0.00053212200682628,
+            -0.0078681561156387,
+            -0.0030981191888963
+          ],
+          "t": [
+            0.5,
+            1,
+            1.5,
+            0,
+            0.5,
+            0.5,
+            0.75,
+            2,
+            2.5,
+            2.5,
+            1.5,
+            1,
+            1.5,
+            4,
+            7,
+            3,
+            7,
+            3,
+            1,
+            6,
+            0,
+            6,
+            13
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "beta": [
+            150,
+            200
+          ],
+          "d": [
+            1,
+            2
+          ],
+          "epsilon": [
+            0.85,
+            1
+          ],
+          "eta": [
+            10,
+            10
+          ],
+          "gamma": [
+            1.16,
+            1.13
+          ],
+          "n": [
+            -0.042276036810382,
+            -0.0053001044558079
+          ],
+          "t": [
+            2,
+            0
+          ],
+          "type": "ResidualHelmholtzGaussian"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 113.73000000000002,
+        "Tmax": 407.81699999999915,
+        "T_r": 407.817,
+        "reducing_value": 3629000.0,
+        "n": [
+          -48.02915589537987,
+          43.34653680580028,
+          -1.4421317283854331,
+          -3.1322275225078413,
+          5.203481182010376,
+          -6.173022897817098
+        ],
+        "t": [
+          1.082,
+          1.108,
+          1.463,
+          4.045,
+          13.157,
+          14.042
+        ],
+        "type": "pV",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 113.73000000000002,
+        "Tmax": 407.81699999999915,
+        "T_r": 407.817,
+        "reducing_value": 3879.756788283995,
+        "n": [
+          2.0418147224188545,
+          0.4363922893974425,
+          1.915261424521202,
+          -2.1807762762122045,
+          1.068664850362356,
+          -6.816247938174933
+        ],
+        "t": [
+          0.356,
+          0.824,
+          3.142,
+          3.696,
+          6.863,
+          18.441
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "IsoButane.json",
+      "upstream_sha256": "0cb4d7b855e20f1e6a5b8ab4aa83975b6506ee2e6784319f20ba9959c4641016"
+    },
+    {
+      "id": 311,
+      "constant": "THERMO_R717",
+      "function_prefix": "HelmholtzR717",
+      "name": "R717 (ammonia)",
+      "description": "Pure ammonia using the Gao et al. reference Helmholtz equation of state.",
+      "source_id": 13,
+      "aliases": [
+        "Ammonia",
+        "NH3",
+        "ammonia",
+        "R717",
+        "AMMONIA"
+      ],
+      "cas": "7664-41-7",
+      "molar_mass_kg_per_mol": 0.01703052,
+      "gas_constant_J_per_molK": 8.3144598,
+      "temperature_min_K": 195.49,
+      "temperature_max_K": 725.0,
+      "pressure_max_Pa": 1000000000,
+      "reducing_temperature_K": 405.56,
+      "reducing_molar_density_mol_per_m3": 13696,
+      "ideal": [
+        {
+          "a1": -6.59406093943886,
+          "a2": 5.60101151987913,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 3,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            2.224,
+            3.148,
+            0.9579
+          ],
+          "t": [
+            4.0585856593352405,
+            9.776605187888352,
+            17.829667620080876
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            4,
+            1,
+            1,
+            2,
+            3,
+            3,
+            2,
+            3
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            2,
+            2,
+            1
+          ],
+          "n": [
+            0.006132232,
+            1.7395866,
+            -2.2261792,
+            -0.30127553,
+            0.08967023,
+            -0.076387037,
+            -0.84063963,
+            -0.27026327
+          ],
+          "t": [
+            1.0,
+            0.382,
+            1.0,
+            1.0,
+            0.677,
+            2.915,
+            3.51,
+            1.063
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "beta": [
+            1.708,
+            1.4865,
+            2.0915,
+            2.43,
+            0.488,
+            1.1,
+            0.85,
+            1.14,
+            945.64,
+            993.85
+          ],
+          "d": [
+            1,
+            1,
+            1,
+            2,
+            2,
+            1,
+            3,
+            3,
+            1,
+            1
+          ],
+          "epsilon": [
+            -0.0726,
+            -0.1274,
+            0.7527,
+            0.57,
+            2.2,
+            -0.243,
+            2.96,
+            3.02,
+            0.9574,
+            0.9576
+          ],
+          "eta": [
+            0.42776,
+            0.6424,
+            0.8175,
+            0.7995,
+            0.91,
+            0.3574,
+            1.21,
+            4.14,
+            22.56,
+            22.68
+          ],
+          "gamma": [
+            1.036,
+            1.2777,
+            1.083,
+            1.2906,
+            0.928,
+            0.934,
+            0.919,
+            1.852,
+            1.05897,
+            1.05277
+          ],
+          "n": [
+            6.212578,
+            -5.7844357,
+            2.4817542,
+            -2.3739168,
+            0.01493697,
+            -3.7749264,
+            0.0006254348,
+            -1.7359e-05,
+            -0.13462033,
+            0.07749072839
+          ],
+          "t": [
+            0.655,
+            1.3,
+            3.1,
+            1.4395,
+            1.623,
+            0.643,
+            1.13,
+            4.5,
+            1.0,
+            4.0
+          ],
+          "type": "ResidualHelmholtzGaussian"
+        },
+        {
+          "b": [
+            1.244,
+            0.6826
+          ],
+          "beta": [
+            0.3696,
+            0.2962
+          ],
+          "d": [
+            1,
+            1
+          ],
+          "epsilon": [
+            0.4478,
+            0.44689
+          ],
+          "eta": [
+            -2.8452,
+            -2.8342
+          ],
+          "gamma": [
+            1.108,
+            1.313
+          ],
+          "n": [
+            -1.6909858,
+            0.93739074
+          ],
+          "t": [
+            4.3315,
+            4.015
+          ],
+          "type": "ResidualHelmholtzGaoB"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 195.495,
+        "Tmax": 405.56,
+        "T_r": 405.56,
+        "reducing_value": 11365000,
+        "n": [
+          -7.2257,
+          1.4263,
+          -0.59642,
+          -2.798,
+          -3.7869
+        ],
+        "t": [
+          1.0,
+          1.5,
+          2.0,
+          3.6,
+          15.5
+        ],
+        "type": "pV",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 195.495,
+        "Tmax": 405.56,
+        "T_r": 405.56,
+        "reducing_value": 13696,
+        "n": [
+          2.447,
+          5.8341,
+          -25.944,
+          53.383,
+          -54.411,
+          22.771
+        ],
+        "t": [
+          0.384,
+          1.65,
+          2.2,
+          2.75,
+          3.35,
+          4.0
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "Ammonia.json",
+      "upstream_sha256": "ac0c04f80c5df00d545a34d182f948089e968d9c468c3d5586207bf3abe4e396"
     }
   ]
 }

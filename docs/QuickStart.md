@@ -198,7 +198,7 @@ rho = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATU
 
 `ThermoProps` uses a CoolProp-shaped output/input/value/input/value/fluid signature while retaining CalcPad units. The pressure and temperature inputs may be supplied in either order.
 Out-of-range, unsupported-region, and saturation-line states return an explicit status and a dimensioned undefined property value.
-The same interface accepts `THERMO_NITROGEN` and `THERMO_CARBON_DIOXIDE`; their thermodynamic outputs are calculated from fundamental Helmholtz equations rather than sampled tables.
+The same interface accepts `THERMO_NITROGEN`, `THERMO_CARBON_DIOXIDE`, and the supported pure refrigerant constants; their thermodynamic outputs are calculated from fundamental Helmholtz equations rather than sampled tables. `THERMO_R744` aliases the carbon-dioxide model.
 See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying either backend to a design state.
 
 ## Verify the work
