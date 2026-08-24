@@ -36,7 +36,7 @@ Automated worksheets define and render `all_tests`; `PlottingBrowserDiagnostic.c
 | `Libraries/Steel/AiscHssSectionsTest.cpd` | Rectangular and round HSS data, aliases, statuses, and selection. |
 | `Libraries/Steel/AiscChannelSectionsTest.cpd` | C and MC channel data, aliases, statuses, and selection. |
 | `Libraries/Steel/AiscAngleSectionsTest.cpd` | Single-angle data, property lookup, and selection. |
-| `Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` | Generated water and 50% ethylene-glycol values, interpolation, units, statuses, provenance, and rendered records. |
+| `Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` | Generated curve checks plus official IAPWS-IF97 Region 1, Region 2, saturation, boundary, unit, and status verification. |
 | `Tooling/BuildCoreTest.ps1` | Atomic Core generation, deterministic output, read-only stale checks, missing-source preservation, failed-replacement preservation, and temporary cleanup. |
 | `Tooling/PublicApiAuditTest.ps1` | Multiline-macro assignment parsing and module-namespace classification. |
 | `Tooling/ThermophysicalGeneratorTest.py` | Raw-data schema rejection, deterministic generation, and stale-output detection. |

@@ -40,6 +40,8 @@ DRAT_REVIEW_SUMMARY_API = 10100
 '<style>.ref{font-family:courier new;background-color:#daf5ff;color:#000000;}</style>
 '<style>.note{font-family:courier new;background-color:#ffffaa;}</style>
 '<style>table,ol,ul,.plot{margin-left:2em;}</style>
+'<!-- Table paragraphs inherit their cell alignment instead of the document-level justified paragraph style. -->
+'<style>table th p,table td p{margin:0;text-align:inherit;}</style>
 '<style>.content-box{columns:3;column-gap:20px;}</style>
 '<style>.row{display:flex;}</style>
 '<style>.column{flex:50%;}</style>

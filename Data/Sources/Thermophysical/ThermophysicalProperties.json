@@ -1,10 +1,10 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "library": {
     "name": "DRAT Thermophysical Properties Library",
-    "revision": "0.1.0",
-    "date": "2026-08-15",
-    "scope": "Initial self-contained temperature-property curves for water and 50 percent ethylene glycol by mass. Values are linearly interpolated from 10 deg C through 95 deg C. This revision is not a general equation-of-state engine and does not support arbitrary pressure, concentration, phase, or fluid queries."
+    "revision": "0.3.0",
+    "date": "2026-08-23",
+    "scope": "Self-contained temperature-property curves for water and 50 percent ethylene glycol by mass plus the IAPWS-IF97 equations for stable single-phase water and steam in Regions 1 and 2. Region 3, Region 5, metastable steam, and two-phase quality calculations are not implemented."
   },
   "sources": [
     {
@@ -15,6 +15,15 @@
       "revision": "Tank worksheet sample set captured 2026-08-14",
       "license": "CoolProp project distributed under the MIT License",
       "notes": "Fluid keys Water and INCOMP::MEG-50%. The saved worksheet did not retain the complete input-pair calls, so this dataset must be treated as a traceable migration baseline rather than independent validation of the property basis."
+    },
+    {
+      "id": 2,
+      "constant": "THERMO_SRC_IAPWS_IF97",
+      "name": "IAPWS Industrial Formulation 1997",
+      "citation": "IAPWS R7-97 2012 Revised Release on the IAPWS Industrial Formulation 1997 for the Thermodynamic Properties of Water and Steam",
+      "revision": "Revised Release R7-97 2012 downloaded from IAPWS",
+      "license": "Publication allowed with attribution to IAPWS",
+      "notes": "Region 1 and Region 2 fundamental equations with the Region 4 saturation equations and the B23 boundary equation. Coefficients and verification points are transcribed from the official release."
     }
   ],
   "fluids": [
@@ -154,5 +163,49 @@
       "temperature_c": [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95],
       "values": [0.382962793, 0.386052253, 0.389148353, 0.392248012, 0.395348149, 0.398445681, 0.401537528, 0.404620608, 0.407691839, 0.410748139, 0.413786428, 0.416803623, 0.419796644, 0.422762407, 0.425697833, 0.42859984, 0.431465345, 0.434291268]
     }
-  ]
+  ],
+  "if97": {
+    "source_id": 2,
+    "revision": "R7-97 2012",
+    "gas_constant_kJ_per_kgK": 0.461526,
+    "critical_temperature_K": 647.096,
+    "critical_pressure_MPa": 22.064,
+    "minimum_temperature_K": 273.15,
+    "maximum_region2_temperature_K": 1073.15,
+    "maximum_pressure_MPa": 100,
+    "properties": [
+      {"id": 1, "constant": "IF97_P_SPECIFIC_VOLUME", "name": "Specific volume", "unit_key": "m3_per_kg"},
+      {"id": 2, "constant": "IF97_P_DENSITY", "name": "Density", "unit_key": "kg_per_m3"},
+      {"id": 3, "constant": "IF97_P_ENTHALPY", "name": "Specific enthalpy", "unit_key": "kJ_per_kg"},
+      {"id": 4, "constant": "IF97_P_INTERNAL_ENERGY", "name": "Specific internal energy", "unit_key": "kJ_per_kg"},
+      {"id": 5, "constant": "IF97_P_ENTROPY", "name": "Specific entropy", "unit_key": "kJ_per_kgK"},
+      {"id": 6, "constant": "IF97_P_CP", "name": "Specific isobaric heat capacity", "unit_key": "kJ_per_kgK"},
+      {"id": 7, "constant": "IF97_P_CV", "name": "Specific isochoric heat capacity", "unit_key": "kJ_per_kgK"},
+      {"id": 8, "constant": "IF97_P_SOUND_SPEED", "name": "Speed of sound", "unit_key": "m_per_s"}
+    ],
+    "regions": {
+      "region1": {
+        "i": [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 8, 8, 21, 23, 29, 30, 31, 32],
+        "j": [-2, -1, 0, 1, 2, 3, 4, 5, -9, -7, -1, 0, 1, 3, -3, 0, 1, 3, 17, -4, 0, 6, -5, -2, 10, -8, -11, -6, -29, -31, -38, -39, -40, -41],
+        "n": [0.14632971213167, -0.84548187169114, -3.756360367204, 3.3855169168385, -0.95791963387872, 0.15772038513228, -0.016616417199501, 0.00081214629983568, 0.00028319080123804, -0.00060706301565874, -0.018990068218419, -0.032529748770505, -0.021841717175414, -0.00005283835796993, -0.00047184321073267, -0.00030001780793026, 0.000047661393906987, -0.0000044141845330846, -7.2694996297594e-16, -0.000031679644845054, -0.0000028270797985312, -8.5205128120103e-10, -0.0000022425281908, -0.00000065171222895601, -1.4341729937924e-13, -0.00000040516996860117, -1.2734301741641e-9, -1.7424871230634e-10, -6.8762131295531e-19, 1.4478307828521e-20, 2.6335781662795e-23, -1.1947622640071e-23, 1.8228094581404e-24, -9.3537087292458e-26]
+      },
+      "region2": {
+        "ideal": {
+          "j": [0, 1, -5, -4, -3, -2, -1, 2, 3],
+          "n": [-9.6927686500217, 10.086655968018, -0.005608791128302, 0.071452738081455, -0.40710498223928, 1.4240819171444, -4.383951131945, -0.28408632460772, 0.021268463753307]
+        },
+        "residual": {
+          "i": [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 6, 6, 6, 7, 7, 7, 8, 8, 9, 10, 10, 10, 16, 16, 18, 20, 20, 20, 21, 22, 23, 24, 24, 24],
+          "j": [0, 1, 2, 3, 6, 1, 2, 4, 7, 36, 0, 1, 3, 6, 35, 1, 2, 3, 7, 3, 16, 35, 0, 11, 25, 8, 36, 13, 4, 10, 14, 29, 50, 57, 20, 35, 48, 21, 53, 39, 26, 40, 58],
+          "n": [-0.0017731742473213, -0.017834862292358, -0.045996013696365, -0.057581259083432, -0.05032527872793, -0.000033032641670203, -0.00018948987516315, -0.0039392777243355, -0.043797295650573, -0.000026674547914087, 2.0481737692309e-8, 4.3870667284435e-7, -0.00003227767723857, -0.0015033924542148, -0.040668253562649, -7.8847309559367e-10, 1.2790717852285e-8, 4.8225372718507e-7, 2.2922076337661e-6, -1.6714766451061e-11, -0.0021171472321355, -23.895741934104, -5.905956432427e-18, -1.2621808899101e-6, -0.038946842435739, 1.1256211360459e-11, -8.2311340897998, 1.9809712802088e-8, 1.0406965210174e-19, -1.0234747095929e-13, -1.0018179379511e-9, -8.0882908646985e-11, 0.10693031879409, -0.33662250574171, 8.9185845355421e-25, 3.0629316876232e-13, -4.2002467698208e-6, -5.9056029685639e-26, 3.7826947613457e-6, -1.2768608934681e-15, 7.3087610595061e-29, 5.5414715350778e-17, -9.436970724121e-7]
+        }
+      }
+    },
+    "saturation": {
+      "n": [1167.0521452767, -724213.16703206, -17.073846940092, 12020.82470247, -3232555.0322333, 14.91510861353, -4823.2657361591, 405113.40542057, -0.23855557567849, 650.17534844798]
+    },
+    "boundary23": {
+      "n": [348.05185628969, -1.1671859879975, 0.0010192970039326]
+    }
+  }
 }

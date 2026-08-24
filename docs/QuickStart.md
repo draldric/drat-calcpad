@@ -185,9 +185,20 @@ ShowThermoFluidRecord$(THERMO_EG_50)
 ShowThermoProperty$(THERMO_EG_50; THERMO_P_DENSITY; T_process)
 ```
 
-The initial dataset is limited to water and 50% ethylene glycol curves from 10 °C through 95 °C.
-An out-of-range or unavailable property returns an error status and a dimensioned undefined value.
-See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying a sampled curve to a design state.
+The curve backend is limited to water and 50% ethylene glycol curves from 10 °C through 95 °C.
+The same library also provides IAPWS-IF97 Region 1 and Region 2 pressure-temperature properties:
+
+```text
+p = 3MPa
+T = 500K
+state_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATURE; T; THERMO_WATER)
+h = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATURE; T; THERMO_WATER)
+rho = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATURE; T; THERMO_WATER)
+```
+
+`ThermoProps` uses a CoolProp-shaped output/input/value/input/value/fluid signature while retaining CalcPad units. The pressure and temperature inputs may be supplied in either order.
+Out-of-range, unsupported-region, and saturation-line states return an explicit status and a dimensioned undefined property value.
+See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying either backend to a design state.
 
 ## Verify the work
 

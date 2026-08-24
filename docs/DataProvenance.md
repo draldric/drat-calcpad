@@ -11,7 +11,7 @@ This audit covers every distributed DRAT engineering dataset as of 2026-08-23. A
 | AISC HSS 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC C/MC channels 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC single angles 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
-| Thermophysical Properties 0.1.0 | CoolProp samples migrated through SMath plugin build `6.4.8214.13502`, captured 2026-08-14 | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Packaged with CoolProp MIT notice | Blocked: exact CoolProp version/input pairs and independent property validation are incomplete |
+| Thermophysical Properties 0.3.0 | CoolProp samples plus IAPWS R7-97(2012) Regions 1, 2, and 4 and B23 coefficients | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Generated equations and unified `ThermoProps` interface packaged with CoolProp and IAPWS attribution | IF97 equations qualified against official Tables 1, 5, 15, 35, and 36; sampled curves remain blocked on exact CoolProp version/input pairs and independent validation |
 
 ## AISC verification
 
@@ -54,9 +54,11 @@ No value may be promoted from screening merely because it resembles a handbook, 
 
 ## Thermophysical verification
 
-The JSON schema and generator enforce source, fluid, property, and curve IDs; supported CalcPad units; unique public functions; finite numeric values; equal temperature/value axes; strictly increasing temperature; metadata linkage; deterministic output; and failure-safe replacement.
+The JSON schema and generator enforce source, fluid, property, and curve IDs; supported CalcPad units; unique public functions; finite numeric values; equal temperature/value axes; strictly increasing temperature; fixed IF97 coefficient counts; metadata linkage; deterministic output; and failure-safe replacement.
 
-The dataset reproduces the migrated worksheet's CoolProp samples but lacks the exact CoolProp version and complete input-pair calls. It therefore does not claim an independent IAPWS basis or a general equation-of-state capability. CoolProp's MIT notice is included in `THIRD-PARTY-NOTICES.md`.
+The curve records reproduce the migrated worksheet's CoolProp samples but lack the exact CoolProp version and complete input-pair calls. They remain a migration baseline rather than an independently qualified equation-of-state basis.
+
+The IF97 records separately reproduce the official Region 1 and Region 2 fundamental equations, the Region 4 saturation-pressure and saturation-temperature equations, and the B23 boundary equation. CalcPad regression checks cover all published verification points applicable to those equations. Region 3, Region 5, metastable steam, and two-phase quality states are explicitly rejected rather than evaluated with an adjacent region.
 
 ## Units, conversions, and missing values
 

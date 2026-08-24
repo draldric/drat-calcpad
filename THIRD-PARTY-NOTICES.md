@@ -14,6 +14,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 Project and current license text: https://github.com/CoolProp/CoolProp/blob/master/LICENSE
 
+## IAPWS Industrial Formulation 1997
+
+The thermophysical library implements selected equations and factual coefficients from the International Association for the Properties of Water and Steam Revised Release on the IAPWS Industrial Formulation 1997, R7-97(2012).
+
+IAPWS permits publication in whole or in part provided that attribution is given to the International Association for the Properties of Water and Steam.
+
+Official release: https://iapws.org/documents/release/IF97-Rev
+
 ## AISC Shapes Database v16.0
 
 The structural-section libraries contain selected factual geometric values compiled by DRAT using the American Institute of Steel Construction's AISC Shapes Database v16.0, August 2023, as their source basis, consistent with the AISC Steel Construction Manual, 16th Edition.

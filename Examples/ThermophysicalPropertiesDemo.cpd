@@ -5,9 +5,9 @@
 #def Organization$ = DRAT EXAMPLE ORGANIZATION
 #def Client$ = DEMONSTRATION CLIENT
 #def Project$ = THERMAL PROPERTY WORKFLOW DEMONSTRATION
-#def Title$ = WATER AND ETHYLENE GLYCOL PROPERTY LOOKUPS
-#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE THERMOPHYSICAL PROPERTY LOOKUPS, RANGE STATUS REPORTING, AND USE OF THE RESULT IN A SIMPLE HEAT-CAPACITY-RATE CALCULATION.
-#def Scope$ = QUERY THE INITIAL WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES FROM 10 DEG C THROUGH 95 DEG C. GENERAL PRESSURE, PHASE, CONCENTRATION, AND EQUATION-OF-STATE CALCULATIONS ARE EXCLUDED.
+#def Title$ = THERMOPHYSICAL CURVES AND IAPWS WATER STEAM STATES
+#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE CURVE LOOKUPS AND IAPWS-IF97 PRESSURE-TEMPERATURE STATE CALCULATIONS FOR WATER AND STEAM.
+#def Scope$ = QUERY THE WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES AND CALCULATE STABLE SINGLE-PHASE WATER OR STEAM STATES IN IAPWS-IF97 REGIONS 1 AND 2. REGIONS 3 AND 5 AND TWO-PHASE QUALITY CALCULATIONS ARE EXCLUDED.
 #def Calculation$ = EXAMPLE-THERMO-001
 #def Rev$ = 0
 #def PreparedBy$ = EXAMPLE AUTHOR
@@ -23,9 +23,11 @@ CreatePurpose$
 CreateScope$
 #hide
 REF_COOLPROP_SAMPLE = 1
+REF_IAPWS_IF97 = 2
 ASSUMPTION_SAMPLE_BASIS = 1
 LIMITATION_RANGE = 1
 LIMITATION_MODEL = 2
+LIMITATION_IF97_SCOPE = 3
 #show
 
 BeginRevisions$
@@ -34,6 +36,7 @@ EndRevisions$
 
 BeginReferences$
 AddReference$(REF_COOLPROP_SAMPLE; CoolProp thermophysical property engine; Water and INCOMP::MEG-50% sampled curves; SMath plugin build 6.4.8214.13502; 10 deg C through 95 deg C; Migration baseline captured from the source tank-heating worksheet.)
+AddReference$(REF_IAPWS_IF97; International Association for the Properties of Water and Steam; Revised Release on the IAPWS Industrial Formulation 1997; R7-97 2012; Regions 1 2 and 4 plus the B23 boundary; Official coefficients and computer-program verification tables.)
 EndReferences$
 
 "Basis and Limitations
@@ -45,12 +48,14 @@ EndAssumptions$
 BeginLimitations$
 AddLimitation$(LIMITATION_RANGE; The initial dataset covers only 10 deg C through 95 deg C.; Requests outside that range return a fatal status and an undefined property value.; Regenerate or extend the approved source data instead of extrapolating for design use.; REF_COOLPROP_SAMPLE)
 AddLimitation$(LIMITATION_MODEL; This revision is not a general equation-of-state or phase-equilibrium engine.; Arbitrary pressure concentration phase and fluid queries are unsupported.; Confirm that the selected fluid and property curve matches the engineering state being modeled.; REF_COOLPROP_SAMPLE)
+AddLimitation$(LIMITATION_IF97_SCOPE; The IF97 backend implements only stable single-phase Regions 1 and 2.; Saturation states Region 3 Region 5 and metastable steam return explicit error statuses.; Check the state status before using a returned property in design calculations.; REF_IAPWS_IF97)
 EndLimitations$
 
 "Dataset Summary
 
 ShowThermoDatasetSummary$
 ShowThermoSourceRecord$(THERMO_SRC_COOLPROP_SMATH)
+ShowThermoSourceRecord$(THERMO_SRC_IAPWS_IF97)
 
 "Available Fluids
 
@@ -99,7 +104,52 @@ DBStatus$(Cp_status)
 
 ShowThermoProperty$(THERMO_EG_50; THERMO_P_DYNAMIC_VISCOSITY; T_query)
 
+"IAPWS-IF97 Water and Steam States
+#hide
+p_liquid = 3MPa
+T_liquid = 500K
+p_steam = 0.1MPa
+T_steam = 500K
+
+liquid_region = If97RegionPT(p_liquid; T_liquid)
+liquid_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+
+steam_region = If97RegionPT(p_steam; T_steam)
+steam_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+
+p_sat_500 = If97SaturationPressureT(500K)
+T_sat_1MPa = If97SaturationTemperatureP(1MPa)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>State or property</th><th>Liquid example</th><th>Steam example</th></tr></thead>
+'<tbody>
+'<tr><td>Pressure</td><td>'p_liquid'</td><td>'p_steam'</td></tr>
+'<tr><td>Temperature</td><td>'T_liquid'</td><td>'T_steam'</td></tr>
+'<tr><td>IF97 region</td><td>'liquid_region'</td><td>'steam_region'</td></tr>
+'<tr><td>Status</td><td>
+ThermoPropsStatus$(liquid_status)
+'</td><td>
+ThermoPropsStatus$(steam_status)
+'</td></tr>
+'<tr><td>Density</td><td>'liquid_density'</td><td>'steam_density'</td></tr>
+'<tr><td>Specific enthalpy</td><td>'liquid_enthalpy'</td><td>'steam_enthalpy'</td></tr>
+'<tr><td>Specific isobaric heat capacity</td><td>'liquid_Cp'</td><td>'steam_Cp'</td></tr>
+'<tr><td>Saturation reference</td><td>'p_sat_500'</td><td>'T_sat_1MPa'</td></tr>
+'</tbody>
+'</table>
+#equ
+
 BeginConclusions$
 AddConclusion$(Dataset status; ThermoDatasetStatus)
 AddConclusion$(Example heat-capacity rate; Q_capacity)
+AddConclusion$(Liquid state region; liquid_region)
+AddConclusion$(Steam state region; steam_region)
 EndConclusions$

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from GeneratorSupport import GeneratorError, write_or_check as safe_write_or_check
+from IapwsIf97Support import generate_if97, validate_if97
 
 
 UNIT_EXPRESSIONS = {
@@ -21,7 +22,7 @@ UNIT_EXPRESSIONS = {
     "kPa": "kPa",
     "kJ_per_kg": "kJ/kg",
 }
-CONSTANT_PATTERN = re.compile(r"^THERMO_[A-Z][A-Z0-9_]*$")
+CONSTANT_PATTERN = re.compile(r"^(?:THERMO|IF97)_[A-Z][A-Z0-9_]*$")
 FUNCTION_PATTERN = re.compile(r"^[A-Z][A-Za-z0-9]*$")
 REVISION_PATTERN = re.compile(r"^\d+\.\d+\.\d+$")
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -71,7 +72,7 @@ def require_text(value: Any, path: str) -> str:
 
 
 def require_constant(value: Any, path: str) -> str:
-    """Return a valid library-prefixed CalcPad constant name."""
+    """Return a valid thermophysical-library CalcPad constant name."""
 
     text = require_text(value, path)
     require(CONSTANT_PATTERN.fullmatch(text) is not None, f"{path} must match {CONSTANT_PATTERN.pattern}.")
@@ -105,7 +106,7 @@ def validate_dataset(dataset: Any) -> dict[str, Any]:
     """Validate and return a thermophysical-property dataset."""
 
     root = require_mapping(dataset, "root")
-    require(root.get("schema_version") == 1, "schema_version must equal 1.")
+    require(root.get("schema_version") == 2, "schema_version must equal 2.")
 
     library = require_mapping(root.get("library"), "library")
     for field in ("name", "revision", "date", "scope"):
@@ -184,6 +185,20 @@ def validate_dataset(dataset: Any) -> dict[str, Any]:
     validate_unique(curve_keys, "fluid-property curve keys")
     validate_unique(function_names, "typed public function names")
     require(len(set(source_constants + fluid_constants + property_constants)) == len(source_constants + fluid_constants + property_constants), "All generated CalcPad constants must be unique.")
+    if97 = validate_if97(
+        root.get("if97"),
+        source_ids,
+        require,
+        require_mapping,
+        require_list,
+        require_integer,
+        require_text,
+        require_constant,
+        require_number,
+        validate_unique,
+    )
+    if97_constants = [item["constant"] for item in if97["properties"]]
+    require(not set(if97_constants).intersection(source_constants + fluid_constants + property_constants), "IF97 property constants must be unique across the library.")
     return root
 
 
@@ -205,7 +220,11 @@ def format_number(value: Any) -> str:
     number = float(value)
     if number == 0:
         return "0"
-    return format(number, ".12g")
+    rendered = format(number, ".15g")
+    if "e" in rendered:
+        mantissa, exponent = rendered.split("e")
+        return f"{mantissa}*10^{int(exponent)}"
+    return rendered
 
 
 def calc_vector(values: list[Any]) -> str:
@@ -307,6 +326,57 @@ def generate_library(dataset: dict[str, Any]) -> str:
     lines.append("ThermoFluidStatus(fluid) = if(ThermoHasFluid(fluid); DB_OK; DB_ERR_NAME)")
     lines.append("")
 
+    lines.extend(generate_if97(dataset, format_number))
+    lines.extend(
+        (
+            "'<!-- CoolProp-shaped, unit-aware thermophysical state selector. -->",
+            "",
+            "THERMO_IN_PRESSURE = 1",
+            "THERMO_IN_TEMPERATURE = 2",
+            "THERMO_OUT_SPECIFIC_VOLUME = IF97_P_SPECIFIC_VOLUME",
+            "THERMO_OUT_DENSITY = IF97_P_DENSITY",
+            "THERMO_OUT_ENTHALPY = IF97_P_ENTHALPY",
+            "THERMO_OUT_INTERNAL_ENERGY = IF97_P_INTERNAL_ENERGY",
+            "THERMO_OUT_ENTROPY = IF97_P_ENTROPY",
+            "THERMO_OUT_CP = IF97_P_CP",
+            "THERMO_OUT_CV = IF97_P_CV",
+            "THERMO_OUT_SOUND_SPEED = IF97_P_SOUND_SPEED",
+            "THERMO_PROPS_OK = IF97_OK",
+            "THERMO_PROPS_ERR_FLUID = 201",
+            "THERMO_PROPS_ERR_OUTPUT = 202",
+            "THERMO_PROPS_ERR_INPUT = 203",
+            "THERMO_PROPS_ERR_INPUT_PAIR = 204",
+            "ThermoPropsInputIDs = [THERMO_IN_PRESSURE; THERMO_IN_TEMPERATURE]",
+            "ThermoPropsOutputIDs = If97PropertyIDs",
+            "ThermoPropsHasInput(input) = DBHasID(ThermoPropsInputIDs; input)",
+            "ThermoPropsHasOutput(output) = DBHasID(ThermoPropsOutputIDs; output)",
+            "ThermoPropsHasPTPair(input_1; input_2) = or(and(input_1 ≡ THERMO_IN_PRESSURE; input_2 ≡ THERMO_IN_TEMPERATURE); and(input_1 ≡ THERMO_IN_TEMPERATURE; input_2 ≡ THERMO_IN_PRESSURE))",
+            "ThermoPropsPressure(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_PRESSURE; value_1; value_2)",
+            "ThermoPropsTemperature(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_TEMPERATURE; value_1; value_2)",
+            "ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{fluid_ok = fluid ≡ THERMO_WATER; output_ok = ThermoPropsHasOutput(output); input_1_ok = ThermoPropsHasInput(input_1); input_2_ok = ThermoPropsHasInput(input_2); pair_ok = ThermoPropsHasPTPair(input_1; input_2); pressure = if(pair_ok; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(pair_ok; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); switch(not(fluid_ok); THERMO_PROPS_ERR_FLUID; not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; If97PROPPTStatus(output; pressure; temperature));}",
+            "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); if(status ≡ THERMO_PROPS_OK; If97PROPPT(output; pressure; temperature); If97Undefined(output));}",
+            "",
+            "#def ThermoPropsStatus$(status$)",
+            "    #if status$ < THERMO_PROPS_ERR_FLUID",
+            "        If97Status$(status$)",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_FLUID",
+            "        '<span class=\"err\">Fluid is unknown or unsupported by the requested state backend</span>",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_OUTPUT",
+            "        '<span class=\"err\">Output property ID is unknown or unsupported</span>",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_INPUT",
+            "        '<span class=\"err\">Input property ID is unknown or unsupported</span>",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_INPUT_PAIR",
+            "        '<span class=\"err\">Input pair is unsupported or repeats the same property</span>",
+            "    #end if",
+            "#end def",
+            "",
+        )
+    )
+
     unit_switch_terms: list[str] = []
     undefined_switch_terms: list[str] = []
     for prop in properties:
@@ -318,7 +388,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "ThermoApplyUnits(property; value) = switch(" + "; ".join(unit_switch_terms + ["0/0"]) + ")",
             "ThermoUndefined(property) = switch(" + "; ".join(undefined_switch_terms + ["0/0"]) + ")",
             "",
-            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3)",
+            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK)",
             "ThermoDatasetStatus = if(ThermoDatasetOK; DB_OK; DB_ERR_MISSING)",
             "",
             "ThermoPROPStatus(fluid; property; temperature; method; bounds_policy) = _",
@@ -386,6 +456,8 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "    '<tr><td><strong>Property count</strong></td><td>'ThermoPropertyCount'</td></tr>",
             "    '<tr><td><strong>Curve count</strong></td><td>'ThermoCurveCount'</td></tr>",
             "    '<tr><td><strong>Data point count</strong></td><td>'ThermoPointCount'</td></tr>",
+            "    '<tr><td><strong>IF97 implemented regions</strong></td><td>'If97ImplementedRegionCount'</td></tr>",
+            "    '<tr><td><strong>IF97 state-property count</strong></td><td>'If97PropertyCount'</td></tr>",
             "    '<tr><td><strong>Dataset status</strong></td><td>",
             "    DBStatus$(ThermoDatasetStatus)",
             "    '</td></tr></tbody></table>",
@@ -502,7 +574,7 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     """Parse generator command-line arguments."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source", type=Path, help="Schema-version-1 thermophysical JSON source.")
+    parser.add_argument("source", type=Path, help="Schema-version-2 thermophysical JSON source.")
     parser.add_argument("output", type=Path, help="Generated CalcPad library path.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     return parser.parse_args(arguments)

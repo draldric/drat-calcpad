@@ -36,11 +36,32 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
 
         validated = GENERATOR.validate_dataset(self.dataset)
         generated = GENERATOR.generate_library(validated)
-        self.assertIn("ThermophysicalPropertiesLibraryRevision$ = 0.1.0", generated)
+        self.assertIn("ThermophysicalPropertiesLibraryRevision$ = 0.3.0", generated)
         self.assertIn("WaterSaturationPressureT(temperature)", generated)
         self.assertIn("Eg50DynamicViscosityTStatus(temperature)", generated)
+        self.assertIn("If97RegionPT(pressure; temperature)", generated)
+        self.assertIn("If97EnthalpyPT(pressure; temperature)", generated)
+        self.assertIn("If97SaturationTemperatureP(pressure)", generated)
+        self.assertIn("ThermoProps(output; input_1; value_1; input_2; value_2; fluid)", generated)
+        self.assertIn("ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid)", generated)
         self.assertIn("ThermoSourceCitation$", generated)
         self.assertIn("DRAT_DATA_WRAPPER_API ≥ 303", generated)
+
+    def test_rejects_incomplete_if97_coefficient_series(self) -> None:
+        """Every official IF97 coefficient array must retain its fixed published length."""
+
+        invalid = copy.deepcopy(self.dataset)
+        invalid["if97"]["regions"]["region1"]["n"].pop()
+        with self.assertRaisesRegex(GENERATOR.SchemaError, "exactly 34"):
+            GENERATOR.validate_dataset(invalid)
+
+    def test_rejects_unknown_if97_unit_key(self) -> None:
+        """IF97 output dimensions must be selected from the audited unit map."""
+
+        invalid = copy.deepcopy(self.dataset)
+        invalid["if97"]["properties"][0]["unit_key"] = "arbitrary_code"
+        with self.assertRaisesRegex(GENERATOR.SchemaError, "unit_key is unsupported"):
+            GENERATOR.validate_dataset(invalid)
 
     def test_rejects_non_increasing_temperature_axis(self) -> None:
         """Curves with repeated or descending temperatures must be rejected."""
