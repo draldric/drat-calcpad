@@ -36,12 +36,14 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
 
         validated = GENERATOR.validate_dataset(self.dataset)
         generated = GENERATOR.generate_library(validated)
-        self.assertIn("ThermophysicalPropertiesLibraryRevision$ = 0.2.0", generated)
+        self.assertIn("ThermophysicalPropertiesLibraryRevision$ = 0.3.0", generated)
         self.assertIn("WaterSaturationPressureT(temperature)", generated)
         self.assertIn("Eg50DynamicViscosityTStatus(temperature)", generated)
         self.assertIn("If97RegionPT(pressure; temperature)", generated)
         self.assertIn("If97EnthalpyPT(pressure; temperature)", generated)
         self.assertIn("If97SaturationTemperatureP(pressure)", generated)
+        self.assertIn("ThermoProps(output; input_1; value_1; input_2; value_2; fluid)", generated)
+        self.assertIn("ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid)", generated)
         self.assertIn("ThermoSourceCitation$", generated)
         self.assertIn("DRAT_DATA_WRAPPER_API ≥ 303", generated)
 

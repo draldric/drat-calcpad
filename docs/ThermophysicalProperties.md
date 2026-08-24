@@ -3,13 +3,14 @@
 `Libraries/Thermophysical/ThermophysicalProperties.cpd` is the generated, self-contained DRAT property library for thermal and fluid calculations.
 It does not require CoolProp or another property engine at worksheet runtime.
 
-Release `0.2.0` provides two complementary backends:
+Release `0.3.0` provides two complementary backends and one unified state-query interface:
 
 - Water specific heat, saturation pressure, and latent heat of vaporization.
 - Density, specific heat, dynamic viscosity, and thermal conductivity for 50% ethylene glycol by mass (`INCOMP::MEG-50%`).
 - Linear interpolation from 10 °C through 95 °C.
 - IAPWS-IF97 fundamental equations for stable single-phase water and steam in Regions 1 and 2.
 - IAPWS-IF97 Region 4 forward and inverse saturation equations plus the B23 boundary used for region selection.
+- A CoolProp-shaped `ThermoProps` selector over the implemented equation backends.
 
 These curves reproduce the values embedded in the migrated tank-heating calculation.
 They were sampled from CoolProp through SMath plugin build `6.4.8214.13502`.
@@ -26,6 +27,21 @@ Load Core first and then the library directly:
 
 The library requires Core API 4.x and DataWrapper API 0.3.3 or newer.
 It guards its complete body and reports a compatibility error if either dependency is incompatible.
+
+## Unified state selector
+
+`ThermoProps` follows the six-argument shape of CoolProp's generic property query while retaining CalcPad units and stable numeric IDs:
+
+```text
+h = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERATURE; 500K; THERMO_WATER)
+h_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERATURE; 500K; THERMO_WATER)
+```
+
+The two inputs can be supplied in either order. Version `0.3.0` supports only the pressure-temperature pair and the `THERMO_WATER` equation backend. Unsupported fluids, outputs, inputs, repeated inputs, and unavailable IF97 regions return explicit statuses. `ThermoPropsStatus$(status)` renders the complete unified or underlying IF97 status.
+
+Input IDs are `THERMO_IN_PRESSURE` and `THERMO_IN_TEMPERATURE`. Output IDs are `THERMO_OUT_SPECIFIC_VOLUME`, `THERMO_OUT_DENSITY`, `THERMO_OUT_ENTHALPY`, `THERMO_OUT_INTERNAL_ENERGY`, `THERMO_OUT_ENTROPY`, `THERMO_OUT_CP`, `THERMO_OUT_CV`, and `THERMO_OUT_SOUND_SPEED`.
+
+Unlike CoolProp's `PropsSI`, values are passed and returned with CalcPad units instead of unitless SI numbers. The ID-based interface also avoids fragile string comparisons in generated worksheets. Its call shape is reserved for future pressure-enthalpy, pressure-entropy, and quality input pairs.
 
 ## IAPWS-IF97 pressure-temperature states
 
@@ -52,7 +68,7 @@ w = If97SoundSpeedPT(p; T)
 The status helper rejects non-positive pressure, pressure above 100 MPa, temperature outside the implemented range, saturation-line states that require phase quality, and states in Region 3.
 Region 5 and the special metastable-vapor equation are also outside this release.
 
-The generic selector supports generated calculations:
+The lower-level IF97 selector supports generated calculations when the input pair is already known to be pressure-temperature:
 
 ```text
 h = If97PROPPT(IF97_P_ENTHALPY; p; T)

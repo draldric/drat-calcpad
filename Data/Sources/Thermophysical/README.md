@@ -3,8 +3,8 @@
 ## Identification
 
 - Repository input: `ThermophysicalProperties.json`
-- Dataset revision: 0.2.0, dated 2026-08-23
-- SHA-256 at audit: `581b451143945569e0c2aea7df9d02b0b1b3d17a2f0e32cc9beab81777ce01c3`
+- Dataset revision: 0.3.0, dated 2026-08-23
+- SHA-256 at audit: `4564a3622225c3d07e0d35205e551630295e3097865af14445e6c5bc8a1dc8a7`
 - Source engine: CoolProp sampled through SMath plugin build `6.4.8214.13502`
 - Equation source: IAPWS R7-97(2012) Revised Release
 - Fluid keys: `Water` and `INCOMP::MEG-50%`

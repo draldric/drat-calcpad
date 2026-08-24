@@ -327,6 +327,55 @@ def generate_library(dataset: dict[str, Any]) -> str:
     lines.append("")
 
     lines.extend(generate_if97(dataset, format_number))
+    lines.extend(
+        (
+            "'<!-- CoolProp-shaped, unit-aware thermophysical state selector. -->",
+            "",
+            "THERMO_IN_PRESSURE = 1",
+            "THERMO_IN_TEMPERATURE = 2",
+            "THERMO_OUT_SPECIFIC_VOLUME = IF97_P_SPECIFIC_VOLUME",
+            "THERMO_OUT_DENSITY = IF97_P_DENSITY",
+            "THERMO_OUT_ENTHALPY = IF97_P_ENTHALPY",
+            "THERMO_OUT_INTERNAL_ENERGY = IF97_P_INTERNAL_ENERGY",
+            "THERMO_OUT_ENTROPY = IF97_P_ENTROPY",
+            "THERMO_OUT_CP = IF97_P_CP",
+            "THERMO_OUT_CV = IF97_P_CV",
+            "THERMO_OUT_SOUND_SPEED = IF97_P_SOUND_SPEED",
+            "THERMO_PROPS_OK = IF97_OK",
+            "THERMO_PROPS_ERR_FLUID = 201",
+            "THERMO_PROPS_ERR_OUTPUT = 202",
+            "THERMO_PROPS_ERR_INPUT = 203",
+            "THERMO_PROPS_ERR_INPUT_PAIR = 204",
+            "ThermoPropsInputIDs = [THERMO_IN_PRESSURE; THERMO_IN_TEMPERATURE]",
+            "ThermoPropsOutputIDs = If97PropertyIDs",
+            "ThermoPropsHasInput(input) = DBHasID(ThermoPropsInputIDs; input)",
+            "ThermoPropsHasOutput(output) = DBHasID(ThermoPropsOutputIDs; output)",
+            "ThermoPropsHasPTPair(input_1; input_2) = or(and(input_1 ≡ THERMO_IN_PRESSURE; input_2 ≡ THERMO_IN_TEMPERATURE); and(input_1 ≡ THERMO_IN_TEMPERATURE; input_2 ≡ THERMO_IN_PRESSURE))",
+            "ThermoPropsPressure(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_PRESSURE; value_1; value_2)",
+            "ThermoPropsTemperature(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_TEMPERATURE; value_1; value_2)",
+            "ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{fluid_ok = fluid ≡ THERMO_WATER; output_ok = ThermoPropsHasOutput(output); input_1_ok = ThermoPropsHasInput(input_1); input_2_ok = ThermoPropsHasInput(input_2); pair_ok = ThermoPropsHasPTPair(input_1; input_2); pressure = if(pair_ok; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(pair_ok; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); switch(not(fluid_ok); THERMO_PROPS_ERR_FLUID; not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; If97PROPPTStatus(output; pressure; temperature));}",
+            "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); if(status ≡ THERMO_PROPS_OK; If97PROPPT(output; pressure; temperature); If97Undefined(output));}",
+            "",
+            "#def ThermoPropsStatus$(status$)",
+            "    #if status$ < THERMO_PROPS_ERR_FLUID",
+            "        If97Status$(status$)",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_FLUID",
+            "        '<span class=\"err\">Fluid is unknown or unsupported by the requested state backend</span>",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_OUTPUT",
+            "        '<span class=\"err\">Output property ID is unknown or unsupported</span>",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_INPUT",
+            "        '<span class=\"err\">Input property ID is unknown or unsupported</span>",
+            "    #end if",
+            "    #if status$ ≡ THERMO_PROPS_ERR_INPUT_PAIR",
+            "        '<span class=\"err\">Input pair is unsupported or repeats the same property</span>",
+            "    #end if",
+            "#end def",
+            "",
+        )
+    )
 
     unit_switch_terms: list[str] = []
     undefined_switch_terms: list[str] = []

@@ -112,16 +112,16 @@ p_steam = 0.1MPa
 T_steam = 500K
 
 liquid_region = If97RegionPT(p_liquid; T_liquid)
-liquid_status = If97RegionPTStatus(p_liquid; T_liquid)
-liquid_density = If97DensityPT(p_liquid; T_liquid)
-liquid_enthalpy = If97EnthalpyPT(p_liquid; T_liquid)
-liquid_Cp = If97CpPT(p_liquid; T_liquid)
+liquid_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
 
 steam_region = If97RegionPT(p_steam; T_steam)
-steam_status = If97RegionPTStatus(p_steam; T_steam)
-steam_density = If97DensityPT(p_steam; T_steam)
-steam_enthalpy = If97EnthalpyPT(p_steam; T_steam)
-steam_Cp = If97CpPT(p_steam; T_steam)
+steam_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
 
 p_sat_500 = If97SaturationPressureT(500K)
 T_sat_1MPa = If97SaturationTemperatureP(1MPa)
@@ -135,9 +135,9 @@ T_sat_1MPa = If97SaturationTemperatureP(1MPa)
 '<tr><td>Temperature</td><td>'T_liquid'</td><td>'T_steam'</td></tr>
 '<tr><td>IF97 region</td><td>'liquid_region'</td><td>'steam_region'</td></tr>
 '<tr><td>Status</td><td>
-If97Status$(liquid_status)
+ThermoPropsStatus$(liquid_status)
 '</td><td>
-If97Status$(steam_status)
+ThermoPropsStatus$(steam_status)
 '</td></tr>
 '<tr><td>Density</td><td>'liquid_density'</td><td>'steam_density'</td></tr>
 '<tr><td>Specific enthalpy</td><td>'liquid_enthalpy'</td><td>'steam_enthalpy'</td></tr>

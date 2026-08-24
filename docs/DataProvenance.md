@@ -11,7 +11,7 @@ This audit covers every distributed DRAT engineering dataset as of 2026-08-23. A
 | AISC HSS 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC C/MC channels 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC single angles 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
-| Thermophysical Properties 0.2.0 | CoolProp samples plus IAPWS R7-97(2012) Regions 1, 2, and 4 and B23 coefficients | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Generated equations packaged with CoolProp and IAPWS attribution | IF97 equations qualified against official Tables 1, 5, 15, 35, and 36; sampled curves remain blocked on exact CoolProp version/input pairs and independent validation |
+| Thermophysical Properties 0.3.0 | CoolProp samples plus IAPWS R7-97(2012) Regions 1, 2, and 4 and B23 coefficients | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Generated equations and unified `ThermoProps` interface packaged with CoolProp and IAPWS attribution | IF97 equations qualified against official Tables 1, 5, 15, 35, and 36; sampled curves remain blocked on exact CoolProp version/input pairs and independent validation |
 
 ## AISC verification
 
