@@ -5,13 +5,14 @@
 '<!-- Status-aware thermophysical property curves. -->
 
 #def ThermophysicalPropertiesLibraryName$ = DRAT Thermophysical Properties Library
-#def ThermophysicalPropertiesLibraryRevision$ = 0.1.0
-#def ThermophysicalPropertiesLibraryDate$ = 2026-08-15
-#def ThermophysicalPropertiesLibraryScope$ = Initial self-contained temperature-property curves for water and 50 percent ethylene glycol by mass. Values are linearly interpolated from 10 deg C through 95 deg C. This revision is not a general equation-of-state engine and does not support arbitrary pressure, concentration, phase, or fluid queries.
+#def ThermophysicalPropertiesLibraryRevision$ = 0.2.0
+#def ThermophysicalPropertiesLibraryDate$ = 2026-08-23
+#def ThermophysicalPropertiesLibraryScope$ = Self-contained temperature-property curves for water and 50 percent ethylene glycol by mass plus the IAPWS-IF97 equations for stable single-phase water and steam in Regions 1 and 2. Region 3, Region 5, metastable steam, and two-phase quality calculations are not implemented.
 
 THERMO_SRC_COOLPROP_SMATH = 1
+THERMO_SRC_IAPWS_IF97 = 2
 
-ThermoSourceIDs = [1]
+ThermoSourceIDs = [1; 2]
 
 THERMO_WATER = 101
 THERMO_EG_50 = 201
@@ -50,10 +51,120 @@ ThermoDataRevision(fluid; property) = DBTableRaw(ThermoMetadata; DBKey(fluid; pr
 ThermoFluidConcentrationMassFraction(fluid) = switch(fluid ≡ THERMO_WATER; DB_MISSING; fluid ≡ THERMO_EG_50; 0.5; DB_MISSING)
 ThermoFluidStatus(fluid) = if(ThermoHasFluid(fluid); DB_OK; DB_ERR_NAME)
 
+'<!-- IAPWS-IF97 Region 1 and Region 2 equation backend. -->
+
+IF97_OK = 0
+IF97_ERR_PROPERTY = 101
+IF97_ERR_PRESSURE_LOW = 102
+IF97_ERR_PRESSURE_HIGH = 103
+IF97_ERR_TEMPERATURE_LOW = 104
+IF97_ERR_TEMPERATURE_HIGH = 105
+IF97_ERR_TWO_PHASE = 106
+IF97_ERR_UNSUPPORTED_REGION = 107
+IF97_REGION_UNSUPPORTED = 0
+IF97_REGION_1 = 1
+IF97_REGION_2 = 2
+IF97_R = 0.461526
+IF97_T_MIN = 273.15K
+IF97_T_R1_MAX = 623.15K
+IF97_T_B23_MAX = 863.15K
+IF97_T_R2_MAX = 1073.15K
+IF97_T_CRITICAL = 647.096K
+IF97_P_CRITICAL = 22.064MPa
+IF97_P_MAX = 100MPa
+IF97_SOURCE_ID = 2
+
+IF97_P_SPECIFIC_VOLUME = 1
+IF97_P_DENSITY = 2
+IF97_P_ENTHALPY = 3
+IF97_P_INTERNAL_ENERGY = 4
+IF97_P_ENTROPY = 5
+IF97_P_CP = 6
+IF97_P_CV = 7
+IF97_P_SOUND_SPEED = 8
+
+If97PropertyIDs = [1; 2; 3; 4; 5; 6; 7; 8]
+If97PropertyCount = 8
+If97ImplementedRegionCount = 2
+If97HasProperty(property) = DBHasID(If97PropertyIDs; property)
+If97DatasetOK = and(If97PropertyCount ≡ len(If97PropertyIDs); If97ImplementedRegionCount ≡ 2; IF97_SOURCE_ID ≡ THERMO_SRC_IAPWS_IF97)
+If97ApplyUnits(property; value) = switch(property ≡ IF97_P_SPECIFIC_VOLUME; setunits(value; m^3/kg); property ≡ IF97_P_DENSITY; setunits(value; kg/m^3); property ≡ IF97_P_ENTHALPY; setunits(value; kJ/kg); property ≡ IF97_P_INTERNAL_ENERGY; setunits(value; kJ/kg); property ≡ IF97_P_ENTROPY; setunits(value; kJ/(kg*K)); property ≡ IF97_P_CP; setunits(value; kJ/(kg*K)); property ≡ IF97_P_CV; setunits(value; kJ/(kg*K)); property ≡ IF97_P_SOUND_SPEED; setunits(value; m/s); 0/0)
+If97Undefined(property) = switch(property ≡ IF97_P_SPECIFIC_VOLUME; setunits(0/0; m^3/kg); property ≡ IF97_P_DENSITY; setunits(0/0; kg/m^3); property ≡ IF97_P_ENTHALPY; setunits(0/0; kJ/kg); property ≡ IF97_P_INTERNAL_ENERGY; setunits(0/0; kJ/kg); property ≡ IF97_P_ENTROPY; setunits(0/0; kJ/(kg*K)); property ≡ IF97_P_CP; setunits(0/0; kJ/(kg*K)); property ≡ IF97_P_CV; setunits(0/0; kJ/(kg*K)); property ≡ IF97_P_SOUND_SPEED; setunits(0/0; m/s); 0/0)
+
+If97SaturationPressureTRaw(T_K) = $block{theta = T_K + -0.23855557567849/(T_K - 650.17534844798); A = theta^2 + 1167.0521452767*theta + -724213.16703206; B = -17.073846940092*theta^2 + 12020.82470247*theta + -3232555.0322333; C = 14.91510861353*theta^2 + -4823.2657361591*theta + 405113.40542057; (2*C/(-B + sqrt(B^2 - 4*A*C)))^4;}
+If97SaturationTemperaturePRaw(p_MPa) = $block{beta = p_MPa^0.25; E = beta^2 + -17.073846940092*beta + 14.91510861353; F = 1167.0521452767*beta^2 + 12020.82470247*beta + -4823.2657361591; G = -724213.16703206*beta^2 + -3232555.0322333*beta + 405113.40542057; D = 2*G/(-F - sqrt(F^2 - 4*E*G)); (650.17534844798 + D - sqrt((650.17534844798 + D)^2 - 4*(-0.23855557567849 + 650.17534844798*D)))/2;}
+If97SaturationPressureTStatus(temperature) = switch(temperature < IF97_T_MIN; IF97_ERR_TEMPERATURE_LOW; temperature > IF97_T_CRITICAL; IF97_ERR_TEMPERATURE_HIGH; IF97_OK)
+If97SaturationTemperaturePStatus(pressure) = switch(pressure < 0.000611213MPa; IF97_ERR_PRESSURE_LOW; pressure > IF97_P_CRITICAL; IF97_ERR_PRESSURE_HIGH; IF97_OK)
+If97SaturationPressureT(temperature) = if(If97SaturationPressureTStatus(temperature) ≡ IF97_OK; If97SaturationPressureTRaw(temperature/K)*MPa; setunits(0/0; MPa))
+If97SaturationTemperatureP(pressure) = if(If97SaturationTemperaturePStatus(pressure) ≡ IF97_OK; If97SaturationTemperaturePRaw(pressure/MPa)*K; setunits(0/0; K))
+
+If97Boundary23PressureT(temperature) = (348.05185628969 + -1.1671859879975*(temperature/K) + 0.0010192970039326*(temperature/K)^2)*MPa
+If97RegionPTStatus(pressure; temperature) = $block{p_positive = pressure > 0MPa; p_in_range = pressure ≤ IF97_P_MAX; T_in_low = temperature ≥ IF97_T_MIN; T_in_high = temperature ≤ IF97_T_R2_MAX; p_sat = if(and(T_in_low; temperature ≤ IF97_T_R1_MAX); If97SaturationPressureT(temperature); 0MPa); on_saturation = if(and(T_in_low; temperature ≤ IF97_T_R1_MAX); pressure ≡ p_sat; 0); in_region3 = if(and(temperature > IF97_T_R1_MAX; temperature ≤ IF97_T_B23_MAX; p_positive; p_in_range); pressure > If97Boundary23PressureT(temperature); 0); switch(not(p_positive); IF97_ERR_PRESSURE_LOW; not(p_in_range); IF97_ERR_PRESSURE_HIGH; not(T_in_low); IF97_ERR_TEMPERATURE_LOW; not(T_in_high); IF97_ERR_TEMPERATURE_HIGH; on_saturation; IF97_ERR_TWO_PHASE; in_region3; IF97_ERR_UNSUPPORTED_REGION; IF97_OK);}
+If97RegionPT(pressure; temperature) = if(If97RegionPTStatus(pressure; temperature) ≠ IF97_OK; IF97_REGION_UNSUPPORTED; switch(temperature ≤ IF97_T_R1_MAX; if(pressure > If97SaturationPressureT(temperature); IF97_REGION_1; IF97_REGION_2); IF97_REGION_2))
+
+If97R1Gamma(pi; tau) = 0.14632971213167*(tau - 1.222)^-2 + -0.84548187169114*(tau - 1.222)^-1 + -3.756360367204 + 3.3855169168385*(tau - 1.222)^1 + -0.95791963387872*(tau - 1.222)^2 + 0.15772038513228*(tau - 1.222)^3 + -0.016616417199501*(tau - 1.222)^4 + 0.00081214629983568*(tau - 1.222)^5 + 0.00028319080123804*(7.1 - pi)^1*(tau - 1.222)^-9 + -0.00060706301565874*(7.1 - pi)^1*(tau - 1.222)^-7 + -0.018990068218419*(7.1 - pi)^1*(tau - 1.222)^-1 + -0.032529748770505*(7.1 - pi)^1 + -0.021841717175414*(7.1 - pi)^1*(tau - 1.222)^1 + -5.283835796993*10^-5*(7.1 - pi)^1*(tau - 1.222)^3 + -0.00047184321073267*(7.1 - pi)^2*(tau - 1.222)^-3 + -0.00030001780793026*(7.1 - pi)^2 + 4.7661393906987*10^-5*(7.1 - pi)^2*(tau - 1.222)^1 + -4.4141845330846*10^-6*(7.1 - pi)^2*(tau - 1.222)^3 + -7.2694996297594*10^-16*(7.1 - pi)^2*(tau - 1.222)^17 + -3.1679644845054*10^-5*(7.1 - pi)^3*(tau - 1.222)^-4 + -2.8270797985312*10^-6*(7.1 - pi)^3 + -8.5205128120103*10^-10*(7.1 - pi)^3*(tau - 1.222)^6 + -2.2425281908*10^-6*(7.1 - pi)^4*(tau - 1.222)^-5 + -6.5171222895601*10^-7*(7.1 - pi)^4*(tau - 1.222)^-2 + -1.4341729937924*10^-13*(7.1 - pi)^4*(tau - 1.222)^10 + -4.0516996860117*10^-7*(7.1 - pi)^5*(tau - 1.222)^-8 + -1.2734301741641*10^-9*(7.1 - pi)^8*(tau - 1.222)^-11 + -1.7424871230634*10^-10*(7.1 - pi)^8*(tau - 1.222)^-6 + -6.8762131295531*10^-19*(7.1 - pi)^21*(tau - 1.222)^-29 + 1.4478307828521*10^-20*(7.1 - pi)^23*(tau - 1.222)^-31 + 2.6335781662795*10^-23*(7.1 - pi)^29*(tau - 1.222)^-38 + -1.1947622640071*10^-23*(7.1 - pi)^30*(tau - 1.222)^-39 + 1.8228094581404*10^-24*(7.1 - pi)^31*(tau - 1.222)^-40 + -9.3537087292458*10^-26*(7.1 - pi)^32*(tau - 1.222)^-41
+If97R1GammaPi(pi; tau) = -0.00028319080123804*(tau - 1.222)^-9 + 0.00060706301565874*(tau - 1.222)^-7 + 0.018990068218419*(tau - 1.222)^-1 + 0.032529748770505 + 0.021841717175414*(tau - 1.222)^1 + 5.283835796993*10^-5*(tau - 1.222)^3 + 0.00094368642146534*(7.1 - pi)^1*(tau - 1.222)^-3 + 0.00060003561586052*(7.1 - pi)^1 + -9.5322787813974*10^-5*(7.1 - pi)^1*(tau - 1.222)^1 + 8.8283690661692*10^-6*(7.1 - pi)^1*(tau - 1.222)^3 + 1.45389992595188*10^-15*(7.1 - pi)^1*(tau - 1.222)^17 + 9.5038934535162*10^-5*(7.1 - pi)^2*(tau - 1.222)^-4 + 8.4812393955936*10^-6*(7.1 - pi)^2 + 2.55615384360309*10^-9*(7.1 - pi)^2*(tau - 1.222)^6 + 8.9701127632*10^-6*(7.1 - pi)^3*(tau - 1.222)^-5 + 2.60684891582404*10^-6*(7.1 - pi)^3*(tau - 1.222)^-2 + 5.7366919751696*10^-13*(7.1 - pi)^3*(tau - 1.222)^10 + 2.02584984300585*10^-6*(7.1 - pi)^4*(tau - 1.222)^-8 + 1.01874413933128*10^-8*(7.1 - pi)^7*(tau - 1.222)^-11 + 1.39398969845072*10^-9*(7.1 - pi)^7*(tau - 1.222)^-6 + 1.44400475720615*10^-17*(7.1 - pi)^20*(tau - 1.222)^-29 + -3.33001080055983*10^-19*(7.1 - pi)^22*(tau - 1.222)^-31 + -7.63737668221055*10^-22*(7.1 - pi)^28*(tau - 1.222)^-38 + 3.5842867920213*10^-22*(7.1 - pi)^29*(tau - 1.222)^-39 + -5.65070932023524*10^-23*(7.1 - pi)^30*(tau - 1.222)^-40 + 2.99318679335866*10^-24*(7.1 - pi)^31*(tau - 1.222)^-41
+If97R1GammaPiPi(pi; tau) = -0.00094368642146534*(tau - 1.222)^-3 + -0.00060003561586052 + 9.5322787813974*10^-5*(tau - 1.222)^1 + -8.8283690661692*10^-6*(tau - 1.222)^3 + -1.45389992595188*10^-15*(tau - 1.222)^17 + -0.000190077869070324*(7.1 - pi)^1*(tau - 1.222)^-4 + -1.69624787911872*10^-5*(7.1 - pi)^1 + -5.11230768720618*10^-9*(7.1 - pi)^1*(tau - 1.222)^6 + -2.69103382896*10^-5*(7.1 - pi)^2*(tau - 1.222)^-5 + -7.82054674747212*10^-6*(7.1 - pi)^2*(tau - 1.222)^-2 + -1.72100759255088*10^-12*(7.1 - pi)^2*(tau - 1.222)^10 + -8.1033993720234*10^-6*(7.1 - pi)^3*(tau - 1.222)^-8 + -7.13120897531896*10^-8*(7.1 - pi)^6*(tau - 1.222)^-11 + -9.75792788915504*10^-9*(7.1 - pi)^6*(tau - 1.222)^-6 + -2.8880095144123*10^-16*(7.1 - pi)^19*(tau - 1.222)^-29 + 7.32602376123163*10^-18*(7.1 - pi)^21*(tau - 1.222)^-31 + 2.13846547101895*10^-20*(7.1 - pi)^27*(tau - 1.222)^-38 + -1.03944316968618*10^-20*(7.1 - pi)^28*(tau - 1.222)^-39 + 1.69521279607057*10^-21*(7.1 - pi)^29*(tau - 1.222)^-40 + -9.27887905941183*10^-23*(7.1 - pi)^30*(tau - 1.222)^-41
+If97R1GammaTau(pi; tau) = -0.29265942426334*(tau - 1.222)^-3 + 0.84548187169114*(tau - 1.222)^-2 + 3.3855169168385 + -1.91583926775744*(tau - 1.222)^1 + 0.47316115539684*(tau - 1.222)^2 + -0.066465668798004*(tau - 1.222)^3 + 0.0040607314991784*(tau - 1.222)^4 + -0.00254871721114236*(7.1 - pi)^1*(tau - 1.222)^-10 + 0.00424944110961118*(7.1 - pi)^1*(tau - 1.222)^-8 + 0.018990068218419*(7.1 - pi)^1*(tau - 1.222)^-2 + -0.021841717175414*(7.1 - pi)^1 + -0.00015851507390979*(7.1 - pi)^1*(tau - 1.222)^2 + 0.00141552963219801*(7.1 - pi)^2*(tau - 1.222)^-4 + 4.7661393906987*10^-5*(7.1 - pi)^2 + -1.32425535992538*10^-5*(7.1 - pi)^2*(tau - 1.222)^2 + -1.2358149370591*10^-14*(7.1 - pi)^2*(tau - 1.222)^16 + 0.000126718579380216*(7.1 - pi)^3*(tau - 1.222)^-5 + -5.11230768720618*10^-9*(7.1 - pi)^3*(tau - 1.222)^5 + 1.1212640954*10^-5*(7.1 - pi)^4*(tau - 1.222)^-6 + 1.30342445791202*10^-6*(7.1 - pi)^4*(tau - 1.222)^-3 + -1.4341729937924*10^-12*(7.1 - pi)^4*(tau - 1.222)^9 + 3.24135974880936*10^-6*(7.1 - pi)^5*(tau - 1.222)^-9 + 1.40077319158051*10^-8*(7.1 - pi)^8*(tau - 1.222)^-12 + 1.04549227383804*10^-9*(7.1 - pi)^8*(tau - 1.222)^-7 + 1.9941018075704*10^-17*(7.1 - pi)^21*(tau - 1.222)^-30 + -4.48827542684151*10^-19*(7.1 - pi)^23*(tau - 1.222)^-32 + -1.00075970318621*10^-21*(7.1 - pi)^29*(tau - 1.222)^-39 + 4.65957282962769*10^-22*(7.1 - pi)^30*(tau - 1.222)^-40 + -7.2912378325616*10^-23*(7.1 - pi)^31*(tau - 1.222)^-41 + 3.83502057899078*10^-24*(7.1 - pi)^32*(tau - 1.222)^-42
+If97R1GammaTauTau(pi; tau) = 0.87797827279002*(tau - 1.222)^-4 + -1.69096374338228*(tau - 1.222)^-3 + -1.91583926775744 + 0.94632231079368*(tau - 1.222)^1 + -0.199397006394012*(tau - 1.222)^2 + 0.0162429259967136*(tau - 1.222)^3 + 0.0254871721114236*(7.1 - pi)^1*(tau - 1.222)^-11 + -0.0339955288768894*(7.1 - pi)^1*(tau - 1.222)^-9 + -0.037980136436838*(7.1 - pi)^1*(tau - 1.222)^-3 + -0.00031703014781958*(7.1 - pi)^1*(tau - 1.222)^1 + -0.00566211852879204*(7.1 - pi)^2*(tau - 1.222)^-5 + -2.64851071985076*10^-5*(7.1 - pi)^2*(tau - 1.222)^1 + -1.97730389929456*10^-13*(7.1 - pi)^2*(tau - 1.222)^15 + -0.00063359289690108*(7.1 - pi)^3*(tau - 1.222)^-6 + -2.55615384360309*10^-8*(7.1 - pi)^3*(tau - 1.222)^4 + -6.7275845724*10^-5*(7.1 - pi)^4*(tau - 1.222)^-7 + -3.91027337373606*10^-6*(7.1 - pi)^4*(tau - 1.222)^-4 + -1.29075569441316*10^-11*(7.1 - pi)^4*(tau - 1.222)^8 + -2.91722377392842*10^-5*(7.1 - pi)^5*(tau - 1.222)^-10 + -1.68092782989661*10^-7*(7.1 - pi)^8*(tau - 1.222)^-13 + -7.31844591686628*10^-9*(7.1 - pi)^8*(tau - 1.222)^-8 + -5.9823054227112*10^-16*(7.1 - pi)^21*(tau - 1.222)^-31 + 1.43624813658928*10^-17*(7.1 - pi)^23*(tau - 1.222)^-33 + 3.90296284242622*10^-20*(7.1 - pi)^29*(tau - 1.222)^-40 + -1.86382913185108*10^-20*(7.1 - pi)^30*(tau - 1.222)^-41 + 2.98940751135026*10^-21*(7.1 - pi)^31*(tau - 1.222)^-42 + -1.61070864317613*10^-22*(7.1 - pi)^32*(tau - 1.222)^-43
+If97R1GammaPiTau(pi; tau) = 0.00254871721114236*(tau - 1.222)^-10 + -0.00424944110961118*(tau - 1.222)^-8 + -0.018990068218419*(tau - 1.222)^-2 + 0.021841717175414 + 0.00015851507390979*(tau - 1.222)^2 + -0.00283105926439602*(7.1 - pi)^1*(tau - 1.222)^-4 + -9.5322787813974*10^-5*(7.1 - pi)^1 + 2.64851071985076*10^-5*(7.1 - pi)^1*(tau - 1.222)^2 + 2.4716298741182*10^-14*(7.1 - pi)^1*(tau - 1.222)^16 + -0.000380155738140648*(7.1 - pi)^2*(tau - 1.222)^-5 + 1.53369230616185*10^-8*(7.1 - pi)^2*(tau - 1.222)^5 + -4.4850563816*10^-5*(7.1 - pi)^3*(tau - 1.222)^-6 + -5.21369783164808*10^-6*(7.1 - pi)^3*(tau - 1.222)^-3 + 5.7366919751696*10^-12*(7.1 - pi)^3*(tau - 1.222)^9 + -1.62067987440468*10^-5*(7.1 - pi)^4*(tau - 1.222)^-9 + -1.12061855326441*10^-7*(7.1 - pi)^7*(tau - 1.222)^-12 + -8.36393819070432*10^-9*(7.1 - pi)^7*(tau - 1.222)^-7 + -4.18761379589784*10^-16*(7.1 - pi)^20*(tau - 1.222)^-30 + 1.03230334817355*10^-17*(7.1 - pi)^22*(tau - 1.222)^-32 + 2.90220313924001*10^-20*(7.1 - pi)^28*(tau - 1.222)^-39 + -1.39787184888831*10^-20*(7.1 - pi)^29*(tau - 1.222)^-40 + 2.2602837280941*10^-21*(7.1 - pi)^30*(tau - 1.222)^-41 + -1.22720658527705*10^-22*(7.1 - pi)^31*(tau - 1.222)^-42
+
+If97R2IdealGamma(pi; tau) = ln(pi) + -9.6927686500217 + 10.086655968018*(tau)^1 + -0.005608791128302*(tau)^-5 + 0.071452738081455*(tau)^-4 + -0.40710498223928*(tau)^-3 + 1.4240819171444*(tau)^-2 + -4.383951131945*(tau)^-1 + -0.28408632460772*(tau)^2 + 0.021268463753307*(tau)^3
+If97R2IdealGammaTau(pi; tau) = 10.086655968018 + 0.02804395564151*(tau)^-6 + -0.28581095232582*(tau)^-5 + 1.22131494671784*(tau)^-4 + -2.8481638342888*(tau)^-3 + 4.383951131945*(tau)^-2 + -0.56817264921544*(tau)^1 + 0.063805391259921*(tau)^2
+If97R2IdealGammaTauTau(pi; tau) = -0.16826373384906*(tau)^-7 + 1.4290547616291*(tau)^-6 + -4.88525978687136*(tau)^-5 + 8.5444915028664*(tau)^-4 + -8.76790226389*(tau)^-3 + -0.56817264921544 + 0.127610782519842*(tau)^1
+
+If97R2ResidualGamma(pi; tau) = -0.0017731742473213*(pi)^1 + -0.017834862292358*(pi)^1*(tau - 0.5)^1 + -0.045996013696365*(pi)^1*(tau - 0.5)^2 + -0.057581259083432*(pi)^1*(tau - 0.5)^3 + -0.05032527872793*(pi)^1*(tau - 0.5)^6 + -3.3032641670203*10^-5*(pi)^2*(tau - 0.5)^1 + -0.00018948987516315*(pi)^2*(tau - 0.5)^2 + -0.0039392777243355*(pi)^2*(tau - 0.5)^4 + -0.043797295650573*(pi)^2*(tau - 0.5)^7 + -2.6674547914087*10^-5*(pi)^2*(tau - 0.5)^36 + 2.0481737692309*10^-8*(pi)^3 + 4.3870667284435*10^-7*(pi)^3*(tau - 0.5)^1 + -3.227767723857*10^-5*(pi)^3*(tau - 0.5)^3 + -0.0015033924542148*(pi)^3*(tau - 0.5)^6 + -0.040668253562649*(pi)^3*(tau - 0.5)^35 + -7.8847309559367*10^-10*(pi)^4*(tau - 0.5)^1 + 1.2790717852285*10^-8*(pi)^4*(tau - 0.5)^2 + 4.8225372718507*10^-7*(pi)^4*(tau - 0.5)^3 + 2.2922076337661*10^-6*(pi)^5*(tau - 0.5)^7 + -1.6714766451061*10^-11*(pi)^6*(tau - 0.5)^3 + -0.0021171472321355*(pi)^6*(tau - 0.5)^16 + -23.895741934104*(pi)^6*(tau - 0.5)^35 + -5.905956432427*10^-18*(pi)^7 + -1.2621808899101*10^-6*(pi)^7*(tau - 0.5)^11 + -0.038946842435739*(pi)^7*(tau - 0.5)^25 + 1.1256211360459*10^-11*(pi)^8*(tau - 0.5)^8 + -8.2311340897998*(pi)^8*(tau - 0.5)^36 + 1.9809712802088*10^-8*(pi)^9*(tau - 0.5)^13 + 1.0406965210174*10^-19*(pi)^10*(tau - 0.5)^4 + -1.0234747095929*10^-13*(pi)^10*(tau - 0.5)^10 + -1.0018179379511*10^-9*(pi)^10*(tau - 0.5)^14 + -8.0882908646985*10^-11*(pi)^16*(tau - 0.5)^29 + 0.10693031879409*(pi)^16*(tau - 0.5)^50 + -0.33662250574171*(pi)^18*(tau - 0.5)^57 + 8.9185845355421*10^-25*(pi)^20*(tau - 0.5)^20 + 3.0629316876232*10^-13*(pi)^20*(tau - 0.5)^35 + -4.2002467698208*10^-6*(pi)^20*(tau - 0.5)^48 + -5.9056029685639*10^-26*(pi)^21*(tau - 0.5)^21 + 3.7826947613457*10^-6*(pi)^22*(tau - 0.5)^53 + -1.2768608934681*10^-15*(pi)^23*(tau - 0.5)^39 + 7.3087610595061*10^-29*(pi)^24*(tau - 0.5)^26 + 5.5414715350778*10^-17*(pi)^24*(tau - 0.5)^40 + -9.436970724121*10^-7*(pi)^24*(tau - 0.5)^58
+If97R2ResidualGammaPi(pi; tau) = -0.0017731742473213 + -0.017834862292358*(tau - 0.5)^1 + -0.045996013696365*(tau - 0.5)^2 + -0.057581259083432*(tau - 0.5)^3 + -0.05032527872793*(tau - 0.5)^6 + -6.6065283340406*10^-5*(pi)^1*(tau - 0.5)^1 + -0.0003789797503263*(pi)^1*(tau - 0.5)^2 + -0.007878555448671*(pi)^1*(tau - 0.5)^4 + -0.087594591301146*(pi)^1*(tau - 0.5)^7 + -5.3349095828174*10^-5*(pi)^1*(tau - 0.5)^36 + 6.1445213076927*10^-8*(pi)^2 + 1.31612001853305*10^-6*(pi)^2*(tau - 0.5)^1 + -9.683303171571*10^-5*(pi)^2*(tau - 0.5)^3 + -0.0045101773626444*(pi)^2*(tau - 0.5)^6 + -0.122004760687947*(pi)^2*(tau - 0.5)^35 + -3.15389238237468*10^-9*(pi)^3*(tau - 0.5)^1 + 5.116287140914*10^-8*(pi)^3*(tau - 0.5)^2 + 1.92901490874028*10^-6*(pi)^3*(tau - 0.5)^3 + 1.14610381688305*10^-5*(pi)^4*(tau - 0.5)^7 + -1.00288598706366*10^-10*(pi)^5*(tau - 0.5)^3 + -0.012702883392813*(pi)^5*(tau - 0.5)^16 + -143.374451604624*(pi)^5*(tau - 0.5)^35 + -4.1341695026989*10^-17*(pi)^6 + -8.8352662293707*10^-6*(pi)^6*(tau - 0.5)^11 + -0.272627897050173*(pi)^6*(tau - 0.5)^25 + 9.0049690883672*10^-11*(pi)^7*(tau - 0.5)^8 + -65.8490727183984*(pi)^7*(tau - 0.5)^36 + 1.78287415218792*10^-7*(pi)^8*(tau - 0.5)^13 + 1.0406965210174*10^-18*(pi)^9*(tau - 0.5)^4 + -1.0234747095929*10^-12*(pi)^9*(tau - 0.5)^10 + -1.0018179379511*10^-8*(pi)^9*(tau - 0.5)^14 + -1.29412653835176*10^-9*(pi)^15*(tau - 0.5)^29 + 1.71088510070544*(pi)^15*(tau - 0.5)^50 + -6.05920510335078*(pi)^17*(tau - 0.5)^57 + 1.78371690710842*10^-23*(pi)^19*(tau - 0.5)^20 + 6.1258633752464*10^-12*(pi)^19*(tau - 0.5)^35 + -8.4004935396416*10^-5*(pi)^19*(tau - 0.5)^48 + -1.24017662339842*10^-24*(pi)^20*(tau - 0.5)^21 + 8.32192847496054*10^-5*(pi)^21*(tau - 0.5)^53 + -2.93678005497663*10^-14*(pi)^22*(tau - 0.5)^39 + 1.75410265428146*10^-27*(pi)^23*(tau - 0.5)^26 + 1.32995316841867*10^-15*(pi)^23*(tau - 0.5)^40 + -2.26487297378904*10^-5*(pi)^23*(tau - 0.5)^58
+If97R2ResidualGammaPiPi(pi; tau) = -6.6065283340406*10^-5*(tau - 0.5)^1 + -0.0003789797503263*(tau - 0.5)^2 + -0.007878555448671*(tau - 0.5)^4 + -0.087594591301146*(tau - 0.5)^7 + -5.3349095828174*10^-5*(tau - 0.5)^36 + 1.22890426153854*10^-7*(pi)^1 + 2.6322400370661*10^-6*(pi)^1*(tau - 0.5)^1 + -0.00019366606343142*(pi)^1*(tau - 0.5)^3 + -0.0090203547252888*(pi)^1*(tau - 0.5)^6 + -0.244009521375894*(pi)^1*(tau - 0.5)^35 + -9.46167714712404*10^-9*(pi)^2*(tau - 0.5)^1 + 1.5348861422742*10^-7*(pi)^2*(tau - 0.5)^2 + 5.78704472622084*10^-6*(pi)^2*(tau - 0.5)^3 + 4.5844152675322*10^-5*(pi)^3*(tau - 0.5)^7 + -5.0144299353183*10^-10*(pi)^4*(tau - 0.5)^3 + -0.063514416964065*(pi)^4*(tau - 0.5)^16 + -716.87225802312*(pi)^4*(tau - 0.5)^35 + -2.48050170161934*10^-16*(pi)^5 + -5.30115973762242*10^-5*(pi)^5*(tau - 0.5)^11 + -1.63576738230104*(pi)^5*(tau - 0.5)^25 + 6.30347836185704*10^-10*(pi)^6*(tau - 0.5)^8 + -460.943509028789*(pi)^6*(tau - 0.5)^36 + 1.42629932175034*10^-6*(pi)^7*(tau - 0.5)^13 + 9.3662686891566*10^-18*(pi)^8*(tau - 0.5)^4 + -9.2112723863361*10^-12*(pi)^8*(tau - 0.5)^10 + -9.0163614415599*10^-8*(pi)^8*(tau - 0.5)^14 + -1.94118980752764*10^-8*(pi)^14*(tau - 0.5)^29 + 25.6632765105816*(pi)^14*(tau - 0.5)^50 + -103.006486756963*(pi)^16*(tau - 0.5)^57 + 3.389062123506*10^-22*(pi)^18*(tau - 0.5)^20 + 1.16391404129682*10^-10*(pi)^18*(tau - 0.5)^35 + -0.0015960937725319*(pi)^18*(tau - 0.5)^48 + -2.48035324679684*10^-23*(pi)^19*(tau - 0.5)^21 + 0.00174760497974171*(pi)^20*(tau - 0.5)^53 + -6.46091612094859*10^-13*(pi)^21*(tau - 0.5)^39 + 4.03443610484737*10^-26*(pi)^22*(tau - 0.5)^26 + 3.05889228736295*10^-14*(pi)^22*(tau - 0.5)^40 + -0.000520920783971479*(pi)^22*(tau - 0.5)^58
+If97R2ResidualGammaTau(pi; tau) = -0.017834862292358*(pi)^1 + -0.09199202739273*(pi)^1*(tau - 0.5)^1 + -0.172743777250296*(pi)^1*(tau - 0.5)^2 + -0.30195167236758*(pi)^1*(tau - 0.5)^5 + -3.3032641670203*10^-5*(pi)^2 + -0.0003789797503263*(pi)^2*(tau - 0.5)^1 + -0.015757110897342*(pi)^2*(tau - 0.5)^3 + -0.306581069554011*(pi)^2*(tau - 0.5)^6 + -0.000960283724907132*(pi)^2*(tau - 0.5)^35 + 4.3870667284435*10^-7*(pi)^3 + -9.683303171571*10^-5*(pi)^3*(tau - 0.5)^2 + -0.0090203547252888*(pi)^3*(tau - 0.5)^5 + -1.42338887469272*(pi)^3*(tau - 0.5)^34 + -7.8847309559367*10^-10*(pi)^4 + 2.558143570457*10^-8*(pi)^4*(tau - 0.5)^1 + 1.44676118155521*10^-6*(pi)^4*(tau - 0.5)^2 + 1.60454534363627*10^-5*(pi)^5*(tau - 0.5)^6 + -5.0144299353183*10^-11*(pi)^6*(tau - 0.5)^2 + -0.033874355714168*(pi)^6*(tau - 0.5)^15 + -836.35096769364*(pi)^6*(tau - 0.5)^34 + -1.38839897890111*10^-5*(pi)^7*(tau - 0.5)^10 + -0.973671060893475*(pi)^7*(tau - 0.5)^24 + 9.0049690883672*10^-11*(pi)^8*(tau - 0.5)^7 + -296.320827232793*(pi)^8*(tau - 0.5)^35 + 2.57526266427144*10^-7*(pi)^9*(tau - 0.5)^12 + 4.1627860840696*10^-19*(pi)^10*(tau - 0.5)^3 + -1.0234747095929*10^-12*(pi)^10*(tau - 0.5)^9 + -1.40254511313154*10^-8*(pi)^10*(tau - 0.5)^13 + -2.34560435076256*10^-9*(pi)^16*(tau - 0.5)^28 + 5.3465159397045*(pi)^16*(tau - 0.5)^49 + -19.1874828272775*(pi)^18*(tau - 0.5)^56 + 1.78371690710842*10^-23*(pi)^20*(tau - 0.5)^19 + 1.07202609066812*10^-11*(pi)^20*(tau - 0.5)^34 + -0.000201611844951398*(pi)^20*(tau - 0.5)^47 + -1.24017662339842*10^-24*(pi)^21*(tau - 0.5)^20 + 0.000200482822351322*(pi)^22*(tau - 0.5)^52 + -4.97975748452559*10^-14*(pi)^23*(tau - 0.5)^38 + 1.90027787547159*10^-27*(pi)^24*(tau - 0.5)^25 + 2.21658861403112*10^-15*(pi)^24*(tau - 0.5)^39 + -5.47344301999018*10^-5*(pi)^24*(tau - 0.5)^57
+If97R2ResidualGammaTauTau(pi; tau) = -0.09199202739273*(pi)^1 + -0.345487554500592*(pi)^1*(tau - 0.5)^1 + -1.5097583618379*(pi)^1*(tau - 0.5)^4 + -0.0003789797503263*(pi)^2 + -0.047271332692026*(pi)^2*(tau - 0.5)^2 + -1.83948641732407*(pi)^2*(tau - 0.5)^5 + -0.0336099303717496*(pi)^2*(tau - 0.5)^34 + -0.00019366606343142*(pi)^3*(tau - 0.5)^1 + -0.045101773626444*(pi)^3*(tau - 0.5)^4 + -48.3952217395523*(pi)^3*(tau - 0.5)^33 + 2.558143570457*10^-8*(pi)^4 + 2.89352236311042*10^-6*(pi)^4*(tau - 0.5)^1 + 9.62727206181762*10^-5*(pi)^5*(tau - 0.5)^5 + -1.00288598706366*10^-10*(pi)^6*(tau - 0.5)^1 + -0.50811533571252*(pi)^6*(tau - 0.5)^14 + -28435.9329015838*(pi)^6*(tau - 0.5)^33 + -0.000138839897890111*(pi)^7*(tau - 0.5)^9 + -23.3681054614434*(pi)^7*(tau - 0.5)^23 + 6.30347836185704*10^-10*(pi)^8*(tau - 0.5)^6 + -10371.2289531477*(pi)^8*(tau - 0.5)^34 + 3.09031519712573*10^-6*(pi)^9*(tau - 0.5)^11 + 1.24883582522088*10^-18*(pi)^10*(tau - 0.5)^2 + -9.2112723863361*10^-12*(pi)^10*(tau - 0.5)^8 + -1.823308647071*10^-7*(pi)^10*(tau - 0.5)^12 + -6.56769218213518*10^-8*(pi)^16*(tau - 0.5)^27 + 261.979281045521*(pi)^16*(tau - 0.5)^48 + -1074.49903832754*(pi)^18*(tau - 0.5)^55 + 3.389062123506*10^-22*(pi)^20*(tau - 0.5)^18 + 3.64488870827161*10^-10*(pi)^20*(tau - 0.5)^33 + -0.00947575671271573*(pi)^20*(tau - 0.5)^46 + -2.48035324679684*10^-23*(pi)^21*(tau - 0.5)^19 + 0.0104251067622687*(pi)^22*(tau - 0.5)^51 + -1.89230784411972*10^-12*(pi)^23*(tau - 0.5)^37 + 4.75069468867896*10^-26*(pi)^24*(tau - 0.5)^24 + 8.64469559472137*10^-14*(pi)^24*(tau - 0.5)^38 + -0.0031198625213944*(pi)^24*(tau - 0.5)^56
+If97R2ResidualGammaPiTau(pi; tau) = -0.017834862292358 + -0.09199202739273*(tau - 0.5)^1 + -0.172743777250296*(tau - 0.5)^2 + -0.30195167236758*(tau - 0.5)^5 + -6.6065283340406*10^-5*(pi)^1 + -0.0007579595006526*(pi)^1*(tau - 0.5)^1 + -0.031514221794684*(pi)^1*(tau - 0.5)^3 + -0.613162139108022*(pi)^1*(tau - 0.5)^6 + -0.00192056744981426*(pi)^1*(tau - 0.5)^35 + 1.31612001853305*10^-6*(pi)^2 + -0.00029049909514713*(pi)^2*(tau - 0.5)^2 + -0.0270610641758664*(pi)^2*(tau - 0.5)^5 + -4.27016662407814*(pi)^2*(tau - 0.5)^34 + -3.15389238237468*10^-9*(pi)^3 + 1.0232574281828*10^-7*(pi)^3*(tau - 0.5)^1 + 5.78704472622084*10^-6*(pi)^3*(tau - 0.5)^2 + 8.02272671818135*10^-5*(pi)^4*(tau - 0.5)^6 + -3.00865796119098*10^-10*(pi)^5*(tau - 0.5)^2 + -0.203246134285008*(pi)^5*(tau - 0.5)^15 + -5018.10580616184*(pi)^5*(tau - 0.5)^34 + -9.71879285230777*10^-5*(pi)^6*(tau - 0.5)^10 + -6.81569742625433*(pi)^6*(tau - 0.5)^24 + 7.20397527069376*10^-10*(pi)^7*(tau - 0.5)^7 + -2370.56661786234*(pi)^7*(tau - 0.5)^35 + 2.3177363978443*10^-6*(pi)^8*(tau - 0.5)^12 + 4.1627860840696*10^-18*(pi)^9*(tau - 0.5)^3 + -1.0234747095929*10^-11*(pi)^9*(tau - 0.5)^9 + -1.40254511313154*10^-7*(pi)^9*(tau - 0.5)^13 + -3.7529669612201*10^-8*(pi)^15*(tau - 0.5)^28 + 85.544255035272*(pi)^15*(tau - 0.5)^49 + -345.374690890994*(pi)^17*(tau - 0.5)^56 + 3.56743381421684*10^-22*(pi)^19*(tau - 0.5)^19 + 2.14405218133624*10^-10*(pi)^19*(tau - 0.5)^34 + -0.00403223689902797*(pi)^19*(tau - 0.5)^47 + -2.60437090913668*10^-23*(pi)^20*(tau - 0.5)^20 + 0.00441062209172909*(pi)^21*(tau - 0.5)^52 + -1.14534422144089*10^-12*(pi)^22*(tau - 0.5)^38 + 4.56066690113181*10^-26*(pi)^23*(tau - 0.5)^25 + 5.31981267367469*10^-14*(pi)^23*(tau - 0.5)^39 + -0.00131362632479764*(pi)^23*(tau - 0.5)^57
+
+If97R1PropertyRaw(property; p_MPa; T_K) = $block{pi = p_MPa/16.53; tau = 1386/T_K; g = If97R1Gamma(pi; tau); gp = If97R1GammaPi(pi; tau); gpp = If97R1GammaPiPi(pi; tau); gt = If97R1GammaTau(pi; tau); gtt = If97R1GammaTauTau(pi; tau); gpt = If97R1GammaPiTau(pi; tau); v = pi*gp*IF97_R*T_K/p_MPa/1000; h = tau*gt*IF97_R*T_K; u = (tau*gt - pi*gp)*IF97_R*T_K; s = (tau*gt - g)*IF97_R; cp = -tau^2*gtt*IF97_R; cv = (-tau^2*gtt + (gp - tau*gpt)^2/gpp)*IF97_R; w = sqrt(1000*IF97_R*T_K*gp^2/((gp - tau*gpt)^2/(tau^2*gtt) - gpp)); switch(property ≡ IF97_P_SPECIFIC_VOLUME; v; property ≡ IF97_P_DENSITY; 1/v; property ≡ IF97_P_ENTHALPY; h; property ≡ IF97_P_INTERNAL_ENERGY; u; property ≡ IF97_P_ENTROPY; s; property ≡ IF97_P_CP; cp; property ≡ IF97_P_CV; cv; property ≡ IF97_P_SOUND_SPEED; w; 0/0);}
+If97R2PropertyRaw(property; p_MPa; T_K) = $block{pi = p_MPa; tau = 540/T_K; g0 = If97R2IdealGamma(pi; tau); g0t = If97R2IdealGammaTau(pi; tau); g0tt = If97R2IdealGammaTauTau(pi; tau); gr = If97R2ResidualGamma(pi; tau); grp = If97R2ResidualGammaPi(pi; tau); grpp = If97R2ResidualGammaPiPi(pi; tau); grt = If97R2ResidualGammaTau(pi; tau); grtt = If97R2ResidualGammaTauTau(pi; tau); grpt = If97R2ResidualGammaPiTau(pi; tau); v = pi*(1/pi + grp)*IF97_R*T_K/p_MPa/1000; h = tau*(g0t + grt)*IF97_R*T_K; u = (tau*(g0t + grt) - pi*(1/pi + grp))*IF97_R*T_K; s = (tau*(g0t + grt) - (g0 + gr))*IF97_R; cp = -tau^2*(g0tt + grtt)*IF97_R; cv = (-tau^2*(g0tt + grtt) - (1 + pi*grp - tau*pi*grpt)^2/(1 - pi^2*grpp))*IF97_R; w = sqrt(1000*IF97_R*T_K*(1 + 2*pi*grp + pi^2*grp^2)/((1 - pi^2*grpp) + (1 + pi*grp - tau*pi*grpt)^2/(tau^2*(g0tt + grtt)))); switch(property ≡ IF97_P_SPECIFIC_VOLUME; v; property ≡ IF97_P_DENSITY; 1/v; property ≡ IF97_P_ENTHALPY; h; property ≡ IF97_P_INTERNAL_ENERGY; u; property ≡ IF97_P_ENTROPY; s; property ≡ IF97_P_CP; cp; property ≡ IF97_P_CV; cv; property ≡ IF97_P_SOUND_SPEED; w; 0/0);}
+
+If97PROPPTStatus(property; pressure; temperature) = switch(not(If97HasProperty(property)); IF97_ERR_PROPERTY; If97RegionPTStatus(pressure; temperature))
+If97PROPPT(property; pressure; temperature) = $block{status = If97PROPPTStatus(property; pressure; temperature); region = if(status ≡ IF97_OK; If97RegionPT(pressure; temperature); IF97_REGION_UNSUPPORTED); raw = switch(region ≡ IF97_REGION_1; If97R1PropertyRaw(property; pressure/MPa; temperature/K); region ≡ IF97_REGION_2; If97R2PropertyRaw(property; pressure/MPa; temperature/K); 0/0); if(status ≡ IF97_OK; If97ApplyUnits(property; raw); If97Undefined(property));}
+If97SpecificVolumePT(pressure; temperature) = If97PROPPT(IF97_P_SPECIFIC_VOLUME; pressure; temperature)
+If97DensityPT(pressure; temperature) = If97PROPPT(IF97_P_DENSITY; pressure; temperature)
+If97EnthalpyPT(pressure; temperature) = If97PROPPT(IF97_P_ENTHALPY; pressure; temperature)
+If97InternalEnergyPT(pressure; temperature) = If97PROPPT(IF97_P_INTERNAL_ENERGY; pressure; temperature)
+If97EntropyPT(pressure; temperature) = If97PROPPT(IF97_P_ENTROPY; pressure; temperature)
+If97CpPT(pressure; temperature) = If97PROPPT(IF97_P_CP; pressure; temperature)
+If97CvPT(pressure; temperature) = If97PROPPT(IF97_P_CV; pressure; temperature)
+If97SoundSpeedPT(pressure; temperature) = If97PROPPT(IF97_P_SOUND_SPEED; pressure; temperature)
+
+#def If97Status$(status$)
+    #if status$ ≡ IF97_OK
+        '<span class="ok">Valid IF97 Region 1 or Region 2 state</span>
+    #end if
+    #if status$ ≡ IF97_ERR_PROPERTY
+        '<span class="err">Unknown IF97 property ID</span>
+    #end if
+    #if status$ ≡ IF97_ERR_PRESSURE_LOW
+        '<span class="err">Pressure is below the supported IF97 range</span>
+    #end if
+    #if status$ ≡ IF97_ERR_PRESSURE_HIGH
+        '<span class="err">Pressure is above the supported IF97 range</span>
+    #end if
+    #if status$ ≡ IF97_ERR_TEMPERATURE_LOW
+        '<span class="err">Temperature is below the supported IF97 range</span>
+    #end if
+    #if status$ ≡ IF97_ERR_TEMPERATURE_HIGH
+        '<span class="err">Temperature is above the supported Region 1 and Region 2 range</span>
+    #end if
+    #if status$ ≡ IF97_ERR_TWO_PHASE
+        '<span class="err">State lies on the saturation boundary and requires a phase quality</span>
+    #end if
+    #if status$ ≡ IF97_ERR_UNSUPPORTED_REGION
+        '<span class="err">State lies in an IF97 region that is not implemented</span>
+    #end if
+#end def
+
 ThermoApplyUnits(property; value) = switch(property ≡ THERMO_P_DENSITY; setunits(value; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(value; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(value; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(value; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(value; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(value; kJ/kg); 0/0)
 ThermoUndefined(property) = switch(property ≡ THERMO_P_DENSITY; setunits(0/0; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(0/0; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(0/0; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(0/0; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(0/0; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(0/0; kJ/kg); 0/0)
 
-ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3)
+ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK)
 ThermoDatasetStatus = if(ThermoDatasetOK; DB_OK; DB_ERR_MISSING)
 
 ThermoPROPStatus(fluid; property; temperature; method; bounds_policy) = _
@@ -198,6 +309,9 @@ Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMA
     #if source$ ≡ 1
         'CoolProp sampled through SMath
     #end if
+    #if source$ ≡ 2
+        'IAPWS Industrial Formulation 1997
+    #end if
     #if not(ThermoHasSource(source$))
         '<span class="err">Unknown thermophysical source ID</span>
     #end if
@@ -206,6 +320,9 @@ Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMA
 #def ThermoSourceCitation$(source$)
     #if source$ ≡ 1
         'CoolProp thermophysical property engine through SMath plugin build 6.4.8214.13502
+    #end if
+    #if source$ ≡ 2
+        'IAPWS R7-97 2012 Revised Release on the IAPWS Industrial Formulation 1997 for the Thermodynamic Properties of Water and Steam
     #end if
     #if not(ThermoHasSource(source$))
         '<span class="err">Unknown thermophysical source ID</span>
@@ -216,6 +333,9 @@ Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMA
     #if source$ ≡ 1
         'Tank worksheet sample set captured 2026-08-14
     #end if
+    #if source$ ≡ 2
+        'Revised Release R7-97 2012 downloaded from IAPWS
+    #end if
     #if not(ThermoHasSource(source$))
         '<span class="err">Unknown thermophysical source ID</span>
     #end if
@@ -225,6 +345,9 @@ Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMA
     #if source$ ≡ 1
         'CoolProp project distributed under the MIT License
     #end if
+    #if source$ ≡ 2
+        'Publication allowed with attribution to IAPWS
+    #end if
     #if not(ThermoHasSource(source$))
         '<span class="err">Unknown thermophysical source ID</span>
     #end if
@@ -233,6 +356,9 @@ Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMA
 #def ThermoSourceNotes$(source$)
     #if source$ ≡ 1
         'Fluid keys Water and INCOMP::MEG-50%. The saved worksheet did not retain the complete input-pair calls, so this dataset must be treated as a traceable migration baseline rather than independent validation of the property basis.
+    #end if
+    #if source$ ≡ 2
+        'Region 1 and Region 2 fundamental equations with the Region 4 saturation equations and the B23 boundary equation. Coefficients and verification points are transcribed from the official release.
     #end if
     #if not(ThermoHasSource(source$))
         '<span class="err">Unknown thermophysical source ID</span>
@@ -250,6 +376,8 @@ Eg50ThermalConductivityT(temperature) = ThermoPROP(THERMO_EG_50; THERMO_P_THERMA
     '<tr><td><strong>Property count</strong></td><td>'ThermoPropertyCount'</td></tr>
     '<tr><td><strong>Curve count</strong></td><td>'ThermoCurveCount'</td></tr>
     '<tr><td><strong>Data point count</strong></td><td>'ThermoPointCount'</td></tr>
+    '<tr><td><strong>IF97 implemented regions</strong></td><td>'If97ImplementedRegionCount'</td></tr>
+    '<tr><td><strong>IF97 state-property count</strong></td><td>'If97PropertyCount'</td></tr>
     '<tr><td><strong>Dataset status</strong></td><td>
     DBStatus$(ThermoDatasetStatus)
     '</td></tr></tbody></table>

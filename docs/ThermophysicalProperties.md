@@ -1,13 +1,15 @@
 # Thermophysical Properties
 
 `Libraries/Thermophysical/ThermophysicalProperties.cpd` is the generated, self-contained DRAT property library for thermal and fluid calculations.
-It does not require CoolProp at worksheet runtime.
+It does not require CoolProp or another property engine at worksheet runtime.
 
-The initial `0.1.0` dataset is deliberately narrow:
+Release `0.2.0` provides two complementary backends:
 
 - Water specific heat, saturation pressure, and latent heat of vaporization.
 - Density, specific heat, dynamic viscosity, and thermal conductivity for 50% ethylene glycol by mass (`INCOMP::MEG-50%`).
 - Linear interpolation from 10 °C through 95 °C.
+- IAPWS-IF97 fundamental equations for stable single-phase water and steam in Regions 1 and 2.
+- IAPWS-IF97 Region 4 forward and inverse saturation equations plus the B23 boundary used for region selection.
 
 These curves reproduce the values embedded in the migrated tank-heating calculation.
 They were sampled from CoolProp through SMath plugin build `6.4.8214.13502`.
@@ -24,6 +26,51 @@ Load Core first and then the library directly:
 
 The library requires Core API 4.x and DataWrapper API 0.3.3 or newer.
 It guards its complete body and reports a compatibility error if either dependency is incompatible.
+
+## IAPWS-IF97 pressure-temperature states
+
+The IF97 API accepts unit-aware pressure and absolute temperature values:
+
+```text
+p = 3MPa
+T = 500K
+
+region = If97RegionPT(p; T)
+status = If97RegionPTStatus(p; T)
+
+rho = If97DensityPT(p; T)
+v = If97SpecificVolumePT(p; T)
+h = If97EnthalpyPT(p; T)
+u = If97InternalEnergyPT(p; T)
+s = If97EntropyPT(p; T)
+Cp = If97CpPT(p; T)
+Cv = If97CvPT(p; T)
+w = If97SoundSpeedPT(p; T)
+```
+
+`If97RegionPT` returns `IF97_REGION_1`, `IF97_REGION_2`, or `IF97_REGION_UNSUPPORTED`.
+The status helper rejects non-positive pressure, pressure above 100 MPa, temperature outside the implemented range, saturation-line states that require phase quality, and states in Region 3.
+Region 5 and the special metastable-vapor equation are also outside this release.
+
+The generic selector supports generated calculations:
+
+```text
+h = If97PROPPT(IF97_P_ENTHALPY; p; T)
+h_status = If97PROPPTStatus(IF97_P_ENTHALPY; p; T)
+```
+
+Available IDs are `IF97_P_SPECIFIC_VOLUME`, `IF97_P_DENSITY`, `IF97_P_ENTHALPY`, `IF97_P_INTERNAL_ENERGY`, `IF97_P_ENTROPY`, `IF97_P_CP`, `IF97_P_CV`, and `IF97_P_SOUND_SPEED`.
+Rejected typed queries return a dimensioned undefined value.
+Use `If97Status$(status)` to render the IF97-specific status description.
+
+Saturation queries are independent of the single-phase property selector:
+
+```text
+p_sat = If97SaturationPressureT(500K)
+T_sat = If97SaturationTemperatureP(1MPa)
+```
+
+Their status helpers enforce the official saturation range from 273.15 K through 647.096 K and from 0.000611213 MPa through 22.064 MPa.
 
 ## Typed property functions
 
@@ -106,6 +153,7 @@ The worksheet owns its heading hierarchy.
 ## Raw data and generation
 
 The maintained source is `Data/Sources/Thermophysical/ThermophysicalProperties.json`.
+Schema version 2 stores both curve records and the fixed-shape IF97 coefficient arrays.
 The committed `.cpd` library is generated:
 
 ```powershell
@@ -124,24 +172,25 @@ python Tools/GenerateThermophysicalLibrary.py `
 ```
 
 The generator uses only the Python standard library.
-It rejects unknown units, duplicate IDs or curve keys, duplicate public functions, non-finite values, unequal axes, and non-increasing temperatures before emitting CalcPad source.
+It rejects unknown units, duplicate IDs or curve keys, duplicate public functions, non-finite values, unequal axes, non-increasing temperatures, and incomplete IF97 coefficient series before atomically replacing the generated library.
 
 ## Qualification
 
-`Tests/Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` verifies the exact sampled values, midpoint interpolation, units, aliases, range policies, missing properties, provenance, dimensioned undefined results, and rendered records.
+`Tests/Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` verifies the sampled curves and every Region 1, Region 2, B23 boundary, saturation-pressure, and saturation-temperature computer-program verification point published in IAPWS R7-97(2012) Tables 1, 5, 15, 35, and 36.
+It also checks region selection, unsupported Region 3 states, saturation-line rejection, units, dimensioned undefined results, and derived density and isochoric heat capacity.
 `Tests/Tooling/ThermophysicalGeneratorTest.py` verifies the raw-data schema and stale-output detection.
 
-The dataset should eventually be checked against independent governing sources, not only the engine used to generate it.
-Water and steam should be qualified against IAPWS values before the library claims an IAPWS or design-grade classification.
-The exact CoolProp version and complete input-pair calls also remain unresolved. The [dataset provenance audit](DataProvenance.md) records this release blocker and the raw-input packaging disposition.
+The curve backend should eventually be checked against independent governing sources, not only the engine used to generate it.
+The IF97 backend is transcribed and regression-checked directly against the official IAPWS release, but worksheet authors remain responsible for confirming that a state lies in the implemented stable single-phase scope.
+The exact CoolProp version and complete input-pair calls for the original sampled curves remain unresolved. The [dataset provenance audit](DataProvenance.md) records that separate curve-data issue.
 
 ## Planned expansion
 
 The next increments are:
 
-1. Add audited two-dimensional `temperature-concentration` interpolation and ethylene/propylene glycol concentration families.
-2. Add an IAPWS-IF97 water/steam backend with phase and saturation-region handling.
-3. Add inverse queries such as saturation temperature from pressure and later pressure-enthalpy state recovery.
+1. Add IF97 Region 3 so the pressure-temperature map is continuous through the dense-fluid and supercritical domain.
+2. Add pressure-enthalpy and pressure-entropy state recovery with explicit phase handling.
+3. Add audited two-dimensional `temperature-concentration` interpolation and ethylene/propylene glycol concentration families.
 4. Add humid-air properties using a separately qualified model.
 5. Add other fluids only in response to maintained engineering use cases.
 
