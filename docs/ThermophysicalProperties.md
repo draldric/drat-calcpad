@@ -3,19 +3,18 @@
 `Libraries/Thermophysical/ThermophysicalProperties.cpd` is the generated, self-contained DRAT property library for thermal and fluid calculations.
 It does not require CoolProp or another property engine at worksheet runtime.
 
-Release `0.5.0` provides three complementary backends and one unified state-query interface:
+Release `0.6.0` provides four complementary backends and one unified state-query interface:
 
 - Water specific heat, saturation pressure, and latent heat of vaporization.
-- Density, specific heat, dynamic viscosity, and thermal conductivity for 50% ethylene glycol by mass (`INCOMP::MEG-50%`).
-- Linear interpolation from 10 °C through 95 °C.
+- Equation-based density, specific heat, dynamic viscosity, thermal conductivity, and freezing limits for aqueous ethylene-glycol and propylene-glycol mixtures from 0% through 60% glycol by mass.
 - IAPWS-IF97 fundamental equations for stable single-phase water and steam in Regions 1 and 2.
 - IAPWS-IF97 Region 4 forward and inverse saturation equations plus the B23 boundary used for region selection.
-- Fundamental Helmholtz equations of state for pure nitrogen, carbon dioxide, R11, R12, R13, R134a, R32, R1234yf, R290, R600a, and R717, including gas, liquid, and supercritical pressure-temperature states.
+- Fundamental Helmholtz equations of state for pure nitrogen, carbon dioxide, R11, R12, R13, R134a, R32, R1234yf, R290, R600a, R717, and propylene glycol, including gas, liquid, and supercritical pressure-temperature states.
 - A CoolProp-shaped `ThermoProps` selector over the implemented equation backends.
 
 These curves reproduce the values embedded in the migrated tank-heating calculation.
 They were sampled from CoolProp through SMath plugin build `6.4.8214.13502`.
-The saved worksheet did not preserve every original CoolProp input-pair call, so this revision is a traceable migration baseline rather than independent verification of the thermodynamic basis.
+The older water curves remain a traceable migration baseline. The glycol-mixture runtime path no longer interpolates the migrated 50% samples; it evaluates the maintained Melinder correlations directly.
 
 ## Loading
 
@@ -38,7 +37,7 @@ h = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERA
 h_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERATURE; 500K; THERMO_WATER)
 ```
 
-The two inputs can be supplied in either order. Version `0.5.0` supports the pressure-temperature pair for `THERMO_WATER` and every pure-fluid constant listed below. Unsupported fluids, outputs, inputs, repeated inputs, unavailable IF97 regions, out-of-range Helmholtz states, and saturation-boundary states return explicit statuses. `ThermoPropsStatus$(status)` renders the unified, IF97, or Helmholtz status; a successful non-water query now renders the backend-neutral `Valid thermophysical state` message.
+The two inputs can be supplied in either order. Version `0.6.0` supports the pressure-temperature pair for `THERMO_WATER` and every pure-fluid constant listed below. Glycol-water mixtures use the separate concentration-aware API because concentration is a required input. Unsupported fluids, outputs, inputs, repeated inputs, unavailable IF97 regions, out-of-range Helmholtz states, and saturation-boundary states return explicit statuses. `ThermoPropsStatus$(status)` renders the unified, IF97, or Helmholtz status; a successful non-water query renders the backend-neutral `Valid thermophysical state` message.
 
 Input IDs are `THERMO_IN_PRESSURE` and `THERMO_IN_TEMPERATURE`. Output IDs are `THERMO_OUT_SPECIFIC_VOLUME`, `THERMO_OUT_DENSITY`, `THERMO_OUT_ENTHALPY`, `THERMO_OUT_INTERNAL_ENERGY`, `THERMO_OUT_ENTROPY`, `THERMO_OUT_CP`, `THERMO_OUT_CV`, and `THERMO_OUT_SOUND_SPEED`.
 
@@ -65,10 +64,30 @@ The supported constants are:
 - `THERMO_R290`, with alias `THERMO_PROPANE`
 - `THERMO_R600A`, with alias `THERMO_ISOBUTANE`
 - `THERMO_R717`, with alias `THERMO_AMMONIA`
+- `THERMO_PROPYLENE_GLYCOL`
 
 Each record uses the default pure-fluid EOS at the pinned CoolProp revision. The coefficients, ideal-gas terms, supported residual term families, saturation-pressure ancillary, and saturated-liquid-density ancillary are maintained in `HelmholtzFluids.json` with a source citation and upstream file hash.
 
 All exposed state properties for these fluids are equation-derived; no sampled property tables are used. Transport properties such as viscosity and thermal conductivity are not yet exposed. Saturation-boundary pressure-temperature queries are rejected because the input pair does not specify phase quality.
+
+The pure propylene-glycol record provides thermodynamic state properties through the Eisenbach et al. fundamental EOS. It does not provide viscosity or thermal conductivity. Pure ethylene glycol is not exposed as a pure-fluid constant: the pinned CoolProp source has no pure ethylene-glycol Helmholtz record, and extending the aqueous correlation beyond its 60% mass-fraction limit would be unqualified extrapolation.
+
+## Aqueous glycol equations
+
+Use `GLYCOL_ETHYLENE` or `GLYCOL_PROPYLENE`, a supported property ID, a Celsius temperature quantity, and glycol mass fraction:
+
+```text
+x_glycol = 0.30
+rho_pg = GlycolPROP(GLYCOL_PROPYLENE; THERMO_P_DENSITY; 40°C; x_glycol)
+rho_status = GlycolPROPStatus(GLYCOL_PROPYLENE; THERMO_P_DENSITY; 40°C; x_glycol)
+
+Cp_eg = EgWaterSpecificHeatTX(60°C; 0.50)
+mu_pg = PgWaterDynamicViscosityTX(40°C; 0.30)
+```
+
+Supported mixture properties are `THERMO_P_DENSITY`, `THERMO_P_SPECIFIC_HEAT`, `THERMO_P_DYNAMIC_VISCOSITY`, and `THERMO_P_THERMAL_CONDUCTIVITY`. Convenience functions use the `EgWater...TX` and `PgWater...TX` prefixes. `GlycolFreezeK(family; x)` returns the correlated freezing temperature in kelvins, and `GlycolStatus$(status)` renders a status description.
+
+Both families enforce 0 to 0.60 mass fraction and the source temperature range. A state below its concentration-dependent freezing correlation returns `GLYCOL_ERR_FROZEN`. These are incompressible correlations; pressure is not an input. The existing `Eg50...T` and `ThermoPROP(THERMO_EG_50; ...)` calls are backward-compatible equation-backed aliases at `x = 0.50`. Clamp remains available, while extrapolation outside the equation range is rejected.
 
 R401A is intentionally not represented as a pure fluid. It is a zeotropic R22/R152a/R124 blend with composition-dependent reducing and departure functions and temperature glide. Supporting it correctly requires a mixture backend and phase-aware bubble/dew handling; substituting a pure-fluid or averaged equation would give a misleading interface.
 
@@ -197,15 +216,16 @@ The worksheet owns its heading hierarchy.
 
 ## Raw data and generation
 
-The maintained inputs are `Data/Sources/Thermophysical/ThermophysicalProperties.json` and `Data/Sources/Thermophysical/HelmholtzFluids.json`.
-The first stores curve records and fixed-shape IF97 coefficient arrays; the second stores the curated pure-fluid equation records and their pinned upstream hashes.
+The maintained inputs are `Data/Sources/Thermophysical/ThermophysicalProperties.json`, `HelmholtzFluids.json`, and `IncompressibleGlycols.json` in the same directory.
+They store curve and IF97 records, curated pure-fluid equation records, and concentration-aware aqueous-glycol coefficients respectively.
 The committed `.cpd` library is generated:
 
 ```powershell
 python Tools/GenerateThermophysicalLibrary.py `
     Data/Sources/Thermophysical/ThermophysicalProperties.json `
     Libraries/Thermophysical/ThermophysicalProperties.cpd `
-    --helmholtz-source Data/Sources/Thermophysical/HelmholtzFluids.json
+    --helmholtz-source Data/Sources/Thermophysical/HelmholtzFluids.json `
+    --glycol-source Data/Sources/Thermophysical/IncompressibleGlycols.json
 ```
 
 Check that the generated file is current without rewriting it:
@@ -215,6 +235,7 @@ python Tools/GenerateThermophysicalLibrary.py `
     Data/Sources/Thermophysical/ThermophysicalProperties.json `
     Libraries/Thermophysical/ThermophysicalProperties.cpd `
     --helmholtz-source Data/Sources/Thermophysical/HelmholtzFluids.json `
+    --glycol-source Data/Sources/Thermophysical/IncompressibleGlycols.json `
     --check
 ```
 
@@ -223,10 +244,12 @@ It rejects unknown units, duplicate IDs or curve keys, duplicate public function
 
 `Tools/ImportCoolPropHelmholtzFluids.py` is the maintenance importer for the selected upstream pure-fluid JSON records. It selects a configured EOS record, accepts only implemented equation-term and ancillary families, verifies the expected source citation key, records the pinned CoolProp Git revision and file hashes, validates the complete combined dataset, and then replaces `HelmholtzFluids.json` atomically.
 
+`Tools/ImportCoolPropIncompressibleGlycols.py` performs the corresponding pinned import for CoolProp's MEG and MPG incompressible records. It requires a mass-fraction basis, the expected Melinder reference and equation families, both records exactly once, and records each upstream hash before atomic output replacement.
+
 ## Qualification
 
 `Tests/Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` verifies the sampled curves and every Region 1, Region 2, B23 boundary, saturation-pressure, and saturation-temperature computer-program verification point published in IAPWS R7-97(2012) Tables 1, 5, 15, 35, and 36.
-It also checks N2 and CO2 gas, liquid, and supercritical states and representative states for every supported refrigerant against CoolProp 8.0.0. Those checks exercise density, enthalpy, heat capacity, sound speed, equation ranges, saturation-boundary rejection, region selection, units, and dimensioned undefined results.
+It also checks N2 and CO2 gas, liquid, and supercritical states, representative states for every supported refrigerant, pure propylene glycol, and both aqueous glycol families against CoolProp 8.0.0. Those checks exercise density, enthalpy, heat capacity, sound speed, transport correlations, concentration and freezing limits, equation ranges, saturation-boundary rejection, region selection, units, and dimensioned undefined results.
 `Tests/Tooling/ThermophysicalGeneratorTest.py` verifies the raw-data schema and stale-output detection.
 
 The curve backend should eventually be checked against independent governing sources, not only the engine used to generate it.
@@ -237,9 +260,9 @@ The exact CoolProp version and complete input-pair calls for the original sample
 
 The next increments are:
 
-1. Add a validated mixture backend, beginning with R401A bubble/dew and pressure-temperature states.
-2. Replace the legacy 50% ethylene-glycol sampled curves with explicit correlations and add a propylene-glycol family.
-3. Add separately qualified transport-property correlations.
+1. Add a validated refrigerant-mixture backend, beginning with R401A bubble/dew and pressure-temperature states.
+2. Locate or develop a qualified pure ethylene-glycol model without extrapolating the aqueous correlations.
+3. Add separately qualified pure-fluid transport-property correlations.
 4. Add IF97 Region 3 and pressure-enthalpy or pressure-entropy state recovery with explicit phase handling.
 5. Add humid-air properties using a separately qualified model.
 

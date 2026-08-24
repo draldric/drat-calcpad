@@ -135,9 +135,10 @@ function Test-ThermophysicalGenerator {
     $generatorPath = Join-Path $script:repositoryRoot 'Tools\GenerateThermophysicalLibrary.py'
     $sourcePath = Join-Path $script:repositoryRoot 'Data\Sources\Thermophysical\ThermophysicalProperties.json'
     $helmholtzSourcePath = Join-Path $script:repositoryRoot 'Data\Sources\Thermophysical\HelmholtzFluids.json'
+    $glycolSourcePath = Join-Path $script:repositoryRoot 'Data\Sources\Thermophysical\IncompressibleGlycols.json'
     $outputPath = Join-Path $script:repositoryRoot 'Libraries\Thermophysical\ThermophysicalProperties.cpd'
     $testPath = Join-Path $script:repositoryRoot 'Tests\Tooling\ThermophysicalGeneratorTest.py'
-    foreach ($requiredPath in @($generatorPath, $sourcePath, $helmholtzSourcePath, $outputPath, $testPath)) {
+    foreach ($requiredPath in @($generatorPath, $sourcePath, $helmholtzSourcePath, $glycolSourcePath, $outputPath, $testPath)) {
         if (-not (Test-Path -LiteralPath $requiredPath -PathType Leaf)) {
             Add-VerificationFailure -Message "Thermophysical generation input is missing: $(Get-RepositoryRelativePath -Path $requiredPath)"
         }
@@ -146,7 +147,7 @@ function Test-ThermophysicalGenerator {
         return
     }
 
-    $generatorOutput = & $python $generatorPath $sourcePath $outputPath --helmholtz-source $helmholtzSourcePath --check 2>&1
+    $generatorOutput = & $python $generatorPath $sourcePath $outputPath --helmholtz-source $helmholtzSourcePath --glycol-source $glycolSourcePath --check 2>&1
     if ($LASTEXITCODE -ne 0) {
         Add-VerificationFailure -Message ('Thermophysical generated-library check failed: ' + (($generatorOutput | ForEach-Object { $_.ToString() }) -join ' '))
         return

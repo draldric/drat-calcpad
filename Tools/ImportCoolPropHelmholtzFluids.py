@@ -167,6 +167,19 @@ UPSTREAM_FLUIDS = {
         "reference_note": "Primary equation selected by the pinned CoolProp default EOS ordering.",
         "valid_temperature_max_K": 725.0,
     },
+    "PropyleneGlycol": {
+        "id": 312,
+        "constant": "THERMO_PROPYLENE_GLYCOL",
+        "function_prefix": "HelmholtzPG",
+        "display_name": "Propylene glycol",
+        "description": "Pure propylene glycol using the Eisenbach et al. fundamental Helmholtz equation of state.",
+        "source_id": 14,
+        "source_constant": "THERMO_SRC_PROPYLENE_GLYCOL_EOS",
+        "citation": "Eisenbach, Scholz, Span, Cristancho, Lemmon, and Thol, Speed-of-Sound Measurements and a Fundamental Equation of State for Propylene Glycol, J. Phys. Chem. Ref. Data 50, 2021",
+        "doi": "10.1063/5.0050021",
+        "eos_citation": "Eisenbach-JPCRD-2021",
+        "valid_temperature_max_K": 680.0,
+    },
 }
 
 ALLOWED_IDEAL_TYPES = {

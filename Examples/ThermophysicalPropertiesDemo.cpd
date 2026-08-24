@@ -6,8 +6,8 @@
 #def Client$ = DEMONSTRATION CLIENT
 #def Project$ = THERMAL PROPERTY WORKFLOW DEMONSTRATION
 #def Title$ = THERMOPHYSICAL CURVES AND EQUATION-BASED FLUID STATES
-#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE CURVE LOOKUPS AND PRESSURE-TEMPERATURE STATE CALCULATIONS FOR WATER STEAM NITROGEN AND CARBON DIOXIDE.
-#def Scope$ = QUERY THE WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES AND CALCULATE STABLE SINGLE-PHASE WATER STEAM NITROGEN OR CARBON DIOXIDE STATES. TRANSPORT PROPERTIES MIXTURES PHASE QUALITY AND UNIMPLEMENTED IAPWS REGIONS ARE EXCLUDED.
+#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE GLYCOL CORRELATIONS AND PRESSURE-TEMPERATURE STATE CALCULATIONS.
+#def Scope$ = QUERY AQUEOUS ETHYLENE AND PROPYLENE GLYCOL EQUATIONS AND CALCULATE IMPLEMENTED PURE-FLUID STATES. PURE ETHYLENE GLYCOL REFRIGERANT MIXTURES PHASE QUALITY AND UNIMPLEMENTED IAPWS REGIONS ARE EXCLUDED.
 #def Calculation$ = EXAMPLE-THERMO-001
 #def Rev$ = 0
 #def PreparedBy$ = EXAMPLE AUTHOR
@@ -26,6 +26,7 @@ REF_COOLPROP_SAMPLE = 1
 REF_IAPWS_IF97 = 2
 REF_N2_EOS = 3
 REF_CO2_EOS = 4
+REF_GLYCOL_EQUATIONS = 5
 ASSUMPTION_SAMPLE_BASIS = 1
 LIMITATION_RANGE = 1
 LIMITATION_MODEL = 2
@@ -42,17 +43,18 @@ AddReference$(REF_COOLPROP_SAMPLE; CoolProp thermophysical property engine; Wate
 AddReference$(REF_IAPWS_IF97; International Association for the Properties of Water and Steam; Revised Release on the IAPWS Industrial Formulation 1997; R7-97 2012; Regions 1 2 and 4 plus the B23 boundary; Official coefficients and computer-program verification tables.)
 AddReference$(REF_N2_EOS; Span Lemmon Jacobsen Wagner and Yokozeki; Reference equation of state for nitrogen; 2000; 63.151 K through 1000 K and up to 2200 MPa; Fundamental Helmholtz equation curated from the pinned CoolProp fluid record.)
 AddReference$(REF_CO2_EOS; Span and Wagner; New equation of state for carbon dioxide; 1996; Triple point through 1100 K and up to 800 MPa; Fundamental Helmholtz equation curated from the pinned CoolProp fluid record.)
+AddReference$(REF_GLYCOL_EQUATIONS; Melinder; Properties of Secondary Working Fluids for Indirect Systems; 2010; Zero through 60 percent glycol by mass; MEG and MPG equations curated from pinned CoolProp incompressible records.)
 EndReferences$
 
 "Basis and Limitations
 
 BeginAssumptions$
-AddAssumption$(ASSUMPTION_SAMPLE_BASIS; Property basis; The sample fluid is 50 percent ethylene glycol by mass and the query temperature is within the committed data range.; The demonstration reproduces the captured CoolProp sample curves without changing their values.; REF_COOLPROP_SAMPLE)
+AddAssumption$(ASSUMPTION_SAMPLE_BASIS; Property basis; The example concentrations are mass fractions and each query is inside its equation and liquid-phase range.; The aqueous glycol functions enforce concentration temperature and freezing limits.; REF_GLYCOL_EQUATIONS)
 EndAssumptions$
 
 BeginLimitations$
-AddLimitation$(LIMITATION_RANGE; The initial dataset covers only 10 deg C through 95 deg C.; Requests outside that range return a fatal status and an undefined property value.; Regenerate or extend the approved source data instead of extrapolating for design use.; REF_COOLPROP_SAMPLE)
-AddLimitation$(LIMITATION_MODEL; This revision is not a general equation-of-state or phase-equilibrium engine.; Arbitrary pressure concentration phase and fluid queries are unsupported.; Confirm that the selected fluid and property curve matches the engineering state being modeled.; REF_COOLPROP_SAMPLE)
+AddLimitation$(LIMITATION_RANGE; The aqueous equations cover no more than 60 percent glycol by mass.; Pure glycol requests and other out-of-range states return a fatal status and undefined property value.; Add a separately qualified pure-fluid model instead of extrapolating.; REF_GLYCOL_EQUATIONS)
+AddLimitation$(LIMITATION_MODEL; The aqueous glycol equations are incompressible correlations without pressure as an input.; Phase-equilibrium and compressibility effects are unsupported.; Confirm that the selected family concentration and liquid state match the engineering application.; REF_GLYCOL_EQUATIONS)
 AddLimitation$(LIMITATION_IF97_SCOPE; The IF97 backend implements only stable single-phase Regions 1 and 2.; Saturation states Region 3 Region 5 and metastable steam return explicit error statuses.; Check the state status before using a returned property in design calculations.; REF_IAPWS_IF97)
 AddLimitation$(LIMITATION_HELMHOLTZ_SCOPE; The nitrogen and carbon dioxide backends provide equation-based thermodynamic properties for pressure-temperature states.; Transport properties mixtures and two-phase quality states are unsupported.; Check the state status and use a separate qualified correlation when viscosity or conductivity is required.; REF_N2_EOS)
 EndLimitations$
@@ -75,6 +77,7 @@ ShowThermoFluidRecord$(THERMO_CARBON_DIOXIDE)
 "Property Query
 #hide
 T_query = 60°C
+x_pg = 0.30
 m_dot = 2kg/s
 Delta_T = 15K
 
@@ -82,6 +85,9 @@ rho_eg = Eg50DensityT(T_query)
 Cp_eg = Eg50SpecificHeatT(T_query)
 mu_eg = Eg50DynamicViscosityT(T_query)
 k_eg = Eg50ThermalConductivityT(T_query)
+rho_pg = PgWaterDensityTX(T_query; x_pg)
+Cp_pg = PgWaterSpecificHeatTX(T_query; x_pg)
+pg_status = GlycolPROPStatus(GLYCOL_PROPYLENE; THERMO_P_DENSITY; T_query; x_pg)
 P_sat = WaterSaturationPressureT(T_query)
 h_fg = WaterLatentHeatT(T_query)
 
@@ -101,8 +107,12 @@ DBStatus$(rho_status)
 '<tr><td>Ethylene glycol specific heat</td><td>'Cp_eg'</td><td>
 DBStatus$(Cp_status)
 '</td></tr>
-'<tr><td>Ethylene glycol dynamic viscosity</td><td>'mu_eg'</td><td>From the same validated curve set</td></tr>
-'<tr><td>Ethylene glycol thermal conductivity</td><td>'k_eg'</td><td>From the same validated curve set</td></tr>
+'<tr><td>Ethylene glycol dynamic viscosity</td><td>'mu_eg'</td><td>Equation based</td></tr>
+'<tr><td>Ethylene glycol thermal conductivity</td><td>'k_eg'</td><td>Equation based</td></tr>
+'<tr><td>30 percent propylene glycol density</td><td>'rho_pg'</td><td>
+GlycolStatus$(pg_status)
+'</td></tr>
+'<tr><td>30 percent propylene glycol specific heat</td><td>'Cp_pg'</td><td>Equation based</td></tr>
 '<tr><td>Water saturation pressure</td><td>'P_sat'</td><td>Sampled water curve</td></tr>
 '<tr><td>Water latent heat</td><td>'h_fg'</td><td>Sampled water curve</td></tr>
 '<tr><td>Heat-capacity rate for the example stream</td><td>'Q_capacity'</td><td>Derived from the returned specific heat</td></tr>
@@ -110,9 +120,10 @@ DBStatus$(Cp_status)
 '</table>
 #equ
 
-"Detailed Property Record
+"Glycol Equation Provenance
 
-ShowThermoProperty$(THERMO_EG_50; THERMO_P_DYNAMIC_VISCOSITY; T_query)
+'GlycolEquationCitation$
+'GlycolEquationRevision$
 
 "IAPWS-IF97 Water and Steam States
 #hide

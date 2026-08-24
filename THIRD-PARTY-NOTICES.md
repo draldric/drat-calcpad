@@ -2,7 +2,7 @@
 
 ## CoolProp
 
-The thermophysical migration dataset contains values sampled from CoolProp. CoolProp is licensed under the MIT License.
+The thermophysical dataset contains values sampled from CoolProp and equation records curated from pinned CoolProp source files. CoolProp is licensed under the MIT License.
 
 Copyright (c) 2012-2018 Ian H. Bell and other CoolProp developers
 

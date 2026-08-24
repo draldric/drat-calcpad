@@ -13,6 +13,7 @@ from typing import Any
 from GeneratorSupport import GeneratorError, write_or_check as safe_write_or_check
 from HelmholtzFluidSupport import generate_helmholtz, validate_helmholtz
 from IapwsIf97Support import generate_if97, validate_if97
+from IncompressibleGlycolSupport import generate_glycols, validate_glycols
 
 
 UNIT_EXPRESSIONS = {
@@ -227,6 +228,18 @@ def load_helmholtz_dataset(path: Path) -> dict[str, Any]:
     return validate_helmholtz(dataset, require, require_mapping, require_list, require_integer, require_text, require_constant, require_number, validate_unique)
 
 
+def load_glycol_dataset(path: Path) -> dict[str, Any]:
+    """Load and validate the aqueous-glycol equation source."""
+
+    try:
+        dataset = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise SchemaError(f"Glycol source dataset does not exist: {path}") from error
+    except json.JSONDecodeError as error:
+        raise SchemaError(f"Glycol source dataset is not valid JSON: {error}") from error
+    return validate_glycols(dataset, require)
+
+
 def format_number(value: Any) -> str:
     """Format a validated numeric value deterministically for CalcPad."""
 
@@ -261,7 +274,7 @@ def append_text_macro(lines: list[str], name: str, argument: str, records: list[
     lines.extend((f"    #if {unknown_condition}", f"        '<span class=\"err\">{unknown_text}</span>", "    #end if", "#end def", ""))
 
 
-def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any]) -> str:
+def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any], glycol_dataset: dict[str, Any]) -> str:
     """Render a validated dataset as a complete guarded CalcPad library."""
 
     library = dataset["library"]
@@ -355,6 +368,7 @@ def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any])
 
     lines.extend(generate_if97(dataset, format_number))
     lines.extend(generate_helmholtz(helmholtz_dataset, format_number))
+    lines.extend(generate_glycols(glycol_dataset, format_number))
     lines.extend(
         (
             "'<!-- CoolProp-shaped, unit-aware thermophysical state selector. -->",
@@ -422,9 +436,13 @@ def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any])
             "ThermoApplyUnits(property; value) = switch(" + "; ".join(unit_switch_terms + ["0/0"]) + ")",
             "ThermoUndefined(property) = switch(" + "; ".join(undefined_switch_terms + ["0/0"]) + ")",
             "",
-            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK; HelmholtzDatasetOK)",
+            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK; HelmholtzDatasetOK; GlycolDatasetOK)",
             "ThermoDatasetStatus = if(ThermoDatasetOK; DB_OK; DB_ERR_MISSING)",
             "",
+            "ThermoUsesGlycolEquation(fluid; property) = and(fluid ≡ THERMO_EG_50; GlycolHasProperty(property))",
+            "ThermoGlycolTMin(fluid) = (max(GlycolTMinK(GLYCOL_ETHYLENE); GlycolFreezeK(GLYCOL_ETHYLENE; ThermoFluidConcentrationMassFraction(fluid))) - 273.15)*°C",
+            "ThermoGlycolTMax(fluid) = (GlycolTMaxK(GLYCOL_ETHYLENE) - 273.15)*°C",
+            "ThermoGlycolDBStatus(fluid; property; temperature; method; bounds_policy) = switch(not(ThermoHasFluid(fluid)); DB_ERR_NAME; not(ThermoHasProperty(property)); DB_ERR_PROPERTY; not(GlycolHasProperty(property)); DB_ERR_MISSING; not(DBMethodOK(method)); DB_ERR_BAD_METHOD; not(DBPolicyOK(bounds_policy)); DB_ERR_BAD_POLICY; bounds_policy ≡ DB_EXTRAPOLATE; DBRangeStatus(temperature; ThermoGlycolTMin(fluid); ThermoGlycolTMax(fluid); DB_STRICT); DBRangeStatus(temperature; ThermoGlycolTMin(fluid); ThermoGlycolTMax(fluid); bounds_policy))",
             "ThermoPROPStatus(fluid; property; temperature; method; bounds_policy) = _",
             "$block{",
             "    fluid_ok = ThermoHasFluid(fluid);",
@@ -433,16 +451,19 @@ def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any])
             "    metadata_ok = if(curve_ok; ThermoHasMetadata(fluid; property); 0);",
             "    T_min = if(metadata_ok; ThermoTMin(fluid; property); 0°C);",
             "    T_max = if(metadata_ok; ThermoTMax(fluid; property); 0°C);",
-            "    status = switch(ThermoDatasetStatus ≠ DB_OK; ThermoDatasetStatus; not(fluid_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; not(curve_ok); DB_ERR_MISSING; not(metadata_ok); DB_ERR_MISSING; DBCurveStatus(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));",
+            "    equation_glycol = ThermoUsesGlycolEquation(fluid; property);",
+            "    status = switch(ThermoDatasetStatus ≠ DB_OK; ThermoDatasetStatus; equation_glycol; ThermoGlycolDBStatus(fluid; property; temperature; method; bounds_policy); not(fluid_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; not(curve_ok); DB_ERR_MISSING; not(metadata_ok); DB_ERR_MISSING; DBCurveStatus(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));",
             "    status;",
             "}",
             "",
             "ThermoPROPEx(fluid; property; temperature; method; bounds_policy) = _",
             "$block{",
             "    status = ThermoPROPStatus(fluid; property; temperature; method; bounds_policy);",
-            "    T_min = if(DBIsFatal(status); 0°C; ThermoTMin(fluid; property));",
-            "    T_max = if(DBIsFatal(status); 0°C; ThermoTMax(fluid; property));",
-            "    raw = if(DBIsFatal(status); 0/0; DBCurveRaw(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));",
+            "    equation_glycol = ThermoUsesGlycolEquation(fluid; property);",
+            "    T_min = if(DBIsFatal(status); 0°C; if(equation_glycol; ThermoGlycolTMin(fluid); ThermoTMin(fluid; property)));",
+            "    T_max = if(DBIsFatal(status); 0°C; if(equation_glycol; ThermoGlycolTMax(fluid); ThermoTMax(fluid; property)));",
+            "    T_eval = if(and(equation_glycol; bounds_policy ≡ DB_CLAMP); min(max(temperature; T_min); T_max); temperature);",
+            "    raw = if(DBIsFatal(status); 0/0; if(equation_glycol; GlycolRaw(GLYCOL_ETHYLENE; property; T_eval/°C + 273.15; ThermoFluidConcentrationMassFraction(fluid)); DBCurveRaw(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy)));",
             "    value = if(DBIsFatal(status); ThermoUndefined(property); ThermoApplyUnits(property; raw));",
             "    value;",
             "}",
@@ -612,6 +633,7 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser.add_argument("source", type=Path, help="Schema-version-2 thermophysical JSON source.")
     parser.add_argument("output", type=Path, help="Generated CalcPad library path.")
     parser.add_argument("--helmholtz-source", required=True, type=Path, help="Curated pure-fluid Helmholtz JSON source.")
+    parser.add_argument("--glycol-source", required=True, type=Path, help="Curated aqueous-glycol equation JSON source.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     return parser.parse_args(arguments)
 
@@ -623,7 +645,8 @@ def main(arguments: list[str] | None = None) -> int:
     try:
         dataset = load_dataset(options.source)
         helmholtz_dataset = load_helmholtz_dataset(options.helmholtz_source)
-        generated = generate_library(dataset, helmholtz_dataset)
+        glycol_dataset = load_glycol_dataset(options.glycol_source)
+        generated = generate_library(dataset, helmholtz_dataset, glycol_dataset)
         write_or_check(options.output, generated, options.check)
     except SchemaError as error:
         print(f"Thermophysical generator error: {error}", file=sys.stderr)

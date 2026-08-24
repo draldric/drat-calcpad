@@ -17,6 +17,7 @@ sys.dont_write_bytecode = True
 GENERATOR_PATH = REPOSITORY_ROOT / "Tools" / "GenerateThermophysicalLibrary.py"
 DATA_PATH = REPOSITORY_ROOT / "Data" / "Sources" / "Thermophysical" / "ThermophysicalProperties.json"
 HELMHOLTZ_DATA_PATH = REPOSITORY_ROOT / "Data" / "Sources" / "Thermophysical" / "HelmholtzFluids.json"
+GLYCOL_DATA_PATH = REPOSITORY_ROOT / "Data" / "Sources" / "Thermophysical" / "IncompressibleGlycols.json"
 MODULE_SPEC = importlib.util.spec_from_file_location("thermophysical_generator", GENERATOR_PATH)
 if MODULE_SPEC is None or MODULE_SPEC.loader is None:
     raise RuntimeError(f"Could not load generator module: {GENERATOR_PATH}")
@@ -32,6 +33,7 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
 
         self.dataset = json.loads(DATA_PATH.read_text(encoding="utf-8"))
         self.helmholtz_dataset = json.loads(HELMHOLTZ_DATA_PATH.read_text(encoding="utf-8"))
+        self.glycol_dataset = json.loads(GLYCOL_DATA_PATH.read_text(encoding="utf-8"))
 
     def validate_helmholtz(self, dataset: dict | None = None) -> dict:
         """Validate the curated Helmholtz source with the generator's strict helpers."""
@@ -53,8 +55,9 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
 
         validated = GENERATOR.validate_dataset(self.dataset)
         helmholtz_validated = self.validate_helmholtz()
-        generated = GENERATOR.generate_library(validated, helmholtz_validated)
-        self.assertIn("ThermophysicalPropertiesLibraryRevision$ = 0.5.0", generated)
+        glycol_validated = GENERATOR.validate_glycols(self.glycol_dataset, GENERATOR.require)
+        generated = GENERATOR.generate_library(validated, helmholtz_validated, glycol_validated)
+        self.assertIn("ThermophysicalPropertiesLibraryRevision$ = 0.6.0", generated)
         self.assertIn("WaterSaturationPressureT(temperature)", generated)
         self.assertIn("Eg50DynamicViscosityTStatus(temperature)", generated)
         self.assertIn("If97RegionPT(pressure; temperature)", generated)
@@ -66,12 +69,16 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
         self.assertIn("THERMO_CARBON_DIOXIDE = 302", generated)
         self.assertIn("THERMO_R11 = 303", generated)
         self.assertIn("THERMO_R717 = 311", generated)
+        self.assertIn("THERMO_PROPYLENE_GLYCOL = 312", generated)
         self.assertIn("THERMO_R744 = THERMO_CARBON_DIOXIDE", generated)
         self.assertIn("HelmholtzN2AlphaR(delta; tau)", generated)
         self.assertIn("HelmholtzCO2AlphaR(delta; tau)", generated)
         self.assertIn("HelmholtzR717AlphaR(delta; tau)", generated)
         self.assertIn("Valid thermophysical state", generated)
         self.assertIn("HelmholtzPropertyPT(output; fluid; pressure; temperature)", generated)
+        self.assertIn("GlycolPROP(family; property; temperature; glycol_mass_fraction)", generated)
+        self.assertIn("EgWaterDensityTX(temperature; glycol_mass_fraction)", generated)
+        self.assertIn("PgWaterDynamicViscosityTX(temperature; glycol_mass_fraction)", generated)
         self.assertIn("ThermoSourceCitation$", generated)
         self.assertIn("DRAT_DATA_WRAPPER_API ≥ 303", generated)
 
@@ -158,10 +165,34 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
         with self.assertRaisesRegex(GENERATOR.SchemaError, "helmholtz fluid IDs"):
             self.validate_helmholtz(invalid)
 
+    def test_rejects_incomplete_glycol_family_set(self) -> None:
+        """Both aqueous-glycol families are required for deterministic generation."""
+
+        invalid = copy.deepcopy(self.glycol_dataset)
+        invalid["families"].pop()
+        with self.assertRaisesRegex(GENERATOR.SchemaError, "exactly two families"):
+            GENERATOR.validate_glycols(invalid, GENERATOR.require)
+
+    def test_rejects_unknown_glycol_equation_family(self) -> None:
+        """Unimplemented correlation forms must not enter generated CalcPad source."""
+
+        invalid = copy.deepcopy(self.glycol_dataset)
+        invalid["families"][0]["properties"]["viscosity"]["type"] = "lookup"
+        with self.assertRaisesRegex(GENERATOR.SchemaError, "equation family is unsupported"):
+            GENERATOR.validate_glycols(invalid, GENERATOR.require)
+
+    def test_rejects_glycol_metadata_control_text(self) -> None:
+        """Generated provenance macros must reject CalcPad control text."""
+
+        invalid = copy.deepcopy(self.glycol_dataset)
+        invalid["source"]["name"] = "Unsafe $macro"
+        with self.assertRaisesRegex(GENERATOR.SchemaError, "control text"):
+            GENERATOR.validate_glycols(invalid, GENERATOR.require)
+
     def test_check_mode_detects_stale_output(self) -> None:
         """Check mode must accept exact output and reject a stale committed file."""
 
-        generated = GENERATOR.generate_library(GENERATOR.validate_dataset(self.dataset), self.validate_helmholtz())
+        generated = GENERATOR.generate_library(GENERATOR.validate_dataset(self.dataset), self.validate_helmholtz(), GENERATOR.validate_glycols(self.glycol_dataset, GENERATOR.require))
         with tempfile.TemporaryDirectory() as temporary_directory:
             output_path = Path(temporary_directory) / "ThermophysicalProperties.cpd"
             output_path.write_text(generated, encoding="utf-8", newline="\n")
@@ -180,7 +211,7 @@ class ThermophysicalGeneratorTests(unittest.TestCase):
             original = "'previous maintained output\n"
             output_path.write_text(original, encoding="utf-8", newline="\n")
             with self.assertRaisesRegex(GENERATOR.SchemaError, "strictly increasing"):
-                generated = GENERATOR.generate_library(GENERATOR.validate_dataset(invalid), self.validate_helmholtz())
+                generated = GENERATOR.generate_library(GENERATOR.validate_dataset(invalid), self.validate_helmholtz(), GENERATOR.validate_glycols(self.glycol_dataset, GENERATOR.require))
                 GENERATOR.write_or_check(output_path, generated, False)
             self.assertEqual(output_path.read_text(encoding="utf-8"), original)
             self.assertEqual(list(output_path.parent.glob(f".{output_path.name}.*.tmp")), [])
