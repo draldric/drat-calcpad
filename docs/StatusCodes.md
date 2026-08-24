@@ -145,6 +145,32 @@ Any registration error contributes an effective `VAL_ERR_BAD_RESULT` and prevent
 `DB_MISSING` is an internal numeric sentinel, not a display value.
 Public lookup functions return a non-finite value for fatal results and require the caller to retain the separate status for reporting.
 
+## Thermophysical state queries
+
+The unified `ThermoPropsStatus` result is `0` for a valid state, or one of the validation/backend codes below. Rejected property calls return a dimensioned non-finite value.
+
+| Constant | Value | Meaning |
+| --- | ---: | --- |
+| `IF97_ERR_PROPERTY` | 101 | IF97 output property is unknown |
+| `IF97_ERR_PRESSURE_LOW` | 102 | Pressure is non-positive or below the equation range |
+| `IF97_ERR_PRESSURE_HIGH` | 103 | Pressure exceeds the implemented IF97 range |
+| `IF97_ERR_TEMPERATURE_LOW` | 104 | Temperature is below the implemented IF97 range |
+| `IF97_ERR_TEMPERATURE_HIGH` | 105 | Temperature is above the implemented IF97 range |
+| `IF97_ERR_TWO_PHASE` | 106 | State lies on the saturation boundary and needs phase quality |
+| `IF97_ERR_UNSUPPORTED_REGION` | 107 | State lies in an unimplemented IF97 region |
+| `THERMO_PROPS_ERR_FLUID` | 201 | Fluid has no pressure-temperature backend |
+| `THERMO_PROPS_ERR_OUTPUT` | 202 | Output property ID is unknown |
+| `THERMO_PROPS_ERR_INPUT` | 203 | Input property ID is unknown |
+| `THERMO_PROPS_ERR_INPUT_PAIR` | 204 | Input pair is unsupported or repeats one property |
+| `HELMHOLTZ_ERR_PRESSURE_LOW` | 301 | Pressure is non-positive or below the equation range |
+| `HELMHOLTZ_ERR_PRESSURE_HIGH` | 302 | Pressure exceeds the selected pure-fluid equation range |
+| `HELMHOLTZ_ERR_TEMPERATURE_LOW` | 303 | Temperature is below the selected pure-fluid equation range |
+| `HELMHOLTZ_ERR_TEMPERATURE_HIGH` | 304 | Temperature is above the selected pure-fluid equation range |
+| `HELMHOLTZ_ERR_TWO_PHASE` | 305 | State lies on the saturation boundary and needs phase quality |
+| `HELMHOLTZ_ERR_DENSITY` | 306 | The pressure-temperature density iteration did not converge |
+
+Use `ThermoPropsStatus$(status)` for the unified rendered description, or `If97Status$` and `HelmholtzStatus$` when working directly with a backend.
+
 ## Bounds and interpolation policies
 
 | Constant | Value | Behavior |

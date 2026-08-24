@@ -5,9 +5,9 @@
 #def Organization$ = DRAT EXAMPLE ORGANIZATION
 #def Client$ = DEMONSTRATION CLIENT
 #def Project$ = THERMAL PROPERTY WORKFLOW DEMONSTRATION
-#def Title$ = THERMOPHYSICAL CURVES AND IAPWS WATER STEAM STATES
-#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE CURVE LOOKUPS AND IAPWS-IF97 PRESSURE-TEMPERATURE STATE CALCULATIONS FOR WATER AND STEAM.
-#def Scope$ = QUERY THE WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES AND CALCULATE STABLE SINGLE-PHASE WATER OR STEAM STATES IN IAPWS-IF97 REGIONS 1 AND 2. REGIONS 3 AND 5 AND TWO-PHASE QUALITY CALCULATIONS ARE EXCLUDED.
+#def Title$ = THERMOPHYSICAL CURVES AND EQUATION-BASED FLUID STATES
+#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE CURVE LOOKUPS AND PRESSURE-TEMPERATURE STATE CALCULATIONS FOR WATER STEAM NITROGEN AND CARBON DIOXIDE.
+#def Scope$ = QUERY THE WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES AND CALCULATE STABLE SINGLE-PHASE WATER STEAM NITROGEN OR CARBON DIOXIDE STATES. TRANSPORT PROPERTIES MIXTURES PHASE QUALITY AND UNIMPLEMENTED IAPWS REGIONS ARE EXCLUDED.
 #def Calculation$ = EXAMPLE-THERMO-001
 #def Rev$ = 0
 #def PreparedBy$ = EXAMPLE AUTHOR
@@ -24,10 +24,13 @@ CreateScope$
 #hide
 REF_COOLPROP_SAMPLE = 1
 REF_IAPWS_IF97 = 2
+REF_N2_EOS = 3
+REF_CO2_EOS = 4
 ASSUMPTION_SAMPLE_BASIS = 1
 LIMITATION_RANGE = 1
 LIMITATION_MODEL = 2
 LIMITATION_IF97_SCOPE = 3
+LIMITATION_HELMHOLTZ_SCOPE = 4
 #show
 
 BeginRevisions$
@@ -37,6 +40,8 @@ EndRevisions$
 BeginReferences$
 AddReference$(REF_COOLPROP_SAMPLE; CoolProp thermophysical property engine; Water and INCOMP::MEG-50% sampled curves; SMath plugin build 6.4.8214.13502; 10 deg C through 95 deg C; Migration baseline captured from the source tank-heating worksheet.)
 AddReference$(REF_IAPWS_IF97; International Association for the Properties of Water and Steam; Revised Release on the IAPWS Industrial Formulation 1997; R7-97 2012; Regions 1 2 and 4 plus the B23 boundary; Official coefficients and computer-program verification tables.)
+AddReference$(REF_N2_EOS; Span Lemmon Jacobsen Wagner and Yokozeki; Reference equation of state for nitrogen; 2000; 63.151 K through 1000 K and up to 2200 MPa; Fundamental Helmholtz equation curated from the pinned CoolProp fluid record.)
+AddReference$(REF_CO2_EOS; Span and Wagner; New equation of state for carbon dioxide; 1996; Triple point through 1100 K and up to 800 MPa; Fundamental Helmholtz equation curated from the pinned CoolProp fluid record.)
 EndReferences$
 
 "Basis and Limitations
@@ -49,6 +54,7 @@ BeginLimitations$
 AddLimitation$(LIMITATION_RANGE; The initial dataset covers only 10 deg C through 95 deg C.; Requests outside that range return a fatal status and an undefined property value.; Regenerate or extend the approved source data instead of extrapolating for design use.; REF_COOLPROP_SAMPLE)
 AddLimitation$(LIMITATION_MODEL; This revision is not a general equation-of-state or phase-equilibrium engine.; Arbitrary pressure concentration phase and fluid queries are unsupported.; Confirm that the selected fluid and property curve matches the engineering state being modeled.; REF_COOLPROP_SAMPLE)
 AddLimitation$(LIMITATION_IF97_SCOPE; The IF97 backend implements only stable single-phase Regions 1 and 2.; Saturation states Region 3 Region 5 and metastable steam return explicit error statuses.; Check the state status before using a returned property in design calculations.; REF_IAPWS_IF97)
+AddLimitation$(LIMITATION_HELMHOLTZ_SCOPE; The nitrogen and carbon dioxide backends provide equation-based thermodynamic properties for pressure-temperature states.; Transport properties mixtures and two-phase quality states are unsupported.; Check the state status and use a separate qualified correlation when viscosity or conductivity is required.; REF_N2_EOS)
 EndLimitations$
 
 "Dataset Summary
@@ -56,11 +62,15 @@ EndLimitations$
 ShowThermoDatasetSummary$
 ShowThermoSourceRecord$(THERMO_SRC_COOLPROP_SMATH)
 ShowThermoSourceRecord$(THERMO_SRC_IAPWS_IF97)
+ShowThermoSourceRecord$(THERMO_SRC_NITROGEN_EOS)
+ShowThermoSourceRecord$(THERMO_SRC_CO2_EOS)
 
 "Available Fluids
 
 ShowThermoFluidRecord$(THERMO_WATER)
 ShowThermoFluidRecord$(THERMO_EG_50)
+ShowThermoFluidRecord$(THERMO_NITROGEN)
+ShowThermoFluidRecord$(THERMO_CARBON_DIOXIDE)
 
 "Property Query
 #hide
@@ -147,9 +157,47 @@ ThermoPropsStatus$(steam_status)
 '</table>
 #equ
 
+"Equation-Based Nitrogen and Carbon Dioxide States
+#hide
+p_n2 = 10MPa
+T_n2 = 300K
+p_co2 = 10MPa
+T_co2 = 320K
+
+n2_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+n2_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+n2_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+n2_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+
+co2_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>State or property</th><th>Nitrogen</th><th>Carbon dioxide</th></tr></thead>
+'<tbody>
+'<tr><td>Pressure</td><td>'p_n2'</td><td>'p_co2'</td></tr>
+'<tr><td>Temperature</td><td>'T_n2'</td><td>'T_co2'</td></tr>
+'<tr><td>Status</td><td>
+ThermoPropsStatus$(n2_status)
+'</td><td>
+ThermoPropsStatus$(co2_status)
+'</td></tr>
+'<tr><td>Density</td><td>'n2_density'</td><td>'co2_density'</td></tr>
+'<tr><td>Specific enthalpy</td><td>'n2_enthalpy'</td><td>'co2_enthalpy'</td></tr>
+'<tr><td>Specific isobaric heat capacity</td><td>'n2_Cp'</td><td>'co2_Cp'</td></tr>
+'</tbody>
+'</table>
+#equ
+
 BeginConclusions$
 AddConclusion$(Dataset status; ThermoDatasetStatus)
 AddConclusion$(Example heat-capacity rate; Q_capacity)
 AddConclusion$(Liquid state region; liquid_region)
 AddConclusion$(Steam state region; steam_region)
+AddConclusion$(Nitrogen state status; n2_status)
+AddConclusion$(Carbon dioxide state status; co2_status)
 EndConclusions$

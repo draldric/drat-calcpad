@@ -2,9 +2,9 @@
   "schema_version": 2,
   "library": {
     "name": "DRAT Thermophysical Properties Library",
-    "revision": "0.3.0",
+    "revision": "0.4.0",
     "date": "2026-08-23",
-    "scope": "Self-contained temperature-property curves for water and 50 percent ethylene glycol by mass plus the IAPWS-IF97 equations for stable single-phase water and steam in Regions 1 and 2. Region 3, Region 5, metastable steam, and two-phase quality calculations are not implemented."
+    "scope": "Self-contained temperature-property curves for water and 50 percent ethylene glycol by mass, IAPWS-IF97 equations for stable single-phase water and steam in Regions 1 and 2, and fundamental Helmholtz equations for pure nitrogen and carbon dioxide pressure-temperature states. Transport properties, mixtures, two-phase quality calculations, IF97 Region 3, IF97 Region 5, and metastable steam are not implemented."
   },
   "sources": [
     {

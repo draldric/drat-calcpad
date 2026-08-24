@@ -11,7 +11,7 @@ This audit covers every distributed DRAT engineering dataset as of 2026-08-23. A
 | AISC HSS 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC C/MC channels 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
 | AISC single angles 0.1.0 | Same DRAT workbook and AISC source basis | Same repository workbook | Embedded selected factual values packaged | Same qualification state |
-| Thermophysical Properties 0.3.0 | CoolProp samples plus IAPWS R7-97(2012) Regions 1, 2, and 4 and B23 coefficients | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Generated equations and unified `ThermoProps` interface packaged with CoolProp and IAPWS attribution | IF97 equations qualified against official Tables 1, 5, 15, 35, and 36; sampled curves remain blocked on exact CoolProp version/input pairs and independent validation |
+| Thermophysical Properties 0.4.0 | CoolProp samples, IAPWS R7-97(2012), and Span reference equations for N2 and CO2 curated from pinned CoolProp revision `5b9c32a` | Repository JSON under `Data/Sources/Thermophysical`; excluded from runtime packages | Generated equations and unified `ThermoProps` interface packaged with CoolProp and IAPWS attribution | IF97 equations qualified against official tables; N2/CO2 gas, liquid, and supercritical states regression-checked against CoolProp 8.0.0; sampled water/glycol curves retain their earlier qualification limitation |
 
 ## AISC verification
 
@@ -54,11 +54,13 @@ No value may be promoted from screening merely because it resembles a handbook, 
 
 ## Thermophysical verification
 
-The JSON schema and generator enforce source, fluid, property, and curve IDs; supported CalcPad units; unique public functions; finite numeric values; equal temperature/value axes; strictly increasing temperature; fixed IF97 coefficient counts; metadata linkage; deterministic output; and failure-safe replacement.
+The JSON schemas and generator enforce source, fluid, property, and curve IDs; supported CalcPad units; unique public functions; finite numeric values; equal temperature/value axes; strictly increasing temperature; fixed IF97 coefficient counts; supported Helmholtz term families; aligned equation coefficient arrays; metadata linkage; deterministic output; and failure-safe replacement.
 
 The curve records reproduce the migrated worksheet's CoolProp samples but lack the exact CoolProp version and complete input-pair calls. They remain a migration baseline rather than an independently qualified equation-of-state basis.
 
 The IF97 records separately reproduce the official Region 1 and Region 2 fundamental equations, the Region 4 saturation-pressure and saturation-temperature equations, and the B23 boundary equation. CalcPad regression checks cover all published verification points applicable to those equations. Region 3, Region 5, metastable steam, and two-phase quality states are explicitly rejected rather than evaluated with an adjacent region.
+
+The pure-nitrogen and carbon-dioxide records are curated from full upstream CoolProp fluid records at one pinned Git revision. The importer restricts accepted citation keys and ideal/residual equation-term families, and records each upstream file hash. The runtime library evaluates the fundamental Helmholtz equations and analytic derivatives; it does not interpolate sampled thermodynamic property values for these fluids. Regression states cover gas, liquid, and supercritical density plus all eight exposed thermodynamic outputs at representative gas states. Transport properties, mixtures, and phase-quality inputs remain outside this revision.
 
 ## Units, conversions, and missing values
 
@@ -80,7 +82,7 @@ Validate repository-owned inputs and generated outputs:
 ```powershell
 python Tools/ValidateEngineeringMaterialsSource.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx
 python Tools/GenerateEngineeringMaterialsLibrary.py Data/Sources/EngineeringMaterials/EngineeringMaterialsDatabase.xlsx Libraries/Materials/EngineeringMaterials.cpd --check
-python Tools/GenerateThermophysicalLibrary.py Data/Sources/Thermophysical/ThermophysicalProperties.json Libraries/Thermophysical/ThermophysicalProperties.cpd --check
+python Tools/GenerateThermophysicalLibrary.py Data/Sources/Thermophysical/ThermophysicalProperties.json Libraries/Thermophysical/ThermophysicalProperties.cpd --helmholtz-source Data/Sources/Thermophysical/HelmholtzFluids.json --check
 python Tools/GenerateAiscWLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/StructuralSections.cpd --check
 python Tools/GenerateAiscHssLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscHssSections.cpd --check
 python Tools/GenerateAiscChannelLibrary.py Data/Sources/AiscShapesV16/DratStructuralSectionsSource.xlsx Libraries/Steel/AiscChannelSections.cpd --check

@@ -1,0 +1,673 @@
+{
+  "schema_version": 1,
+  "upstream": {
+    "project": "CoolProp",
+    "repository": "https://github.com/CoolProp/CoolProp",
+    "revision": "5b9c32ac3cbedf7ec67fb4e23c65751ffee237db",
+    "license": "MIT"
+  },
+  "sources": [
+    {
+      "id": 3,
+      "constant": "THERMO_SRC_NITROGEN_EOS",
+      "name": "Nitrogen reference equation of state",
+      "citation": "Span, Lemmon, Jacobsen, Wagner, and Yokozeki, A Reference Equation of State for the Thermodynamic Properties of Nitrogen, J. Phys. Chem. Ref. Data 29, 1361-1433, 2000",
+      "revision": "CoolProp record at pinned revision for Span-JPCRD-2000",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1063/1.1349047. Imported from the pinned CoolProp pure-fluid JSON record."
+    },
+    {
+      "id": 4,
+      "constant": "THERMO_SRC_CO2_EOS",
+      "name": "Carbon dioxide reference equation of state",
+      "citation": "Span and Wagner, A New Equation of State for Carbon Dioxide, J. Phys. Chem. Ref. Data 25, 1509-1596, 1996",
+      "revision": "CoolProp record at pinned revision for Span-JPCRD-1996",
+      "license": "Equation coefficients are factual records; CoolProp source record is distributed under the MIT License",
+      "notes": "Primary EOS DOI 10.1063/1.555991. Imported from the pinned CoolProp pure-fluid JSON record."
+    }
+  ],
+  "fluids": [
+    {
+      "id": 301,
+      "constant": "THERMO_NITROGEN",
+      "function_prefix": "HelmholtzN2",
+      "name": "Nitrogen",
+      "description": "Pure nitrogen using the Span et al. reference Helmholtz equation of state.",
+      "source_id": 3,
+      "aliases": [
+        "nitrogen",
+        "NITROGEN",
+        "N2",
+        "R728"
+      ],
+      "cas": "7727-37-9",
+      "molar_mass_kg_per_mol": 0.02801348,
+      "gas_constant_J_per_molK": 8.31451,
+      "temperature_min_K": 63.151,
+      "temperature_max_K": 1000.0,
+      "pressure_max_Pa": 2200000000,
+      "reducing_temperature_K": 126.192,
+      "reducing_molar_density_mol_per_m3": 11183.901464580624,
+      "ideal": [
+        {
+          "a1": -12.76952708,
+          "a2": -0.00784163,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 2.5,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            -0.0001934819,
+            -1.247742e-05,
+            6.678326e-08
+          ],
+          "t": [
+            -1,
+            -2,
+            -3
+          ],
+          "type": "IdealGasHelmholtzPower"
+        },
+        {
+          "Tcrit": 126.192,
+          "Tcrit_units": "K",
+          "n": [
+            1.012941
+          ],
+          "type": "IdealGasHelmholtzPlanckEinsteinFunctionT",
+          "v": [
+            3364.011
+          ]
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            1,
+            1,
+            1,
+            3,
+            3,
+            4,
+            6,
+            6,
+            7,
+            7,
+            8,
+            8,
+            1,
+            2,
+            3,
+            4,
+            5,
+            8,
+            4,
+            5,
+            5,
+            8,
+            3,
+            5,
+            6,
+            9
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4
+          ],
+          "n": [
+            0.924803575275,
+            -0.492448489428,
+            0.661883336938,
+            -1.92902649201,
+            -0.0622469309629,
+            0.349943957581,
+            0.564857472498,
+            -1.61720005987,
+            -0.481395031883,
+            0.421150636384,
+            -0.0161962230825,
+            0.172100994165,
+            0.00735448924933,
+            0.0168077305479,
+            -0.00107626664179,
+            -0.0137318088513,
+            0.000635466899859,
+            0.00304432279419,
+            -0.0435762336045,
+            -0.0723174889316,
+            0.0389644315272,
+            -0.021220136391,
+            0.00408822981509,
+            -5.51990017984e-05,
+            -0.0462016716479,
+            -0.00300311716011,
+            0.0368825891208,
+            -0.0025585684622,
+            0.00896915264558,
+            -0.0044151337035,
+            0.00133722924858,
+            0.000264832491957
+          ],
+          "t": [
+            0.25,
+            0.875,
+            0.5,
+            0.875,
+            0.375,
+            0.75,
+            0.5,
+            0.75,
+            2,
+            1.25,
+            3.5,
+            1,
+            0.5,
+            3,
+            0,
+            2.75,
+            0.75,
+            2.5,
+            4,
+            6,
+            6,
+            3,
+            3,
+            6,
+            16,
+            11,
+            15,
+            12,
+            12,
+            7,
+            4,
+            16
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "beta": [
+            325,
+            325,
+            300,
+            275
+          ],
+          "d": [
+            1,
+            1,
+            3,
+            2
+          ],
+          "epsilon": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "eta": [
+            20,
+            20,
+            15,
+            25
+          ],
+          "gamma": [
+            1.16,
+            1.16,
+            1.13,
+            1.25
+          ],
+          "n": [
+            19.6688194015,
+            -20.911560073,
+            0.0167788306989,
+            2627.67566274
+          ],
+          "t": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "type": "ResidualHelmholtzGaussian"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 63.15100000000001,
+        "Tmax": 126.19199999999978,
+        "T_r": 126.192,
+        "reducing_value": 3395800.0,
+        "n": [
+          7.557523110967278,
+          -15.31423072093374,
+          2.530452363947435,
+          -3.5464937257192077,
+          2.4443140451500853,
+          -1.089727092432518
+        ],
+        "t": [
+          0.945,
+          0.976,
+          1.134,
+          4.43,
+          4.942,
+          6.222
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 63.15100000000001,
+        "Tmax": 126.19199999999978,
+        "T_r": 126.192,
+        "reducing_value": 11183.901464580624,
+        "n": [
+          3.423788275604014,
+          -2.9664673074957677,
+          12.095926119341373,
+          -13.681823050784574,
+          4.19110684294756,
+          -0.6241396008655289
+        ],
+        "t": [
+          0.396,
+          0.549,
+          1.037,
+          1.209,
+          1.682,
+          2.819
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "CoolProp-Nitrogen.json",
+      "upstream_sha256": "9a4590845c5490bc9195a48d113758e7ad45ab4f273ef89b6722896642e7fcd5"
+    },
+    {
+      "id": 302,
+      "constant": "THERMO_CARBON_DIOXIDE",
+      "function_prefix": "HelmholtzCO2",
+      "name": "Carbon dioxide",
+      "description": "Pure carbon dioxide using the Span-Wagner reference Helmholtz equation of state.",
+      "source_id": 4,
+      "aliases": [
+        "R744",
+        "co2",
+        "CO2",
+        "carbondioxide",
+        "CARBONDIOXIDE"
+      ],
+      "cas": "124-38-9",
+      "molar_mass_kg_per_mol": 0.0440098,
+      "gas_constant_J_per_molK": 8.31451,
+      "temperature_min_K": 216.592,
+      "temperature_max_K": 1100.0,
+      "pressure_max_Pa": 800000000,
+      "reducing_temperature_K": 304.1282,
+      "reducing_molar_density_mol_per_m3": 10624.9063,
+      "ideal": [
+        {
+          "a1": 8.37304456,
+          "a2": -3.70454304,
+          "type": "IdealGasHelmholtzLead"
+        },
+        {
+          "a": 2.5,
+          "type": "IdealGasHelmholtzLogTau"
+        },
+        {
+          "n": [
+            1.99427042,
+            0.62105248,
+            0.41195293,
+            1.04028922,
+            0.08327678
+          ],
+          "t": [
+            3.15163,
+            6.1119,
+            6.77708,
+            11.32384,
+            27.08792
+          ],
+          "type": "IdealGasHelmholtzPlanckEinstein"
+        },
+        {
+          "a1": -14.4979156224319,
+          "a2": 8.82013935801453,
+          "reference": "IIR",
+          "type": "IdealGasHelmholtzEnthalpyEntropyOffset"
+        }
+      ],
+      "residual": [
+        {
+          "d": [
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            3,
+            1,
+            2,
+            4,
+            5,
+            5,
+            5,
+            6,
+            6,
+            6,
+            1,
+            1,
+            4,
+            4,
+            4,
+            7,
+            8,
+            2,
+            3,
+            3,
+            5,
+            5,
+            6,
+            7,
+            8,
+            10,
+            4,
+            8
+          ],
+          "l": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4,
+            4,
+            4,
+            5,
+            6
+          ],
+          "n": [
+            0.388568232032,
+            2.93854759427,
+            -5.5867188535,
+            -0.767531995925,
+            0.317290055804,
+            0.548033158978,
+            0.122794112203,
+            2.16589615432,
+            1.58417351097,
+            -0.231327054055,
+            0.0581169164314,
+            -0.553691372054,
+            0.489466159094,
+            -0.0242757398435,
+            0.0624947905017,
+            -0.121758602252,
+            -0.370556852701,
+            -0.0167758797004,
+            -0.11960736638,
+            -0.0456193625088,
+            0.0356127892703,
+            -0.00744277271321,
+            -0.00173957049024,
+            -0.0218101212895,
+            0.0243321665592,
+            -0.0374401334235,
+            0.143387157569,
+            -0.134919690833,
+            -0.0231512250535,
+            0.0123631254929,
+            0.00210583219729,
+            -0.000339585190264,
+            0.00559936517716,
+            -0.000303351180556
+          ],
+          "t": [
+            0,
+            0.75,
+            1,
+            2,
+            0.75,
+            2,
+            0.75,
+            1.5,
+            1.5,
+            2.5,
+            0,
+            1.5,
+            2,
+            0,
+            1,
+            2,
+            3,
+            6,
+            3,
+            6,
+            8,
+            6,
+            0,
+            7,
+            12,
+            16,
+            22,
+            24,
+            16,
+            24,
+            8,
+            2,
+            28,
+            14
+          ],
+          "type": "ResidualHelmholtzPower"
+        },
+        {
+          "beta": [
+            325,
+            300,
+            300,
+            275,
+            275
+          ],
+          "d": [
+            2,
+            2,
+            2,
+            3,
+            3
+          ],
+          "epsilon": [
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "eta": [
+            25,
+            25,
+            25,
+            15,
+            20
+          ],
+          "gamma": [
+            1.16,
+            1.19,
+            1.19,
+            1.25,
+            1.22
+          ],
+          "n": [
+            -213.654886883,
+            26641.5691493,
+            -24027.2122046,
+            -283.41603424,
+            212.472844002
+          ],
+          "t": [
+            1,
+            0,
+            1,
+            3,
+            3
+          ],
+          "type": "ResidualHelmholtzGaussian"
+        },
+        {
+          "A": [
+            0.7,
+            0.7,
+            0.7
+          ],
+          "B": [
+            0.3,
+            0.3,
+            1
+          ],
+          "C": [
+            10,
+            10,
+            12.5
+          ],
+          "D": [
+            275,
+            275,
+            275
+          ],
+          "a": [
+            3.5,
+            3.5,
+            3
+          ],
+          "b": [
+            0.875,
+            0.925,
+            0.875
+          ],
+          "beta": [
+            0.3,
+            0.3,
+            0.3
+          ],
+          "n": [
+            -0.666422765408,
+            0.726086323499,
+            0.0550686686128
+          ],
+          "type": "ResidualHelmholtzNonAnalytic"
+        }
+      ],
+      "saturation_pressure": {
+        "Tmin": 216.592,
+        "Tmax": 304.1281999999994,
+        "T_r": 304.1282,
+        "reducing_value": 7377300.0,
+        "n": [
+          -5.867399337600407,
+          -7.10969550015274,
+          11.022781986239263,
+          4.8260764050219995,
+          -6.240803382557819,
+          -6.7009642572439
+        ],
+        "t": [
+          0.983,
+          1.322,
+          1.488,
+          2.807,
+          3.571,
+          1.941
+        ],
+        "type": "pL",
+        "using_tau_r": true
+      },
+      "saturated_liquid_density": {
+        "Tmin": 216.592,
+        "Tmax": 304.1281999999994,
+        "T_r": 304.1282,
+        "reducing_value": 10624.906299999999,
+        "n": [
+          0.861951794789174,
+          5.535795098719573,
+          -21.766373764605415,
+          20.01416999278327,
+          -2.2218647220786862,
+          888.2387848519858
+        ],
+        "t": [
+          0.264,
+          0.672,
+          0.986,
+          1.092,
+          1.714,
+          9.902
+        ],
+        "type": "rhoLnoexp"
+      },
+      "upstream_file": "CoolProp-CarbonDioxide.json",
+      "upstream_sha256": "9d3ebf8fcce8052f06e0d0fabca849309d2a4a638e9dcccc1ac9efd1e32af75e"
+    }
+  ]
+}

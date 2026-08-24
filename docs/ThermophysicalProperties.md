@@ -3,13 +3,14 @@
 `Libraries/Thermophysical/ThermophysicalProperties.cpd` is the generated, self-contained DRAT property library for thermal and fluid calculations.
 It does not require CoolProp or another property engine at worksheet runtime.
 
-Release `0.3.0` provides two complementary backends and one unified state-query interface:
+Release `0.4.0` provides three complementary backends and one unified state-query interface:
 
 - Water specific heat, saturation pressure, and latent heat of vaporization.
 - Density, specific heat, dynamic viscosity, and thermal conductivity for 50% ethylene glycol by mass (`INCOMP::MEG-50%`).
 - Linear interpolation from 10 °C through 95 °C.
 - IAPWS-IF97 fundamental equations for stable single-phase water and steam in Regions 1 and 2.
 - IAPWS-IF97 Region 4 forward and inverse saturation equations plus the B23 boundary used for region selection.
+- Fundamental Helmholtz equations of state for pure nitrogen and pure carbon dioxide, including gas, liquid, and supercritical pressure-temperature states.
 - A CoolProp-shaped `ThermoProps` selector over the implemented equation backends.
 
 These curves reproduce the values embedded in the migrated tank-heating calculation.
@@ -37,11 +38,28 @@ h = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERA
 h_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERATURE; 500K; THERMO_WATER)
 ```
 
-The two inputs can be supplied in either order. Version `0.3.0` supports only the pressure-temperature pair and the `THERMO_WATER` equation backend. Unsupported fluids, outputs, inputs, repeated inputs, and unavailable IF97 regions return explicit statuses. `ThermoPropsStatus$(status)` renders the complete unified or underlying IF97 status.
+The two inputs can be supplied in either order. Version `0.4.0` supports the pressure-temperature pair for `THERMO_WATER`, `THERMO_NITROGEN`, and `THERMO_CARBON_DIOXIDE`. Unsupported fluids, outputs, inputs, repeated inputs, unavailable IF97 regions, out-of-range Helmholtz states, and saturation-boundary states return explicit statuses. `ThermoPropsStatus$(status)` renders the unified, IF97, or Helmholtz status.
 
 Input IDs are `THERMO_IN_PRESSURE` and `THERMO_IN_TEMPERATURE`. Output IDs are `THERMO_OUT_SPECIFIC_VOLUME`, `THERMO_OUT_DENSITY`, `THERMO_OUT_ENTHALPY`, `THERMO_OUT_INTERNAL_ENERGY`, `THERMO_OUT_ENTROPY`, `THERMO_OUT_CP`, `THERMO_OUT_CV`, and `THERMO_OUT_SOUND_SPEED`.
 
 Unlike CoolProp's `PropsSI`, values are passed and returned with CalcPad units instead of unitless SI numbers. The ID-based interface also avoids fragile string comparisons in generated worksheets. Its call shape is reserved for future pressure-enthalpy, pressure-entropy, and quality input pairs.
+
+## Nitrogen and carbon dioxide equations
+
+The pure-fluid backend evaluates the published reduced Helmholtz-energy equations and their analytic first and second derivatives. Density is recovered from pressure and temperature with a bounded, phase-aware Newton iteration; specific volume, density, enthalpy, internal energy, entropy, isobaric and isochoric heat capacity, and speed of sound are then derived from the solved state.
+
+```text
+p = 10MPa
+T = 320K
+
+rho_co2 = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATURE; T; THERMO_CARBON_DIOXIDE)
+h_co2 = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATURE; T; THERMO_CARBON_DIOXIDE)
+state_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATURE; T; THERMO_CARBON_DIOXIDE)
+```
+
+Nitrogen uses the Span et al. 2000 reference equation from 63.151 K through 1000 K and up to 2200 MPa. Carbon dioxide uses the Span-Wagner 1996 reference equation from its triple point through 1100 K and up to 800 MPa. The coefficients, ideal-gas terms, residual power/Gaussian/nonanalytic terms, and saturation ancillaries are curated from the pinned CoolProp revision recorded in `HelmholtzFluids.json`.
+
+All properties exposed for these two fluids are equation-derived; no sampled property tables are used. Transport properties such as viscosity and thermal conductivity are not yet exposed for nitrogen or carbon dioxide. Saturation-boundary pressure-temperature queries are rejected because the input pair does not specify phase quality.
 
 ## IAPWS-IF97 pressure-temperature states
 
@@ -168,14 +186,15 @@ The worksheet owns its heading hierarchy.
 
 ## Raw data and generation
 
-The maintained source is `Data/Sources/Thermophysical/ThermophysicalProperties.json`.
-Schema version 2 stores both curve records and the fixed-shape IF97 coefficient arrays.
+The maintained inputs are `Data/Sources/Thermophysical/ThermophysicalProperties.json` and `Data/Sources/Thermophysical/HelmholtzFluids.json`.
+The first stores curve records and fixed-shape IF97 coefficient arrays; the second stores the curated pure-fluid equation records and their pinned upstream hashes.
 The committed `.cpd` library is generated:
 
 ```powershell
 python Tools/GenerateThermophysicalLibrary.py `
     Data/Sources/Thermophysical/ThermophysicalProperties.json `
-    Libraries/Thermophysical/ThermophysicalProperties.cpd
+    Libraries/Thermophysical/ThermophysicalProperties.cpd `
+    --helmholtz-source Data/Sources/Thermophysical/HelmholtzFluids.json
 ```
 
 Check that the generated file is current without rewriting it:
@@ -184,16 +203,19 @@ Check that the generated file is current without rewriting it:
 python Tools/GenerateThermophysicalLibrary.py `
     Data/Sources/Thermophysical/ThermophysicalProperties.json `
     Libraries/Thermophysical/ThermophysicalProperties.cpd `
+    --helmholtz-source Data/Sources/Thermophysical/HelmholtzFluids.json `
     --check
 ```
 
 The generator uses only the Python standard library.
-It rejects unknown units, duplicate IDs or curve keys, duplicate public functions, non-finite values, unequal axes, non-increasing temperatures, and incomplete IF97 coefficient series before atomically replacing the generated library.
+It rejects unknown units, duplicate IDs or curve keys, duplicate public functions, non-finite values, unequal axes, non-increasing temperatures, incomplete IF97 coefficient series, unsupported Helmholtz term families, and misaligned coefficient arrays before atomically replacing the generated library.
+
+`Tools/ImportCoolPropHelmholtzFluids.py` is the maintenance importer for selected upstream pure-fluid JSON records. It only accepts the audited N2 and CO2 term families and source citation keys, records the pinned CoolProp Git revision and file hashes, validates the complete combined dataset, and then replaces `HelmholtzFluids.json` atomically.
 
 ## Qualification
 
 `Tests/Libraries/Thermophysical/ThermophysicalPropertiesTest.cpd` verifies the sampled curves and every Region 1, Region 2, B23 boundary, saturation-pressure, and saturation-temperature computer-program verification point published in IAPWS R7-97(2012) Tables 1, 5, 15, 35, and 36.
-It also checks region selection, unsupported Region 3 states, saturation-line rejection, units, dimensioned undefined results, and derived density and isochoric heat capacity.
+It also checks N2 and CO2 gas, liquid, and supercritical states against CoolProp 8.0.0, every supported thermodynamic output at the gas reference points, equation ranges, saturation-boundary rejection, region selection, units, and dimensioned undefined results.
 `Tests/Tooling/ThermophysicalGeneratorTest.py` verifies the raw-data schema and stale-output detection.
 
 The curve backend should eventually be checked against independent governing sources, not only the engine used to generate it.
@@ -204,12 +226,12 @@ The exact CoolProp version and complete input-pair calls for the original sample
 
 The next increments are:
 
-1. Add IF97 Region 3 so the pressure-temperature map is continuous through the dense-fluid and supercritical domain.
-2. Add pressure-enthalpy and pressure-entropy state recovery with explicit phase handling.
-3. Add audited two-dimensional `temperature-concentration` interpolation and ethylene/propylene glycol concentration families.
-4. Add humid-air properties using a separately qualified model.
-5. Add other fluids only in response to maintained engineering use cases.
+1. Add ammonia and propane through the same validated Helmholtz term-family backend.
+2. Replace the legacy 50% ethylene-glycol sampled curves with explicit correlations and add a propylene-glycol family.
+3. Add separately qualified transport-property correlations.
+4. Add IF97 Region 3 and pressure-enthalpy or pressure-entropy state recovery with explicit phase handling.
+5. Add humid-air properties using a separately qualified model.
 
-Arbitrary refrigerants, mixtures, reference states, and general Helmholtz equations of state remain outside the initial scope.
+Arbitrary refrigerants, mixtures, user-selectable reference states, and automatic phase-quality resolution remain outside the current scope.
 
 See `Examples/ThermophysicalPropertiesDemo.cpd` for the complete end-user workflow.

@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from GeneratorSupport import GeneratorError, write_or_check as safe_write_or_check
+from HelmholtzFluidSupport import generate_helmholtz, validate_helmholtz
 from IapwsIf97Support import generate_if97, validate_if97
 
 
@@ -214,6 +215,18 @@ def load_dataset(path: Path) -> dict[str, Any]:
     return validate_dataset(dataset)
 
 
+def load_helmholtz_dataset(path: Path) -> dict[str, Any]:
+    """Load and validate the curated pure-fluid equation source."""
+
+    try:
+        dataset = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise SchemaError(f"Helmholtz source dataset does not exist: {path}") from error
+    except json.JSONDecodeError as error:
+        raise SchemaError(f"Helmholtz source dataset is not valid JSON: {error}") from error
+    return validate_helmholtz(dataset, require, require_mapping, require_list, require_integer, require_text, require_constant, require_number, validate_unique)
+
+
 def format_number(value: Any) -> str:
     """Format a validated numeric value deterministically for CalcPad."""
 
@@ -248,15 +261,19 @@ def append_text_macro(lines: list[str], name: str, argument: str, records: list[
     lines.extend((f"    #if {unknown_condition}", f"        '<span class=\"err\">{unknown_text}</span>", "    #end if", "#end def", ""))
 
 
-def generate_library(dataset: dict[str, Any]) -> str:
+def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any]) -> str:
     """Render a validated dataset as a complete guarded CalcPad library."""
 
     library = dataset["library"]
-    sources = dataset["sources"]
-    fluids = dataset["fluids"]
+    sources = dataset["sources"] + helmholtz_dataset["sources"]
+    fluids = dataset["fluids"] + helmholtz_dataset["fluids"]
     properties = dataset["properties"]
     curves = dataset["curves"]
     properties_by_id = {item["id"]: item for item in properties}
+    require(len({item["id"] for item in sources}) == len(sources), "Combined thermophysical source IDs must be unique.")
+    require(len({item["constant"] for item in sources}) == len(sources), "Combined thermophysical source constants must be unique.")
+    require(len({item["id"] for item in fluids}) == len(fluids), "Combined thermophysical fluid IDs must be unique.")
+    require(len({item["constant"] for item in fluids}) == len(fluids), "Combined thermophysical fluid constants must be unique.")
 
     curve_rows: list[list[Any]] = []
     metadata_rows: list[list[Any]] = []
@@ -268,7 +285,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
         curve_rows.extend([key, f"{format_number(temperature)}°C", value] for temperature, value in zip(curve["temperature_c"], curve["values"]))
 
     lines: list[str] = [
-        "'<!-- GENERATED FILE. Edit Data/Sources/Thermophysical/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->",
+        "'<!-- GENERATED FILE. Edit the JSON records under Data/Sources/Thermophysical and run Tools/GenerateThermophysicalLibrary.py. -->",
         "#if and(DRAT_CORE_API ≥ 40000; DRAT_CORE_API < 50000)",
         "#if and(DRAT_DATA_WRAPPER_API ≥ 303; DRAT_DATA_WRAPPER_API < 1000)",
         "#hide",
@@ -319,7 +336,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
 
     concentration_terms = []
     for fluid in fluids:
-        concentration = fluid["concentration_mass_fraction"]
+        concentration = fluid.get("concentration_mass_fraction")
         raw = "DB_MISSING" if concentration is None else format_number(concentration)
         concentration_terms.extend((f"fluid ≡ {fluid['constant']}", raw))
     lines.append("ThermoFluidConcentrationMassFraction(fluid) = switch(" + "; ".join(concentration_terms + ["DB_MISSING"]) + ")")
@@ -327,6 +344,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
     lines.append("")
 
     lines.extend(generate_if97(dataset, format_number))
+    lines.extend(generate_helmholtz(helmholtz_dataset, format_number))
     lines.extend(
         (
             "'<!-- CoolProp-shaped, unit-aware thermophysical state selector. -->",
@@ -353,8 +371,8 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "ThermoPropsHasPTPair(input_1; input_2) = or(and(input_1 ≡ THERMO_IN_PRESSURE; input_2 ≡ THERMO_IN_TEMPERATURE); and(input_1 ≡ THERMO_IN_TEMPERATURE; input_2 ≡ THERMO_IN_PRESSURE))",
             "ThermoPropsPressure(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_PRESSURE; value_1; value_2)",
             "ThermoPropsTemperature(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_TEMPERATURE; value_1; value_2)",
-            "ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{fluid_ok = fluid ≡ THERMO_WATER; output_ok = ThermoPropsHasOutput(output); input_1_ok = ThermoPropsHasInput(input_1); input_2_ok = ThermoPropsHasInput(input_2); pair_ok = ThermoPropsHasPTPair(input_1; input_2); pressure = if(pair_ok; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(pair_ok; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); switch(not(fluid_ok); THERMO_PROPS_ERR_FLUID; not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; If97PROPPTStatus(output; pressure; temperature));}",
-            "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); if(status ≡ THERMO_PROPS_OK; If97PROPPT(output; pressure; temperature); If97Undefined(output));}",
+            "ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{fluid_ok = or(fluid ≡ THERMO_WATER; HelmholtzHasFluid(fluid)); output_ok = ThermoPropsHasOutput(output); input_1_ok = ThermoPropsHasInput(input_1); input_2_ok = ThermoPropsHasInput(input_2); pair_ok = ThermoPropsHasPTPair(input_1; input_2); query_ok = and(fluid_ok; output_ok; input_1_ok; input_2_ok; pair_ok); pressure = if(query_ok; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(query_ok; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); backend_status = if(query_ok; switch(fluid ≡ THERMO_WATER; If97PROPPTStatus(output; pressure; temperature); HelmholtzHasFluid(fluid); HelmholtzPTStatus(fluid; pressure; temperature); THERMO_PROPS_ERR_FLUID); THERMO_PROPS_OK); switch(not(fluid_ok); THERMO_PROPS_ERR_FLUID; not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; backend_status);}",
+            "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); value = if(status ≡ THERMO_PROPS_OK; switch(fluid ≡ THERMO_WATER; If97PROPPT(output; pressure; temperature); HelmholtzHasFluid(fluid); HelmholtzPropertyPT(output; fluid; pressure; temperature); If97Undefined(output)); If97Undefined(output)); value;}",
             "",
             "#def ThermoPropsStatus$(status$)",
             "    #if status$ < THERMO_PROPS_ERR_FLUID",
@@ -372,6 +390,9 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "    #if status$ ≡ THERMO_PROPS_ERR_INPUT_PAIR",
             "        '<span class=\"err\">Input pair is unsupported or repeats the same property</span>",
             "    #end if",
+            "    #if status$ ≥ HELMHOLTZ_ERR_PRESSURE_LOW",
+            "        HelmholtzStatus$(status$)",
+            "    #end if",
             "#end def",
             "",
         )
@@ -388,7 +409,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "ThermoApplyUnits(property; value) = switch(" + "; ".join(unit_switch_terms + ["0/0"]) + ")",
             "ThermoUndefined(property) = switch(" + "; ".join(undefined_switch_terms + ["0/0"]) + ")",
             "",
-            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK)",
+            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK; HelmholtzDatasetOK)",
             "ThermoDatasetStatus = if(ThermoDatasetOK; DB_OK; DB_ERR_MISSING)",
             "",
             "ThermoPROPStatus(fluid; property; temperature; method; bounds_policy) = _",
@@ -458,6 +479,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "    '<tr><td><strong>Data point count</strong></td><td>'ThermoPointCount'</td></tr>",
             "    '<tr><td><strong>IF97 implemented regions</strong></td><td>'If97ImplementedRegionCount'</td></tr>",
             "    '<tr><td><strong>IF97 state-property count</strong></td><td>'If97PropertyCount'</td></tr>",
+            "    '<tr><td><strong>Helmholtz equation-fluid count</strong></td><td>'HelmholtzFluidCount'</td></tr>",
             "    '<tr><td><strong>Dataset status</strong></td><td>",
             "    DBStatus$(ThermoDatasetStatus)",
             "    '</td></tr></tbody></table>",
@@ -576,6 +598,7 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, help="Schema-version-2 thermophysical JSON source.")
     parser.add_argument("output", type=Path, help="Generated CalcPad library path.")
+    parser.add_argument("--helmholtz-source", required=True, type=Path, help="Curated pure-fluid Helmholtz JSON source.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     return parser.parse_args(arguments)
 
@@ -586,7 +609,8 @@ def main(arguments: list[str] | None = None) -> int:
     options = parse_arguments(sys.argv[1:] if arguments is None else arguments)
     try:
         dataset = load_dataset(options.source)
-        generated = generate_library(dataset)
+        helmholtz_dataset = load_helmholtz_dataset(options.helmholtz_source)
+        generated = generate_library(dataset, helmholtz_dataset)
         write_or_check(options.output, generated, options.check)
     except SchemaError as error:
         print(f"Thermophysical generator error: {error}", file=sys.stderr)
