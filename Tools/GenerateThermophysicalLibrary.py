@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from GeneratorSupport import GeneratorError, write_or_check as safe_write_or_check
+from HelmholtzFluidSupport import generate_helmholtz, validate_helmholtz
 from IapwsIf97Support import generate_if97, validate_if97
+from IncompressibleGlycolSupport import generate_glycols, validate_glycols
 
 
 UNIT_EXPRESSIONS = {
@@ -214,6 +216,30 @@ def load_dataset(path: Path) -> dict[str, Any]:
     return validate_dataset(dataset)
 
 
+def load_helmholtz_dataset(path: Path) -> dict[str, Any]:
+    """Load and validate the curated pure-fluid equation source."""
+
+    try:
+        dataset = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise SchemaError(f"Helmholtz source dataset does not exist: {path}") from error
+    except json.JSONDecodeError as error:
+        raise SchemaError(f"Helmholtz source dataset is not valid JSON: {error}") from error
+    return validate_helmholtz(dataset, require, require_mapping, require_list, require_integer, require_text, require_constant, require_number, validate_unique)
+
+
+def load_glycol_dataset(path: Path) -> dict[str, Any]:
+    """Load and validate the aqueous-glycol equation source."""
+
+    try:
+        dataset = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as error:
+        raise SchemaError(f"Glycol source dataset does not exist: {path}") from error
+    except json.JSONDecodeError as error:
+        raise SchemaError(f"Glycol source dataset is not valid JSON: {error}") from error
+    return validate_glycols(dataset, require)
+
+
 def format_number(value: Any) -> str:
     """Format a validated numeric value deterministically for CalcPad."""
 
@@ -248,15 +274,19 @@ def append_text_macro(lines: list[str], name: str, argument: str, records: list[
     lines.extend((f"    #if {unknown_condition}", f"        '<span class=\"err\">{unknown_text}</span>", "    #end if", "#end def", ""))
 
 
-def generate_library(dataset: dict[str, Any]) -> str:
+def generate_library(dataset: dict[str, Any], helmholtz_dataset: dict[str, Any], glycol_dataset: dict[str, Any]) -> str:
     """Render a validated dataset as a complete guarded CalcPad library."""
 
     library = dataset["library"]
-    sources = dataset["sources"]
-    fluids = dataset["fluids"]
+    sources = dataset["sources"] + helmholtz_dataset["sources"]
+    fluids = dataset["fluids"] + helmholtz_dataset["fluids"]
     properties = dataset["properties"]
     curves = dataset["curves"]
     properties_by_id = {item["id"]: item for item in properties}
+    require(len({item["id"] for item in sources}) == len(sources), "Combined thermophysical source IDs must be unique.")
+    require(len({item["constant"] for item in sources}) == len(sources), "Combined thermophysical source constants must be unique.")
+    require(len({item["id"] for item in fluids}) == len(fluids), "Combined thermophysical fluid IDs must be unique.")
+    require(len({item["constant"] for item in fluids}) == len(fluids), "Combined thermophysical fluid constants must be unique.")
 
     curve_rows: list[list[Any]] = []
     metadata_rows: list[list[Any]] = []
@@ -268,7 +298,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
         curve_rows.extend([key, f"{format_number(temperature)}°C", value] for temperature, value in zip(curve["temperature_c"], curve["values"]))
 
     lines: list[str] = [
-        "'<!-- GENERATED FILE. Edit Data/Sources/Thermophysical/ThermophysicalProperties.json and run Tools/GenerateThermophysicalLibrary.py. -->",
+        "'<!-- GENERATED FILE. Edit the JSON records under Data/Sources/Thermophysical and run Tools/GenerateThermophysicalLibrary.py. -->",
         "#if and(DRAT_CORE_API ≥ 40000; DRAT_CORE_API < 50000)",
         "#if and(DRAT_DATA_WRAPPER_API ≥ 303; DRAT_DATA_WRAPPER_API < 1000)",
         "#hide",
@@ -286,6 +316,29 @@ def generate_library(dataset: dict[str, Any]) -> str:
     lines.extend(("", f"ThermoSourceIDs = {calc_vector([item['id'] for item in sources])}", ""))
     for fluid in fluids:
         lines.append(f"{fluid['constant']} = {fluid['id']}")
+    fluid_constants = {fluid["constant"] for fluid in fluids}
+    if "THERMO_WATER" in fluid_constants:
+        lines.append("THERMO_R718 = THERMO_WATER")
+    if {"THERMO_CARBON_DIOXIDE", "THERMO_R290", "THERMO_R600A", "THERMO_R717"} <= fluid_constants:
+        lines.extend(
+            (
+                "THERMO_R744 = THERMO_CARBON_DIOXIDE",
+                "THERMO_PROPANE = THERMO_R290",
+                "THERMO_ISOBUTANE = THERMO_R600A",
+                "THERMO_AMMONIA = THERMO_R717",
+                "THERMO_Water = THERMO_WATER",
+                "THERMO_Nitrogen = THERMO_NITROGEN",
+                "THERMO_CarbonDioxide = THERMO_CARBON_DIOXIDE",
+                "THERMO_CO2 = THERMO_CARBON_DIOXIDE",
+                "THERMO_Propane = THERMO_R290",
+                "THERMO_Isobutane = THERMO_R600A",
+                "THERMO_Ammonia = THERMO_R717",
+                "THERMO_R134a = THERMO_R134A",
+                "THERMO_R1234yf = THERMO_R1234YF",
+                "THERMO_R600a = THERMO_R600A",
+                "THERMO_PropyleneGlycol = THERMO_PROPYLENE_GLYCOL",
+            )
+        )
     lines.extend(("", f"ThermoFluidIDs = {calc_vector([item['id'] for item in fluids])}", ""))
     for prop in properties:
         lines.append(f"{prop['constant']} = {prop['id']}")
@@ -319,7 +372,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
 
     concentration_terms = []
     for fluid in fluids:
-        concentration = fluid["concentration_mass_fraction"]
+        concentration = fluid.get("concentration_mass_fraction")
         raw = "DB_MISSING" if concentration is None else format_number(concentration)
         concentration_terms.extend((f"fluid ≡ {fluid['constant']}", raw))
     lines.append("ThermoFluidConcentrationMassFraction(fluid) = switch(" + "; ".join(concentration_terms + ["DB_MISSING"]) + ")")
@@ -327,6 +380,8 @@ def generate_library(dataset: dict[str, Any]) -> str:
     lines.append("")
 
     lines.extend(generate_if97(dataset, format_number))
+    lines.extend(generate_helmholtz(helmholtz_dataset, format_number))
+    lines.extend(generate_glycols(glycol_dataset, format_number))
     lines.extend(
         (
             "'<!-- CoolProp-shaped, unit-aware thermophysical state selector. -->",
@@ -353,11 +408,14 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "ThermoPropsHasPTPair(input_1; input_2) = or(and(input_1 ≡ THERMO_IN_PRESSURE; input_2 ≡ THERMO_IN_TEMPERATURE); and(input_1 ≡ THERMO_IN_TEMPERATURE; input_2 ≡ THERMO_IN_PRESSURE))",
             "ThermoPropsPressure(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_PRESSURE; value_1; value_2)",
             "ThermoPropsTemperature(input_1; value_1; input_2; value_2) = if(input_1 ≡ THERMO_IN_TEMPERATURE; value_1; value_2)",
-            "ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{fluid_ok = fluid ≡ THERMO_WATER; output_ok = ThermoPropsHasOutput(output); input_1_ok = ThermoPropsHasInput(input_1); input_2_ok = ThermoPropsHasInput(input_2); pair_ok = ThermoPropsHasPTPair(input_1; input_2); pressure = if(pair_ok; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(pair_ok; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); switch(not(fluid_ok); THERMO_PROPS_ERR_FLUID; not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; If97PROPPTStatus(output; pressure; temperature));}",
-            "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); if(status ≡ THERMO_PROPS_OK; If97PROPPT(output; pressure; temperature); If97Undefined(output));}",
+            "ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{fluid_ok = or(fluid ≡ THERMO_WATER; HelmholtzHasFluid(fluid)); output_ok = ThermoPropsHasOutput(output); input_1_ok = ThermoPropsHasInput(input_1); input_2_ok = ThermoPropsHasInput(input_2); pair_ok = ThermoPropsHasPTPair(input_1; input_2); query_ok = and(fluid_ok; output_ok; input_1_ok; input_2_ok; pair_ok); pressure = if(query_ok; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(query_ok; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); backend_status = if(query_ok; switch(fluid ≡ THERMO_WATER; If97PROPPTStatus(output; pressure; temperature); HelmholtzHasFluid(fluid); HelmholtzPTStatus(fluid; pressure; temperature); THERMO_PROPS_ERR_FLUID); THERMO_PROPS_OK); switch(not(fluid_ok); THERMO_PROPS_ERR_FLUID; not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; backend_status);}",
+            "ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status = ThermoPropsStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; ThermoPropsPressure(input_1; value_1; input_2; value_2); 0MPa); temperature = if(status ≡ THERMO_PROPS_OK; ThermoPropsTemperature(input_1; value_1; input_2; value_2); 0K); value = if(status ≡ THERMO_PROPS_OK; switch(fluid ≡ THERMO_WATER; If97PROPPT(output; pressure; temperature); HelmholtzHasFluid(fluid); HelmholtzPropertyPT(output; fluid; pressure; temperature); If97Undefined(output)); If97Undefined(output)); value;}",
             "",
             "#def ThermoPropsStatus$(status$)",
-            "    #if status$ < THERMO_PROPS_ERR_FLUID",
+            "    #if status$ ≡ THERMO_PROPS_OK",
+            "        '<span class=\"ok\">Valid thermophysical state</span>",
+            "    #end if",
+            "    #if and(status$ > THERMO_PROPS_OK; status$ < THERMO_PROPS_ERR_FLUID)",
             "        If97Status$(status$)",
             "    #end if",
             "    #if status$ ≡ THERMO_PROPS_ERR_FLUID",
@@ -372,7 +430,66 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "    #if status$ ≡ THERMO_PROPS_ERR_INPUT_PAIR",
             "        '<span class=\"err\">Input pair is unsupported or repeats the same property</span>",
             "    #end if",
+            "    #if status$ ≥ HELMHOLTZ_ERR_PRESSURE_LOW",
+            "        HelmholtzStatus$(status$)",
+            "    #end if",
             "#end def",
+            "",
+            "'<!-- CoolProp-shaped unit-aware interface with explicit scalar compatibility helpers. -->",
+            "",
+            "CP_P = 1",
+            "CP_T = 2",
+            "CP_D = 3",
+            "CP_H = 4",
+            "CP_U = 5",
+            "CP_S = 6",
+            "CP_CP = 7",
+            "CP_CV = 8",
+            "CP_C = 9",
+            "CP_V = 10",
+            "CP_L = 11",
+            "CP_VSPEC = 12",
+            "CP_PRESSURE = CP_P",
+            "CP_TEMPERATURE = CP_T",
+            "CP_DENSITY = CP_D",
+            "CP_ENTHALPY = CP_H",
+            "CP_INTERNAL_ENERGY = CP_U",
+            "CP_ENTROPY = CP_S",
+            "CP_ISOBARIC_HEAT_CAPACITY = CP_CP",
+            "CP_ISOCHORIC_HEAT_CAPACITY = CP_CV",
+            "CP_SPEED_OF_SOUND = CP_C",
+            "CP_DYNAMIC_VISCOSITY = CP_V",
+            "CP_THERMAL_CONDUCTIVITY = CP_L",
+            "CP_SPECIFIC_VOLUME = CP_VSPEC",
+            "CP_A = CP_C",
+            "CP_DMASS = CP_D",
+            "CP_HMASS = CP_H",
+            "CP_UMASS = CP_U",
+            "CP_SMASS = CP_S",
+            "CP_CPMASS = CP_CP",
+            "CP_CVMASS = CP_CV",
+            "PropsSIInputIDs = [CP_P; CP_T]",
+            "PropsSIOutputIDs = [CP_P; CP_T; CP_D; CP_H; CP_U; CP_S; CP_CP; CP_CV; CP_C; CP_VSPEC]",
+            "PropsSIHasInput(input) = DBHasID(PropsSIInputIDs; input)",
+            "PropsSIHasOutput(output) = DBHasID(PropsSIOutputIDs; output)",
+            "PropsSIHasPTPair(input_1; input_2) = or(and(input_1 ≡ CP_P; input_2 ≡ CP_T); and(input_1 ≡ CP_T; input_2 ≡ CP_P))",
+            "PropsSIPressure(input_1; value_1; input_2; value_2) = if(input_1 ≡ CP_P; value_1; value_2)",
+            "PropsSITemperature(input_1; value_1; input_2; value_2) = if(input_1 ≡ CP_T; value_1; value_2)",
+            "PropsSIMapOutput(output) = switch(output ≡ CP_VSPEC; THERMO_OUT_SPECIFIC_VOLUME; output ≡ CP_D; THERMO_OUT_DENSITY; output ≡ CP_H; THERMO_OUT_ENTHALPY; output ≡ CP_U; THERMO_OUT_INTERNAL_ENERGY; output ≡ CP_S; THERMO_OUT_ENTROPY; output ≡ CP_CP; THERMO_OUT_CP; output ≡ CP_CV; THERMO_OUT_CV; output ≡ CP_C; THERMO_OUT_SOUND_SPEED; THERMO_OUT_DENSITY)",
+            "PropsSIUndefined(output) = switch(output ≡ CP_P; setunits(0/0; Pa); output ≡ CP_T; setunits(0/0; K); output ≡ CP_VSPEC; setunits(0/0; m^3/kg); output ≡ CP_D; setunits(0/0; kg/m^3); output ≡ CP_H; setunits(0/0; J/kg); output ≡ CP_U; setunits(0/0; J/kg); output ≡ CP_S; setunits(0/0; J/(kg*K)); output ≡ CP_CP; setunits(0/0; J/(kg*K)); output ≡ CP_CV; setunits(0/0; J/(kg*K)); output ≡ CP_C; setunits(0/0; m/s); 0/0)",
+            "PropsSIStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{output_ok = PropsSIHasOutput(output); input_1_ok = PropsSIHasInput(input_1); input_2_ok = PropsSIHasInput(input_2); pair_ok = PropsSIHasPTPair(input_1; input_2); query_ok = and(output_ok; input_1_ok; input_2_ok; pair_ok); pressure = if(query_ok; PropsSIPressure(input_1; value_1; input_2; value_2); 0Pa); temperature = if(query_ok; PropsSITemperature(input_1; value_1; input_2; value_2); 0K); mapped_output = PropsSIMapOutput(output); backend_status = if(query_ok; ThermoPropsStatus(mapped_output; THERMO_IN_PRESSURE; pressure; THERMO_IN_TEMPERATURE; temperature; fluid); THERMO_PROPS_OK); switch(not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; backend_status);}",
+            "PropsSIValue(output; pressure; temperature; fluid) = $block{mapped_output = PropsSIMapOutput(output); unit_value = ThermoProps(mapped_output; THERMO_IN_PRESSURE; pressure; THERMO_IN_TEMPERATURE; temperature; fluid); switch(output ≡ CP_P; pressure; output ≡ CP_T; temperature; unit_value);}",
+            "PropsSI(output; input_1; value_1; input_2; value_2; fluid) = $block{status = PropsSIStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; PropsSIPressure(input_1; value_1; input_2; value_2); 0Pa); temperature = if(status ≡ THERMO_PROPS_OK; PropsSITemperature(input_1; value_1; input_2; value_2); 0K); if(status ≡ THERMO_PROPS_OK; PropsSIValue(output; pressure; temperature; fluid); PropsSIUndefined(output));}",
+            "#def PropsSI$(output$; input_1$; value_1$; input_2$; value_2$; fluid$) = PropsSI(CP_output$; CP_input_1$; value_1$; CP_input_2$; value_2$; THERMO_fluid$)",
+            "PropsSIScalarStatus(output; input_1; value_1; input_2; value_2; fluid) = PropsSIStatus(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); fluid)",
+            "PropsSIScalar(output; input_1; value_1; input_2; value_2; fluid) = $block{unit_value = PropsSI(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); fluid); switch(output ≡ CP_P; unit_value/Pa; output ≡ CP_T; unit_value/K; output ≡ CP_VSPEC; unit_value/(m^3/kg); output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_H; unit_value/(J/kg); output ≡ CP_U; unit_value/(J/kg); output ≡ CP_S; unit_value/(J/(kg*K)); output ≡ CP_CP; unit_value/(J/(kg*K)); output ≡ CP_CV; unit_value/(J/(kg*K)); output ≡ CP_C; unit_value/(m/s); 0/0);}",
+            "",
+            "PropsSIIncompressibleOutputIDs = [CP_D; CP_CP; CP_V; CP_L]",
+            "PropsSIIncompressibleHasOutput(output) = DBHasID(PropsSIIncompressibleOutputIDs; output)",
+            "PropsSIIncompressibleProperty(output) = switch(output ≡ CP_D; THERMO_P_DENSITY; output ≡ CP_CP; THERMO_P_SPECIFIC_HEAT; output ≡ CP_V; THERMO_P_DYNAMIC_VISCOSITY; output ≡ CP_L; THERMO_P_THERMAL_CONDUCTIVITY; 0)",
+            "PropsSIIncompressibleStatus(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{output_ok = PropsSIIncompressibleHasOutput(output); input_1_ok = PropsSIHasInput(input_1); input_2_ok = PropsSIHasInput(input_2); pair_ok = PropsSIHasPTPair(input_1; input_2); pressure = if(pair_ok; PropsSIPressure(input_1; value_1; input_2; value_2); 0Pa); temperature = if(pair_ok; PropsSITemperature(input_1; value_1; input_2; value_2); 0K); backend_status = if(and(output_ok; input_1_ok; input_2_ok; pair_ok; pressure > 0Pa); GlycolPROPStatus(family; PropsSIIncompressibleProperty(output); (temperature/K - 273.15)*°C; glycol_mass_fraction); GLYCOL_OK); switch(not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; pressure ≤ 0Pa; HELMHOLTZ_ERR_PRESSURE_LOW; backend_status);}",
+            "PropsSIIncompressible(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{status = PropsSIIncompressibleStatus(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction); temperature = if(status ≡ GLYCOL_OK; PropsSITemperature(input_1; value_1; input_2; value_2); 273.15K); property = PropsSIIncompressibleProperty(output); if(status ≡ GLYCOL_OK; GlycolPROP(family; property; (temperature/K - 273.15)*°C; glycol_mass_fraction); GlycolUndefined(property));}",
+            "PropsSIIncompressibleScalar(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{unit_value = PropsSIIncompressible(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); family; glycol_mass_fraction); switch(output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_CP; unit_value/(J/(kg*K)); output ≡ CP_V; unit_value/(Pa*s); output ≡ CP_L; unit_value/(W/(m*K)); 0/0);}",
             "",
         )
     )
@@ -388,9 +505,13 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "ThermoApplyUnits(property; value) = switch(" + "; ".join(unit_switch_terms + ["0/0"]) + ")",
             "ThermoUndefined(property) = switch(" + "; ".join(undefined_switch_terms + ["0/0"]) + ")",
             "",
-            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK)",
+            "ThermoDatasetOK = and(ThermoFluidCount ≡ len(ThermoFluidIDs); ThermoPropertyCount ≡ len(ThermoPropertyIDs); ThermoCurveCount ≡ n_rows(ThermoMetadata); n_cols(ThermoMetadata) ≡ 5; ThermoPointCount ≡ n_rows(ThermoCurveData); n_cols(ThermoCurveData) ≡ 3; If97DatasetOK; HelmholtzDatasetOK; GlycolDatasetOK)",
             "ThermoDatasetStatus = if(ThermoDatasetOK; DB_OK; DB_ERR_MISSING)",
             "",
+            "ThermoUsesGlycolEquation(fluid; property) = and(fluid ≡ THERMO_EG_50; GlycolHasProperty(property))",
+            "ThermoGlycolTMin(fluid) = (max(GlycolTMinK(GLYCOL_ETHYLENE); GlycolFreezeK(GLYCOL_ETHYLENE; ThermoFluidConcentrationMassFraction(fluid))) - 273.15)*°C",
+            "ThermoGlycolTMax(fluid) = (GlycolTMaxK(GLYCOL_ETHYLENE) - 273.15)*°C",
+            "ThermoGlycolDBStatus(fluid; property; temperature; method; bounds_policy) = switch(not(ThermoHasFluid(fluid)); DB_ERR_NAME; not(ThermoHasProperty(property)); DB_ERR_PROPERTY; not(GlycolHasProperty(property)); DB_ERR_MISSING; not(DBMethodOK(method)); DB_ERR_BAD_METHOD; not(DBPolicyOK(bounds_policy)); DB_ERR_BAD_POLICY; bounds_policy ≡ DB_EXTRAPOLATE; DBRangeStatus(temperature; ThermoGlycolTMin(fluid); ThermoGlycolTMax(fluid); DB_STRICT); DBRangeStatus(temperature; ThermoGlycolTMin(fluid); ThermoGlycolTMax(fluid); bounds_policy))",
             "ThermoPROPStatus(fluid; property; temperature; method; bounds_policy) = _",
             "$block{",
             "    fluid_ok = ThermoHasFluid(fluid);",
@@ -399,16 +520,19 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "    metadata_ok = if(curve_ok; ThermoHasMetadata(fluid; property); 0);",
             "    T_min = if(metadata_ok; ThermoTMin(fluid; property); 0°C);",
             "    T_max = if(metadata_ok; ThermoTMax(fluid; property); 0°C);",
-            "    status = switch(ThermoDatasetStatus ≠ DB_OK; ThermoDatasetStatus; not(fluid_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; not(curve_ok); DB_ERR_MISSING; not(metadata_ok); DB_ERR_MISSING; DBCurveStatus(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));",
+            "    equation_glycol = ThermoUsesGlycolEquation(fluid; property);",
+            "    status = switch(ThermoDatasetStatus ≠ DB_OK; ThermoDatasetStatus; equation_glycol; ThermoGlycolDBStatus(fluid; property; temperature; method; bounds_policy); not(fluid_ok); DB_ERR_NAME; not(property_ok); DB_ERR_PROPERTY; not(curve_ok); DB_ERR_MISSING; not(metadata_ok); DB_ERR_MISSING; DBCurveStatus(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));",
             "    status;",
             "}",
             "",
             "ThermoPROPEx(fluid; property; temperature; method; bounds_policy) = _",
             "$block{",
             "    status = ThermoPROPStatus(fluid; property; temperature; method; bounds_policy);",
-            "    T_min = if(DBIsFatal(status); 0°C; ThermoTMin(fluid; property));",
-            "    T_max = if(DBIsFatal(status); 0°C; ThermoTMax(fluid; property));",
-            "    raw = if(DBIsFatal(status); 0/0; DBCurveRaw(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy));",
+            "    equation_glycol = ThermoUsesGlycolEquation(fluid; property);",
+            "    T_min = if(DBIsFatal(status); 0°C; if(equation_glycol; ThermoGlycolTMin(fluid); ThermoTMin(fluid; property)));",
+            "    T_max = if(DBIsFatal(status); 0°C; if(equation_glycol; ThermoGlycolTMax(fluid); ThermoTMax(fluid; property)));",
+            "    T_eval = if(and(equation_glycol; bounds_policy ≡ DB_CLAMP); min(max(temperature; T_min); T_max); temperature);",
+            "    raw = if(DBIsFatal(status); 0/0; if(equation_glycol; GlycolRaw(GLYCOL_ETHYLENE; property; T_eval/°C + 273.15; ThermoFluidConcentrationMassFraction(fluid)); DBCurveRaw(ThermoCurveData; DBKey(fluid; property); temperature; T_min; T_max; method; bounds_policy)));",
             "    value = if(DBIsFatal(status); ThermoUndefined(property); ThermoApplyUnits(property; raw));",
             "    value;",
             "}",
@@ -458,6 +582,7 @@ def generate_library(dataset: dict[str, Any]) -> str:
             "    '<tr><td><strong>Data point count</strong></td><td>'ThermoPointCount'</td></tr>",
             "    '<tr><td><strong>IF97 implemented regions</strong></td><td>'If97ImplementedRegionCount'</td></tr>",
             "    '<tr><td><strong>IF97 state-property count</strong></td><td>'If97PropertyCount'</td></tr>",
+            "    '<tr><td><strong>Helmholtz equation-fluid count</strong></td><td>'HelmholtzFluidCount'</td></tr>",
             "    '<tr><td><strong>Dataset status</strong></td><td>",
             "    DBStatus$(ThermoDatasetStatus)",
             "    '</td></tr></tbody></table>",
@@ -576,6 +701,8 @@ def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path, help="Schema-version-2 thermophysical JSON source.")
     parser.add_argument("output", type=Path, help="Generated CalcPad library path.")
+    parser.add_argument("--helmholtz-source", required=True, type=Path, help="Curated pure-fluid Helmholtz JSON source.")
+    parser.add_argument("--glycol-source", required=True, type=Path, help="Curated aqueous-glycol equation JSON source.")
     parser.add_argument("--check", action="store_true", help="Fail if the committed generated library differs.")
     return parser.parse_args(arguments)
 
@@ -586,7 +713,9 @@ def main(arguments: list[str] | None = None) -> int:
     options = parse_arguments(sys.argv[1:] if arguments is None else arguments)
     try:
         dataset = load_dataset(options.source)
-        generated = generate_library(dataset)
+        helmholtz_dataset = load_helmholtz_dataset(options.helmholtz_source)
+        glycol_dataset = load_glycol_dataset(options.glycol_source)
+        generated = generate_library(dataset, helmholtz_dataset, glycol_dataset)
         write_or_check(options.output, generated, options.check)
     except SchemaError as error:
         print(f"Thermophysical generator error: {error}", file=sys.stderr)

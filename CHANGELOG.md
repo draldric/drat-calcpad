@@ -11,7 +11,7 @@ The project follows semantic versioning for the generated Core API.
 - Engineering Materials workbook validation for worksheets, IDs, numeric types, derived moduli, source links, missing values, and the complete CPD numeric export.
 - Shared AISC generator schema validation, deterministic read-only checks, verified temporary output, atomic replacement, and failed-write preservation coverage.
 - Explicit worksheet-authoring API with H3-H6 helpers, semantic callouts, heading-free lists and definitions, compact records and comparisons, CalcPad-native equation blocks, citations, captions, result highlights, print grouping, regression coverage, and a focused pipe-insulation demo.
-- Generated Thermophysical Properties 0.3.0 library with traceable water and 50% ethylene-glycol curves, IAPWS-IF97 Region 1 and Region 2 equations, a unit-aware CoolProp-shaped `ThermoProps` interface, forward and inverse saturation queries, automatic region selection, explicit unsupported-state statuses, official verification-table regression coverage, and a focused end-user demo.
+- Generated Thermophysical Properties 0.5.0 library with traceable water and 50% ethylene-glycol curves, IAPWS-IF97 Region 1 and Region 2 equations, pure-fluid Helmholtz equations for nitrogen, carbon dioxide, R11, R12, R13, R134a, R32, R1234yf, R290, R600a, and R717, a unit-aware CoolProp-shaped `ThermoProps` interface, phase-aware density recovery, explicit unsupported-state statuses, and pinned-reference regression coverage.
 - Deterministic boundary and failure-mode coverage for empty and malformed registries, missing versus zero data, invalid beam records, modifiers, and extrema, incompatible Core/component/Plotting APIs, missing dependencies, rendered error evidence, and native CalcPad unit errors.
 - Independent equilibrium and Euler-Bernoulli beam benchmarks covering point loads, uniform and triangular distributed loads, applied moments, support conditions, sign conventions, and alternate units.
 - Windows GitHub Actions verification for generated Core, APIs, includes, artifact conventions, public-helper integrity, and distribution workflows, with an explicit CalcPad CE qualification boundary.
@@ -46,6 +46,7 @@ The project follows semantic versioning for the generated Core API.
 
 ### Changed
 
+- Unified thermophysical success rendering is backend-neutral instead of labeling nitrogen, carbon dioxide, and refrigerant states as valid IF97 Region 1 or Region 2 states.
 - Right-aligned table value columns, including table-contained prose that previously inherited document-paragraph justification, while preserving left-aligned label and description columns.
 - Core generation now verifies a unique same-directory temporary bundle and atomically replaces `DratCore.cpd`, preserving the previous output and cleaning temporary files when generation fails.
 - Core is versioned as 4.3.0 with Authoring API 1.0.0 and shared stylesheet 1.10.0.

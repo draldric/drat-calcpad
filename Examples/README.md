@@ -14,7 +14,7 @@ Every example is a focused, end-user-facing worksheet that uses the standard rep
 | `PropertyLibraryDemo.cpd` | Exercise the property-library template's aliases, units, statuses, and bounds policies. |
 | `ReportingRegistriesDemo.cpd` | Register references, criteria, assumptions, limitations, and their source relationships. |
 | `StructuralSectionsDemo.cpd` | Apply a consistent discovery and geometric-screening workflow across supported AISC shape families. |
-| `ThermophysicalPropertiesDemo.cpd` | Query traceable water and glycol curves plus IAPWS-IF97 Region 1 and Region 2 water/steam states. |
+| `ThermophysicalPropertiesDemo.cpd` | Query traceable water and glycol curves, IAPWS-IF97 water/steam states, and equation-based pure-fluid states through the unified selector. |
 | `UnifiedReviewSummaryDemo.cpd` | Consolidate validation, check, and reporting issues into document readiness decisions. |
 | `ValidationRegistryDemo.cpd` | Register input-validation results and query aggregate status and issue information. |
 

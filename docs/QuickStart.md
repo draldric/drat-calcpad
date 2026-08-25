@@ -185,7 +185,7 @@ ShowThermoFluidRecord$(THERMO_EG_50)
 ShowThermoProperty$(THERMO_EG_50; THERMO_P_DENSITY; T_process)
 ```
 
-The curve backend is limited to water and 50% ethylene glycol curves from 10 °C through 95 °C.
+The remaining sampled curve backend covers selected water properties. The legacy 50% ethylene-glycol helpers now dispatch to concentration-aware equations, and the same library supports aqueous ethylene and propylene glycol from 0% through 60% glycol by mass.
 The same library also provides IAPWS-IF97 Region 1 and Region 2 pressure-temperature properties:
 
 ```text
@@ -198,6 +198,16 @@ rho = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATU
 
 `ThermoProps` uses a CoolProp-shaped output/input/value/input/value/fluid signature while retaining CalcPad units. The pressure and temperature inputs may be supplied in either order.
 Out-of-range, unsupported-region, and saturation-line states return an explicit status and a dimensioned undefined property value.
+The same interface accepts `THERMO_NITROGEN`, `THERMO_CARBON_DIOXIDE`, and the supported refrigerant constants. `THERMO_R718` aliases the IF97 water model, while `THERMO_R744` aliases the carbon-dioxide Helmholtz model. The other supported pure-fluid outputs are likewise calculated from equations rather than sampled tables.
+
+For a CoolProp-shaped call with CalcPad dimensional checking, use the unit-aware compatibility interface:
+
+```text
+rho = PropsSI(CP_DENSITY; CP_PRESSURE; 100kPa; CP_TEMPERATURE; 300K; THERMO_NITROGEN)
+rho_readable = PropsSI$(DENSITY; PRESSURE; 100kPa; TEMPERATURE; 300K; Nitrogen)
+```
+
+Both return a dimensioned density. The macro tokens are unquoted because CalcPad expands them before parsing; use the numeric form for generated worksheets. Existing raw-SI calculations can instead call `PropsSIScalar`, which accepts pascal and kelvin magnitudes and returns an unadorned SI number.
 See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying either backend to a design state.
 
 ## Verify the work

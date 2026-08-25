@@ -5,11 +5,11 @@
 #def Organization$ = DRAT EXAMPLE ORGANIZATION
 #def Client$ = DEMONSTRATION CLIENT
 #def Project$ = THERMAL PROPERTY WORKFLOW DEMONSTRATION
-#def Title$ = THERMOPHYSICAL CURVES AND IAPWS WATER STEAM STATES
-#def Purpose$ = DEMONSTRATE TRACEABLE UNIT-AWARE CURVE LOOKUPS AND IAPWS-IF97 PRESSURE-TEMPERATURE STATE CALCULATIONS FOR WATER AND STEAM.
-#def Scope$ = QUERY THE WATER AND 50 PERCENT ETHYLENE GLYCOL CURVES AND CALCULATE STABLE SINGLE-PHASE WATER OR STEAM STATES IN IAPWS-IF97 REGIONS 1 AND 2. REGIONS 3 AND 5 AND TWO-PHASE QUALITY CALCULATIONS ARE EXCLUDED.
+#def Title$ = THERMOPHYSICAL CURVES AND EQUATION-BASED FLUID STATES
+#def Purpose$ = DEMONSTRATE THE UNIT-AWARE PropsSI WORKFLOW ACROSS WATER STEAM PURE FLUIDS REFRIGERANTS AND AQUEOUS GLYCOL MIXTURES.
+#def Scope$ = QUERY EVERY IMPLEMENTED THERMODYNAMIC OUTPUT COMPARE EQUATION-BASED FLUIDS VISUALIZE GLYCOL TRENDS AND DEMONSTRATE STATUS AND SCALAR COMPATIBILITY PATHS. PURE ETHYLENE GLYCOL REFRIGERANT MIXTURES PHASE QUALITY TRANSPORT PROPERTIES FOR PURE FLUIDS AND UNIMPLEMENTED IAPWS REGIONS ARE EXCLUDED.
 #def Calculation$ = EXAMPLE-THERMO-001
-#def Rev$ = 0
+#def Rev$ = 2
 #def PreparedBy$ = EXAMPLE AUTHOR
 #def PreparedOn$ = 2026-08-15
 #def CheckedBy$ = NOT CHECKED
@@ -24,31 +24,43 @@ CreateScope$
 #hide
 REF_COOLPROP_SAMPLE = 1
 REF_IAPWS_IF97 = 2
+REF_N2_EOS = 3
+REF_CO2_EOS = 4
+REF_GLYCOL_EQUATIONS = 5
+REF_REFRIGERANT_EOS = 6
 ASSUMPTION_SAMPLE_BASIS = 1
 LIMITATION_RANGE = 1
 LIMITATION_MODEL = 2
 LIMITATION_IF97_SCOPE = 3
+LIMITATION_HELMHOLTZ_SCOPE = 4
 #show
 
 BeginRevisions$
 AddRevision$(0; Initial thermophysical-property library demonstration; EXAMPLE AUTHOR; 2026-08-15)
+AddRevision$(1; Expanded unit-aware PropsSI fluid glycol status and plotting showcase; EXAMPLE AUTHOR; 2026-08-24)
+AddRevision$(2; Clarified property selectors and added the R718 water alias; EXAMPLE AUTHOR; 2026-08-25)
 EndRevisions$
 
 BeginReferences$
 AddReference$(REF_COOLPROP_SAMPLE; CoolProp thermophysical property engine; Water and INCOMP::MEG-50% sampled curves; SMath plugin build 6.4.8214.13502; 10 deg C through 95 deg C; Migration baseline captured from the source tank-heating worksheet.)
 AddReference$(REF_IAPWS_IF97; International Association for the Properties of Water and Steam; Revised Release on the IAPWS Industrial Formulation 1997; R7-97 2012; Regions 1 2 and 4 plus the B23 boundary; Official coefficients and computer-program verification tables.)
+AddReference$(REF_N2_EOS; Span Lemmon Jacobsen Wagner and Yokozeki; Reference equation of state for nitrogen; 2000; 63.151 K through 1000 K and up to 2200 MPa; Fundamental Helmholtz equation curated from the pinned CoolProp fluid record.)
+AddReference$(REF_CO2_EOS; Span and Wagner; New equation of state for carbon dioxide; 1996; Triple point through 1100 K and up to 800 MPa; Fundamental Helmholtz equation curated from the pinned CoolProp fluid record.)
+AddReference$(REF_GLYCOL_EQUATIONS; Melinder; Properties of Secondary Working Fluids for Indirect Systems; 2010; Zero through 60 percent glycol by mass; MEG and MPG equations curated from pinned CoolProp incompressible records.)
+AddReference$(REF_REFRIGERANT_EOS; CoolProp contributors and cited equation authors; Default equation-of-state records for implemented pure refrigerants; CoolProp revision 5b9c32a; Validity limits differ by fluid; Complete ideal and residual Helmholtz terms are stored in repository-owned generator inputs.)
 EndReferences$
 
 "Basis and Limitations
 
 BeginAssumptions$
-AddAssumption$(ASSUMPTION_SAMPLE_BASIS; Property basis; The sample fluid is 50 percent ethylene glycol by mass and the query temperature is within the committed data range.; The demonstration reproduces the captured CoolProp sample curves without changing their values.; REF_COOLPROP_SAMPLE)
+AddAssumption$(ASSUMPTION_SAMPLE_BASIS; Property basis; The example concentrations are mass fractions and each query is inside its equation and liquid-phase range.; The aqueous glycol functions enforce concentration temperature and freezing limits.; REF_GLYCOL_EQUATIONS)
 EndAssumptions$
 
 BeginLimitations$
-AddLimitation$(LIMITATION_RANGE; The initial dataset covers only 10 deg C through 95 deg C.; Requests outside that range return a fatal status and an undefined property value.; Regenerate or extend the approved source data instead of extrapolating for design use.; REF_COOLPROP_SAMPLE)
-AddLimitation$(LIMITATION_MODEL; This revision is not a general equation-of-state or phase-equilibrium engine.; Arbitrary pressure concentration phase and fluid queries are unsupported.; Confirm that the selected fluid and property curve matches the engineering state being modeled.; REF_COOLPROP_SAMPLE)
+AddLimitation$(LIMITATION_RANGE; The aqueous equations cover no more than 60 percent glycol by mass.; Pure glycol requests and other out-of-range states return a fatal status and undefined property value.; Add a separately qualified pure-fluid model instead of extrapolating.; REF_GLYCOL_EQUATIONS)
+AddLimitation$(LIMITATION_MODEL; The aqueous glycol equations are incompressible correlations without pressure as an input.; Phase-equilibrium and compressibility effects are unsupported.; Confirm that the selected family concentration and liquid state match the engineering application.; REF_GLYCOL_EQUATIONS)
 AddLimitation$(LIMITATION_IF97_SCOPE; The IF97 backend implements only stable single-phase Regions 1 and 2.; Saturation states Region 3 Region 5 and metastable steam return explicit error statuses.; Check the state status before using a returned property in design calculations.; REF_IAPWS_IF97)
+AddLimitation$(LIMITATION_HELMHOLTZ_SCOPE; The pure-fluid backends provide equation-based thermodynamic properties for pressure-temperature states.; Transport properties refrigerant mixtures and two-phase quality states are unsupported.; Check the state status and use a separate qualified correlation when viscosity or conductivity is required.; REF_REFRIGERANT_EOS)
 EndLimitations$
 
 "Dataset Summary
@@ -56,15 +68,20 @@ EndLimitations$
 ShowThermoDatasetSummary$
 ShowThermoSourceRecord$(THERMO_SRC_COOLPROP_SMATH)
 ShowThermoSourceRecord$(THERMO_SRC_IAPWS_IF97)
+ShowThermoSourceRecord$(THERMO_SRC_NITROGEN_EOS)
+ShowThermoSourceRecord$(THERMO_SRC_CO2_EOS)
 
-"Available Fluids
+"Cataloged Sample Curves and Core Fluids
 
 ShowThermoFluidRecord$(THERMO_WATER)
 ShowThermoFluidRecord$(THERMO_EG_50)
+ShowThermoFluidRecord$(THERMO_NITROGEN)
+ShowThermoFluidRecord$(THERMO_CARBON_DIOXIDE)
 
 "Property Query
 #hide
 T_query = 60°C
+x_pg = 0.30
 m_dot = 2kg/s
 Delta_T = 15K
 
@@ -72,6 +89,9 @@ rho_eg = Eg50DensityT(T_query)
 Cp_eg = Eg50SpecificHeatT(T_query)
 mu_eg = Eg50DynamicViscosityT(T_query)
 k_eg = Eg50ThermalConductivityT(T_query)
+rho_pg = PgWaterDensityTX(T_query; x_pg)
+Cp_pg = PgWaterSpecificHeatTX(T_query; x_pg)
+pg_status = GlycolPROPStatus(GLYCOL_PROPYLENE; THERMO_P_DENSITY; T_query; x_pg)
 P_sat = WaterSaturationPressureT(T_query)
 h_fg = WaterLatentHeatT(T_query)
 
@@ -85,14 +105,18 @@ Q_capacity = m_dot*Cp_eg*Delta_T
 '<thead><tr><th>Quantity</th><th>Value</th><th>Status</th></tr></thead>
 '<tbody>
 '<tr><td>Query temperature</td><td>'T_query'</td><td>Input</td></tr>
-'<tr><td>Ethylene glycol density</td><td>'rho_eg'</td><td>
+'<tr><td>50 percent aqueous ethylene glycol density</td><td>'rho_eg'</td><td>
 DBStatus$(rho_status)
 '</td></tr>
-'<tr><td>Ethylene glycol specific heat</td><td>'Cp_eg'</td><td>
+'<tr><td>50 percent aqueous ethylene glycol specific heat</td><td>'Cp_eg'</td><td>
 DBStatus$(Cp_status)
 '</td></tr>
-'<tr><td>Ethylene glycol dynamic viscosity</td><td>'mu_eg'</td><td>From the same validated curve set</td></tr>
-'<tr><td>Ethylene glycol thermal conductivity</td><td>'k_eg'</td><td>From the same validated curve set</td></tr>
+'<tr><td>50 percent aqueous ethylene glycol dynamic viscosity</td><td>'mu_eg'</td><td>Equation based</td></tr>
+'<tr><td>50 percent aqueous ethylene glycol thermal conductivity</td><td>'k_eg'</td><td>Equation based</td></tr>
+'<tr><td>30 percent propylene glycol density</td><td>'rho_pg'</td><td>
+GlycolStatus$(pg_status)
+'</td></tr>
+'<tr><td>30 percent propylene glycol specific heat</td><td>'Cp_pg'</td><td>Equation based</td></tr>
 '<tr><td>Water saturation pressure</td><td>'P_sat'</td><td>Sampled water curve</td></tr>
 '<tr><td>Water latent heat</td><td>'h_fg'</td><td>Sampled water curve</td></tr>
 '<tr><td>Heat-capacity rate for the example stream</td><td>'Q_capacity'</td><td>Derived from the returned specific heat</td></tr>
@@ -100,9 +124,10 @@ DBStatus$(Cp_status)
 '</table>
 #equ
 
-"Detailed Property Record
+"Glycol Equation Provenance
 
-ShowThermoProperty$(THERMO_EG_50; THERMO_P_DYNAMIC_VISCOSITY; T_query)
+'GlycolEquationCitation$
+'GlycolEquationRevision$
 
 "IAPWS-IF97 Water and Steam States
 #hide
@@ -114,14 +139,24 @@ T_steam = 500K
 liquid_region = If97RegionPT(p_liquid; T_liquid)
 liquid_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
 liquid_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_specific_volume = ThermoProps(THERMO_OUT_SPECIFIC_VOLUME; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
 liquid_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_internal_energy = ThermoProps(THERMO_OUT_INTERNAL_ENERGY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_entropy = ThermoProps(THERMO_OUT_ENTROPY; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
 liquid_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_Cv = ThermoProps(THERMO_OUT_CV; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
+liquid_sound_speed = ThermoProps(THERMO_OUT_SOUND_SPEED; THERMO_IN_PRESSURE; p_liquid; THERMO_IN_TEMPERATURE; T_liquid; THERMO_WATER)
 
 steam_region = If97RegionPT(p_steam; T_steam)
 steam_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
 steam_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_specific_volume = ThermoProps(THERMO_OUT_SPECIFIC_VOLUME; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
 steam_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_internal_energy = ThermoProps(THERMO_OUT_INTERNAL_ENERGY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_entropy = ThermoProps(THERMO_OUT_ENTROPY; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
 steam_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_Cv = ThermoProps(THERMO_OUT_CV; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
+steam_sound_speed = ThermoProps(THERMO_OUT_SOUND_SPEED; THERMO_IN_TEMPERATURE; T_steam; THERMO_IN_PRESSURE; p_steam; THERMO_WATER)
 
 p_sat_500 = If97SaturationPressureT(500K)
 T_sat_1MPa = If97SaturationTemperatureP(1MPa)
@@ -140,9 +175,288 @@ ThermoPropsStatus$(liquid_status)
 ThermoPropsStatus$(steam_status)
 '</td></tr>
 '<tr><td>Density</td><td>'liquid_density'</td><td>'steam_density'</td></tr>
+'<tr><td>Specific volume</td><td>'liquid_specific_volume'</td><td>'steam_specific_volume'</td></tr>
 '<tr><td>Specific enthalpy</td><td>'liquid_enthalpy'</td><td>'steam_enthalpy'</td></tr>
+'<tr><td>Specific internal energy</td><td>'liquid_internal_energy'</td><td>'steam_internal_energy'</td></tr>
+'<tr><td>Specific entropy</td><td>'liquid_entropy'</td><td>'steam_entropy'</td></tr>
 '<tr><td>Specific isobaric heat capacity</td><td>'liquid_Cp'</td><td>'steam_Cp'</td></tr>
+'<tr><td>Specific isochoric heat capacity</td><td>'liquid_Cv'</td><td>'steam_Cv'</td></tr>
+'<tr><td>Speed of sound</td><td>'liquid_sound_speed'</td><td>'steam_sound_speed'</td></tr>
 '<tr><td>Saturation reference</td><td>'p_sat_500'</td><td>'T_sat_1MPa'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Equation-Based Nitrogen and Carbon Dioxide States
+#hide
+p_n2 = 10MPa
+T_n2 = 300K
+p_co2 = 10MPa
+T_co2 = 320K
+
+n2_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+n2_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+n2_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+n2_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_n2; THERMO_IN_TEMPERATURE; T_n2; THERMO_NITROGEN)
+
+co2_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_density_SI = PropsSI(CP_D; CP_P; p_co2; CP_T; T_co2; THERMO_CARBON_DIOXIDE)
+co2_density_SI_macro = PropsSI$(D; P; p_co2; T; T_co2; CarbonDioxide)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>State or property</th><th>Nitrogen</th><th>Carbon dioxide</th></tr></thead>
+'<tbody>
+'<tr><td>Pressure</td><td>'p_n2'</td><td>'p_co2'</td></tr>
+'<tr><td>Temperature</td><td>'T_n2'</td><td>'T_co2'</td></tr>
+'<tr><td>Status</td><td>
+ThermoPropsStatus$(n2_status)
+'</td><td>
+ThermoPropsStatus$(co2_status)
+'</td></tr>
+'<tr><td>Density</td><td>'n2_density'</td><td>'co2_density'</td></tr>
+'<tr><td>Unit-aware density through PropsSI</td><td>Not queried</td><td>'co2_density_SI'</td></tr>
+'<tr><td>Unit-aware density through PropsSI macro</td><td>Not queried</td><td>'co2_density_SI_macro'</td></tr>
+'<tr><td>Specific enthalpy</td><td>'n2_enthalpy'</td><td>'co2_enthalpy'</td></tr>
+'<tr><td>Specific isobaric heat capacity</td><td>'n2_Cp'</td><td>'co2_Cp'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Complete Unit-Aware PropsSI State
+#hide
+p_r134a = 1MPa
+T_r134a = 320K
+r134a_status = PropsSIStatus(CP_DENSITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_pressure = PropsSI(CP_PRESSURE; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_temperature = PropsSI(CP_TEMPERATURE; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_specific_volume = PropsSI(CP_SPECIFIC_VOLUME; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_density = PropsSI(CP_DENSITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_enthalpy = PropsSI(CP_ENTHALPY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_internal_energy = PropsSI(CP_INTERNAL_ENERGY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_entropy = PropsSI(CP_ENTROPY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_Cp = PropsSI(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_Cv = PropsSI(CP_ISOCHORIC_HEAT_CAPACITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_sound_speed = PropsSI(CP_SPEED_OF_SOUND; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_density_macro = PropsSI$(DENSITY; PRESSURE; p_r134a; TEMPERATURE; T_r134a; R134a)
+r134a_density_scalar = PropsSIScalar(CP_D; CP_P; p_r134a/Pa; CP_T; T_r134a/K; THERMO_R134A)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>Output</th><th>Unit-aware result</th><th>Interface feature</th></tr></thead>
+'<tbody>
+'<tr><td>Status</td><td>
+ThermoPropsStatus$(r134a_status)
+'</td><td>Validated pressure-temperature state</td></tr>
+'<tr><td>Pressure</td><td>'r134a_pressure'</td><td>Input passthrough with units preserved</td></tr>
+'<tr><td>Temperature</td><td>'r134a_temperature'</td><td>Input passthrough with units preserved</td></tr>
+'<tr><td>Specific volume</td><td>'r134a_specific_volume'</td><td>CP_SPECIFIC_VOLUME or CP_VSPEC</td></tr>
+'<tr><td>Density</td><td>'r134a_density'</td><td>CP_DENSITY or CP_D</td></tr>
+'<tr><td>Specific enthalpy</td><td>'r134a_enthalpy'</td><td>CP_ENTHALPY or CP_H</td></tr>
+'<tr><td>Specific internal energy</td><td>'r134a_internal_energy'</td><td>CP_INTERNAL_ENERGY or CP_U</td></tr>
+'<tr><td>Specific entropy</td><td>'r134a_entropy'</td><td>CP_ENTROPY or CP_S</td></tr>
+'<tr><td>Specific isobaric heat capacity</td><td>'r134a_Cp'</td><td>CP_ISOBARIC_HEAT_CAPACITY or CP_CP</td></tr>
+'<tr><td>Specific isochoric heat capacity</td><td>'r134a_Cv'</td><td>CP_ISOCHORIC_HEAT_CAPACITY or CP_CV</td></tr>
+'<tr><td>Speed of sound</td><td>'r134a_sound_speed'</td><td>CP_SPEED_OF_SOUND or CP_C</td></tr>
+'<tr><td>Density through readable macro</td><td>'r134a_density_macro'</td><td>PropsSI$ token expansion</td></tr>
+'<tr><td>Density as raw SI magnitude</td><td>'r134a_density_scalar'</td><td>Explicit PropsSIScalar compatibility path</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Implemented Pure-Fluid Comparison
+
+'All rows below use the same unit-bearing pressure and temperature inputs. R718 uses the IF97 water equations and the other rows use stored fundamental Helmholtz equations rather than interpolated property tables.
+#hide
+p_compare = 0.1MPa
+T_compare = 300K
+r718_status = PropsSIStatus(CP_DENSITY; CP_PRESSURE; p_compare; CP_TEMPERATURE; T_compare; THERMO_R718)
+r11_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
+r12_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
+r13_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
+r134a_compare_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R134A)
+r32_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R32)
+r1234yf_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R1234YF)
+r744_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R744)
+r290_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R290)
+r600a_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R600A)
+r717_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
+pure_pg_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
+
+r718_density = PropsSI(CP_DENSITY; CP_PRESSURE; p_compare; CP_TEMPERATURE; T_compare; THERMO_R718)
+r11_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
+r12_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
+r13_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
+r134a_compare_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R134A)
+r32_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R32)
+r1234yf_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R1234YF)
+r744_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R744)
+r290_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R290)
+r600a_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R600A)
+r717_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
+pure_pg_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
+
+r718_Cp = PropsSI(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_compare; CP_TEMPERATURE; T_compare; THERMO_R718)
+r11_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
+r12_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
+r13_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
+r134a_compare_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R134A)
+r32_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R32)
+r1234yf_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R1234YF)
+r744_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R744)
+r290_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R290)
+r600a_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R600A)
+r717_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
+pure_pg_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>Fluid</th><th>Density</th><th>Specific heat</th><th>Status</th></tr></thead>
+'<tbody>
+'<tr><td>R718 or water</td><td>'r718_density'</td><td>'r718_Cp'</td><td>
+ThermoPropsStatus$(r718_status)
+'</td></tr>
+'<tr><td>R11</td><td>'r11_density'</td><td>'r11_Cp'</td><td>
+ThermoPropsStatus$(r11_status)
+'</td></tr>
+'<tr><td>R12</td><td>'r12_density'</td><td>'r12_Cp'</td><td>
+ThermoPropsStatus$(r12_status)
+'</td></tr>
+'<tr><td>R13</td><td>'r13_density'</td><td>'r13_Cp'</td><td>
+ThermoPropsStatus$(r13_status)
+'</td></tr>
+'<tr><td>R134a</td><td>'r134a_compare_density'</td><td>'r134a_compare_Cp'</td><td>
+ThermoPropsStatus$(r134a_compare_status)
+'</td></tr>
+'<tr><td>R32</td><td>'r32_density'</td><td>'r32_Cp'</td><td>
+ThermoPropsStatus$(r32_status)
+'</td></tr>
+'<tr><td>R1234yf</td><td>'r1234yf_density'</td><td>'r1234yf_Cp'</td><td>
+ThermoPropsStatus$(r1234yf_status)
+'</td></tr>
+'<tr><td>R744 or carbon dioxide</td><td>'r744_density'</td><td>'r744_Cp'</td><td>
+ThermoPropsStatus$(r744_status)
+'</td></tr>
+'<tr><td>R290 or propane</td><td>'r290_density'</td><td>'r290_Cp'</td><td>
+ThermoPropsStatus$(r290_status)
+'</td></tr>
+'<tr><td>R600a or isobutane</td><td>'r600a_density'</td><td>'r600a_Cp'</td><td>
+ThermoPropsStatus$(r600a_status)
+'</td></tr>
+'<tr><td>R717 or ammonia</td><td>'r717_density'</td><td>'r717_Cp'</td><td>
+ThermoPropsStatus$(r717_status)
+'</td></tr>
+'<tr><td>Pure propylene glycol</td><td>'pure_pg_density'</td><td>'pure_pg_Cp'</td><td>
+ThermoPropsStatus$(pure_pg_status)
+'</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Aqueous Glycol Mixture Comparison
+#hide
+p_mix = 101.325kPa
+T_mix = 40°C
+T_mix_K = (T_mix/°C + 273.15)*K
+x_mix = 0.30
+meg_mix_status = PropsSIIncompressibleStatus(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_status = PropsSIIncompressibleStatus(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_density = PropsSIIncompressible(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_density = PropsSIIncompressible(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_Cp = PropsSIIncompressible(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_Cp = PropsSIIncompressible(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_viscosity = PropsSIIncompressible(CP_DYNAMIC_VISCOSITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_viscosity = PropsSIIncompressible(CP_DYNAMIC_VISCOSITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_conductivity = PropsSIIncompressible(CP_THERMAL_CONDUCTIVITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_conductivity = PropsSIIncompressible(CP_THERMAL_CONDUCTIVITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_freeze = (GlycolFreezeK(GLYCOL_ETHYLENE; x_mix) - 273.15)*°C
+mpg_freeze = (GlycolFreezeK(GLYCOL_PROPYLENE; x_mix) - 273.15)*°C
+meg_density_scalar = PropsSIIncompressibleScalar(CP_D; CP_P; p_mix/Pa; CP_T; T_mix_K/K; GLYCOL_ETHYLENE; x_mix)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>State or property</th><th>30 percent MEG</th><th>30 percent MPG</th></tr></thead>
+'<tbody>
+'<tr><td>Pressure input</td><td>'p_mix'</td><td>'p_mix'</td></tr>
+'<tr><td>Temperature input</td><td>'T_mix_K'</td><td>'T_mix_K'</td></tr>
+'<tr><td>Mass fraction</td><td>'x_mix'</td><td>'x_mix'</td></tr>
+'<tr><td>Status</td><td>
+GlycolStatus$(meg_mix_status)
+'</td><td>
+GlycolStatus$(mpg_mix_status)
+'</td></tr>
+'<tr><td>Density</td><td>'meg_mix_density'</td><td>'mpg_mix_density'</td></tr>
+'<tr><td>Specific heat</td><td>'meg_mix_Cp'</td><td>'mpg_mix_Cp'</td></tr>
+'<tr><td>Dynamic viscosity</td><td>'meg_mix_viscosity'</td><td>'mpg_mix_viscosity'</td></tr>
+'<tr><td>Thermal conductivity</td><td>'meg_mix_conductivity'</td><td>'mpg_mix_conductivity'</td></tr>
+'<tr><td>Correlation freezing limit</td><td>'meg_freeze'</td><td>'mpg_freeze'</td></tr>
+'<tr><td>MEG raw SI density example</td><td>'meg_density_scalar'</td><td>Not queried</td></tr>
+'</tbody>
+'</table>
+#equ
+
+"Glycol Temperature Trends
+
+'The chart evaluates both mixture families directly from their equations at 30 percent glycol by mass. Density uses the primary axis and dynamic viscosity uses the secondary axis.
+
+#hide
+DemoMEGDensity(T_C) = EgWaterDensityTX(T_C*°C; x_mix)/(kg/m^3)
+DemoMPGDensity(T_C) = PgWaterDensityTX(T_C*°C; x_mix)/(kg/m^3)
+DemoMEGViscosity(T_C) = EgWaterDynamicViscosityTX(T_C*°C; x_mix)/(mPa*s)
+DemoMPGViscosity(T_C) = PgWaterDynamicViscosityTX(T_C*°C; x_mix)/(mPa*s)
+#show
+sampleData$(T_meg_density; y_meg_density; DemoMEGDensity; 0; 90; 46)
+sampleData$(T_mpg_density; y_mpg_density; DemoMPGDensity; 0; 90; 46)
+sampleData$(T_meg_viscosity; y_meg_viscosity; DemoMEGViscosity; 0; 90; 46)
+sampleData$(T_mpg_viscosity; y_mpg_viscosity; DemoMPGViscosity; 0; 90; 46)
+
+#md off
+figure$(glycolPropertyPlot)
+figureSize$(glycolPropertyPlot; 900; 500)
+plot$(glycolPropertyPlot; T_meg_density; y_meg_density; #337ab7; MEG density)
+plot$(glycolPropertyPlot; T_mpg_density; y_mpg_density; #d9534f; MPG density)
+plotY2$(glycolPropertyPlot; T_meg_viscosity; y_meg_viscosity; #5cb85c; MEG viscosity)
+plotY2$(glycolPropertyPlot; T_mpg_viscosity; y_mpg_viscosity; #8a6d3b; MPG viscosity)
+y2Axis$(glycolPropertyPlot; Dynamic viscosity (mPa s))
+hoverUnified$(glycolPropertyPlot)
+render$(glycolPropertyPlot; 30 Percent Aqueous Glycol Properties; Temperature (deg C); Density (kg per m3))
+#md on
+
+"Status and Guard Demonstration
+#hide
+bad_pair_status = PropsSIStatus(CP_D; CP_P; 100kPa; CP_P; 200kPa; THERMO_NITROGEN)
+saturation_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_sat_500; THERMO_IN_TEMPERATURE; 500K; THERMO_WATER)
+region3_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; 25MPa; THERMO_IN_TEMPERATURE; 650K; THERMO_WATER)
+frozen_glycol_status = PropsSIIncompressibleStatus(CP_D; CP_P; 101.325kPa; CP_T; 243.15K; GLYCOL_PROPYLENE; 0.30)
+high_concentration_status = GlycolPROPStatus(GLYCOL_ETHYLENE; THERMO_P_DENSITY; 20°C; 0.70)
+#show
+
+#novar
+'<table class="bordered data" style="width:95%">
+'<thead><tr><th>Guarded request</th><th>Status code</th><th>Rendered interpretation</th></tr></thead>
+'<tbody>
+'<tr><td>Duplicate pressure inputs</td><td>'bad_pair_status'</td><td>
+ThermoPropsStatus$(bad_pair_status)
+'</td></tr>
+'<tr><td>State on the IF97 saturation boundary</td><td>'saturation_status'</td><td>
+ThermoPropsStatus$(saturation_status)
+'</td></tr>
+'<tr><td>IF97 Region 3 state</td><td>'region3_status'</td><td>
+ThermoPropsStatus$(region3_status)
+'</td></tr>
+'<tr><td>Frozen 30 percent MPG request</td><td>'frozen_glycol_status'</td><td>
+GlycolStatus$(frozen_glycol_status)
+'</td></tr>
+'<tr><td>MEG concentration above 60 percent</td><td>'high_concentration_status'</td><td>
+GlycolStatus$(high_concentration_status)
+'</td></tr>
 '</tbody>
 '</table>
 #equ
@@ -152,4 +466,10 @@ AddConclusion$(Dataset status; ThermoDatasetStatus)
 AddConclusion$(Example heat-capacity rate; Q_capacity)
 AddConclusion$(Liquid state region; liquid_region)
 AddConclusion$(Steam state region; steam_region)
+AddConclusion$(Nitrogen state status; n2_status)
+AddConclusion$(Carbon dioxide state status; co2_status)
+AddConclusion$(Complete R134a state status; r134a_status)
+AddConclusion$(R718 water state status; r718_status)
+AddConclusion$(MEG mixture state status; meg_mix_status)
+AddConclusion$(MPG mixture state status; mpg_mix_status)
 EndConclusions$
