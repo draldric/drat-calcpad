@@ -49,18 +49,18 @@ Unlike CoolProp's `PropsSI`, values are passed and returned with CalcPad units i
 `PropsSI` uses CoolProp's six-argument order while requiring CalcPad units on pressure and temperature inputs and returning a dimensioned result. It retains numeric keys and fluid IDs:
 
 ```text
-rho = PropsSI(CP_D; CP_P; 100kPa; CP_T; 300K; THERMO_NITROGEN)
-h = PropsSI(CP_H; CP_T; 300K; CP_P; 100kPa; THERMO_NITROGEN)
-status = PropsSIStatus(CP_D; CP_P; 100kPa; CP_T; 300K; THERMO_NITROGEN)
+rho = PropsSI(CP_DENSITY; CP_PRESSURE; 100kPa; CP_TEMPERATURE; 300K; THERMO_NITROGEN)
+h = PropsSI(CP_ENTHALPY; CP_TEMPERATURE; 300K; CP_PRESSURE; 100kPa; THERMO_NITROGEN)
+status = PropsSIStatus(CP_DENSITY; CP_PRESSURE; 100kPa; CP_TEMPERATURE; 300K; THERMO_NITROGEN)
 ```
 
-Pressure and absolute-temperature inputs must carry compatible units. Outputs carry their corresponding SI dimensions, so a density can be displayed in `kg/m^3` or converted by CalcPad to another compatible unit. Supported pure-fluid output keys are `CP_P`, `CP_T`, `CP_D`/`CP_DMASS`, `CP_H`/`CP_HMASS`, `CP_U`/`CP_UMASS`, `CP_S`/`CP_SMASS`, `CP_C`/`CP_CPMASS`, `CP_CV`/`CP_CVMASS`, `CP_A`/`CP_SPEED_OF_SOUND`, and the DRAT extension `CP_VSPEC`. Only the `CP_P` and `CP_T` input pair is currently accepted, in either order.
+Pressure and absolute-temperature inputs must carry compatible units. Outputs carry their corresponding SI dimensions, so a density can be displayed in `kg/m^3` or converted by CalcPad to another compatible unit. The canonical short keys are `CP_P`, `CP_T`, `CP_D`, `CP_H`, `CP_U`, `CP_S`, `CP_CP`, `CP_CV`, `CP_C`, and `CP_VSPEC`; `CP_C` is speed of sound, while `CP_CP` is isobaric heat capacity. Descriptive aliases are `CP_PRESSURE`, `CP_TEMPERATURE`, `CP_DENSITY`, `CP_ENTHALPY`, `CP_INTERNAL_ENERGY`, `CP_ENTROPY`, `CP_ISOBARIC_HEAT_CAPACITY`, `CP_ISOCHORIC_HEAT_CAPACITY`, `CP_SPEED_OF_SOUND`, and `CP_SPECIFIC_VOLUME`. The earlier mass-basis aliases such as `CP_DMASS` and `CP_CPMASS` remain supported, and `CP_A` remains a legacy speed-of-sound alias. Only the pressure-temperature input pair is currently accepted, in either order.
 
 For hand-authored worksheets, a preprocessing macro provides a call that is visually close to CoolProp:
 
 ```text
-rho = PropsSI$(D; P; 100kPa; T; 300K; Nitrogen)
-h = PropsSI$(H; T; 300K; P; 100kPa; R134a)
+rho = PropsSI$(DENSITY; PRESSURE; 100kPa; TEMPERATURE; 300K; Nitrogen)
+h = PropsSI$(ENTHALPY; TEMPERATURE; 300K; PRESSURE; 100kPa; R134a)
 ```
 
 CalcPad string macros are expanded before numeric parsing, so the key and fluid tokens are deliberately unquoted. This is not runtime string dispatch: computed strings, backend prefixes, arbitrary aliases, and composition syntax inside a fluid name cannot be accepted. Use the numeric `PropsSI` form for generated calculations.
@@ -74,11 +74,11 @@ rho_SI = PropsSIScalar(CP_D; CP_P; 100000; CP_T; 300; THERMO_NITROGEN)
 Aqueous glycol concentration therefore uses an explicit seventh argument:
 
 ```text
-rho_pg = PropsSIIncompressible(CP_D; CP_T; 313.15K; CP_P; 101.325kPa; GLYCOL_PROPYLENE; 0.30)
-mu_eg = PropsSIIncompressible(CP_V; CP_P; 101.325kPa; CP_T; 333.15K; GLYCOL_ETHYLENE; 0.50)
+rho_pg = PropsSIIncompressible(CP_DENSITY; CP_TEMPERATURE; 313.15K; CP_PRESSURE; 101.325kPa; GLYCOL_PROPYLENE; 0.30)
+mu_eg = PropsSIIncompressible(CP_DYNAMIC_VISCOSITY; CP_PRESSURE; 101.325kPa; CP_TEMPERATURE; 333.15K; GLYCOL_ETHYLENE; 0.50)
 ```
 
-The incompressible selector supports `CP_D`, `CP_C`, `CP_V` for dynamic viscosity, and `CP_L` for thermal conductivity. Pressure must be positive but does not alter the current incompressible correlations. Concentration, temperature, and freezing limits remain enforced by `PropsSIIncompressibleStatus`. `PropsSIIncompressibleScalar` provides the corresponding raw-SI compatibility path.
+The incompressible selector supports density, isobaric heat capacity, dynamic viscosity, and thermal conductivity through `CP_D`, `CP_CP`, `CP_V`, and `CP_L` or their descriptive aliases. Pressure must be positive but does not alter the current incompressible correlations. Concentration, temperature, and freezing limits remain enforced by `PropsSIIncompressibleStatus`. `PropsSIIncompressibleScalar` provides the corresponding raw-SI compatibility path.
 
 `ThermoProps` remains the native DRAT selector, while unit-aware `PropsSI` makes the call order familiar when translating CoolProp-style equations. Use the scalar variants only where an existing generator or equation set specifically requires raw SI numbers.
 
@@ -97,6 +97,7 @@ state_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THER
 
 The supported constants are:
 
+- `THERMO_WATER`, with refrigerant alias `THERMO_R718`
 - `THERMO_NITROGEN`
 - `THERMO_CARBON_DIOXIDE`, with alias `THERMO_R744`
 - `THERMO_R11`, `THERMO_R12`, `THERMO_R13`, `THERMO_R134A`, `THERMO_R32`, and `THERMO_R1234YF`

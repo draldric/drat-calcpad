@@ -198,13 +198,13 @@ rho = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATU
 
 `ThermoProps` uses a CoolProp-shaped output/input/value/input/value/fluid signature while retaining CalcPad units. The pressure and temperature inputs may be supplied in either order.
 Out-of-range, unsupported-region, and saturation-line states return an explicit status and a dimensioned undefined property value.
-The same interface accepts `THERMO_NITROGEN`, `THERMO_CARBON_DIOXIDE`, and the supported pure refrigerant constants; their thermodynamic outputs are calculated from fundamental Helmholtz equations rather than sampled tables. `THERMO_R744` aliases the carbon-dioxide model.
+The same interface accepts `THERMO_NITROGEN`, `THERMO_CARBON_DIOXIDE`, and the supported refrigerant constants. `THERMO_R718` aliases the IF97 water model, while `THERMO_R744` aliases the carbon-dioxide Helmholtz model. The other supported pure-fluid outputs are likewise calculated from equations rather than sampled tables.
 
 For a CoolProp-shaped call with CalcPad dimensional checking, use the unit-aware compatibility interface:
 
 ```text
-rho = PropsSI(CP_D; CP_P; 100kPa; CP_T; 300K; THERMO_NITROGEN)
-rho_readable = PropsSI$(D; P; 100kPa; T; 300K; Nitrogen)
+rho = PropsSI(CP_DENSITY; CP_PRESSURE; 100kPa; CP_TEMPERATURE; 300K; THERMO_NITROGEN)
+rho_readable = PropsSI$(DENSITY; PRESSURE; 100kPa; TEMPERATURE; 300K; Nitrogen)
 ```
 
 Both return a dimensioned density. The macro tokens are unquoted because CalcPad expands them before parsing; use the numeric form for generated worksheets. Existing raw-SI calculations can instead call `PropsSIScalar`, which accepts pascal and kelvin magnitudes and returns an unadorned SI number.

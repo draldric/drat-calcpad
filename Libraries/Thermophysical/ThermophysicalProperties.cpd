@@ -40,6 +40,7 @@ THERMO_R290 = 309
 THERMO_R600A = 310
 THERMO_R717 = 311
 THERMO_PROPYLENE_GLYCOL = 312
+THERMO_R718 = THERMO_WATER
 THERMO_R744 = THERMO_CARBON_DIOXIDE
 THERMO_PROPANE = THERMO_R290
 THERMO_ISOBUTANE = THERMO_R600A
@@ -645,41 +646,53 @@ CP_D = 3
 CP_H = 4
 CP_U = 5
 CP_S = 6
-CP_C = 7
+CP_CP = 7
 CP_CV = 8
-CP_A = 9
+CP_C = 9
 CP_V = 10
 CP_L = 11
 CP_VSPEC = 12
+CP_PRESSURE = CP_P
+CP_TEMPERATURE = CP_T
+CP_DENSITY = CP_D
+CP_ENTHALPY = CP_H
+CP_INTERNAL_ENERGY = CP_U
+CP_ENTROPY = CP_S
+CP_ISOBARIC_HEAT_CAPACITY = CP_CP
+CP_ISOCHORIC_HEAT_CAPACITY = CP_CV
+CP_SPEED_OF_SOUND = CP_C
+CP_DYNAMIC_VISCOSITY = CP_V
+CP_THERMAL_CONDUCTIVITY = CP_L
+CP_SPECIFIC_VOLUME = CP_VSPEC
+CP_A = CP_C
 CP_DMASS = CP_D
 CP_HMASS = CP_H
 CP_UMASS = CP_U
 CP_SMASS = CP_S
-CP_CPMASS = CP_C
+CP_CPMASS = CP_CP
 CP_CVMASS = CP_CV
-CP_SPEED_OF_SOUND = CP_A
 PropsSIInputIDs = [CP_P; CP_T]
-PropsSIOutputIDs = [CP_P; CP_T; CP_D; CP_H; CP_U; CP_S; CP_C; CP_CV; CP_A; CP_VSPEC]
+PropsSIOutputIDs = [CP_P; CP_T; CP_D; CP_H; CP_U; CP_S; CP_CP; CP_CV; CP_C; CP_VSPEC]
 PropsSIHasInput(input) = DBHasID(PropsSIInputIDs; input)
 PropsSIHasOutput(output) = DBHasID(PropsSIOutputIDs; output)
 PropsSIHasPTPair(input_1; input_2) = or(and(input_1 ≡ CP_P; input_2 ≡ CP_T); and(input_1 ≡ CP_T; input_2 ≡ CP_P))
 PropsSIPressure(input_1; value_1; input_2; value_2) = if(input_1 ≡ CP_P; value_1; value_2)
 PropsSITemperature(input_1; value_1; input_2; value_2) = if(input_1 ≡ CP_T; value_1; value_2)
-PropsSIMapOutput(output) = switch(output ≡ CP_VSPEC; THERMO_OUT_SPECIFIC_VOLUME; output ≡ CP_D; THERMO_OUT_DENSITY; output ≡ CP_H; THERMO_OUT_ENTHALPY; output ≡ CP_U; THERMO_OUT_INTERNAL_ENERGY; output ≡ CP_S; THERMO_OUT_ENTROPY; output ≡ CP_C; THERMO_OUT_CP; output ≡ CP_CV; THERMO_OUT_CV; output ≡ CP_A; THERMO_OUT_SOUND_SPEED; THERMO_OUT_DENSITY)
-PropsSIUndefined(output) = switch(output ≡ CP_P; setunits(0/0; Pa); output ≡ CP_T; setunits(0/0; K); output ≡ CP_VSPEC; setunits(0/0; m^3/kg); output ≡ CP_D; setunits(0/0; kg/m^3); output ≡ CP_H; setunits(0/0; J/kg); output ≡ CP_U; setunits(0/0; J/kg); output ≡ CP_S; setunits(0/0; J/(kg*K)); output ≡ CP_C; setunits(0/0; J/(kg*K)); output ≡ CP_CV; setunits(0/0; J/(kg*K)); output ≡ CP_A; setunits(0/0; m/s); 0/0)
+PropsSIMapOutput(output) = switch(output ≡ CP_VSPEC; THERMO_OUT_SPECIFIC_VOLUME; output ≡ CP_D; THERMO_OUT_DENSITY; output ≡ CP_H; THERMO_OUT_ENTHALPY; output ≡ CP_U; THERMO_OUT_INTERNAL_ENERGY; output ≡ CP_S; THERMO_OUT_ENTROPY; output ≡ CP_CP; THERMO_OUT_CP; output ≡ CP_CV; THERMO_OUT_CV; output ≡ CP_C; THERMO_OUT_SOUND_SPEED; THERMO_OUT_DENSITY)
+PropsSIUndefined(output) = switch(output ≡ CP_P; setunits(0/0; Pa); output ≡ CP_T; setunits(0/0; K); output ≡ CP_VSPEC; setunits(0/0; m^3/kg); output ≡ CP_D; setunits(0/0; kg/m^3); output ≡ CP_H; setunits(0/0; J/kg); output ≡ CP_U; setunits(0/0; J/kg); output ≡ CP_S; setunits(0/0; J/(kg*K)); output ≡ CP_CP; setunits(0/0; J/(kg*K)); output ≡ CP_CV; setunits(0/0; J/(kg*K)); output ≡ CP_C; setunits(0/0; m/s); 0/0)
 PropsSIStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{output_ok = PropsSIHasOutput(output); input_1_ok = PropsSIHasInput(input_1); input_2_ok = PropsSIHasInput(input_2); pair_ok = PropsSIHasPTPair(input_1; input_2); query_ok = and(output_ok; input_1_ok; input_2_ok; pair_ok); pressure = if(query_ok; PropsSIPressure(input_1; value_1; input_2; value_2); 0Pa); temperature = if(query_ok; PropsSITemperature(input_1; value_1; input_2; value_2); 0K); mapped_output = PropsSIMapOutput(output); backend_status = if(query_ok; ThermoPropsStatus(mapped_output; THERMO_IN_PRESSURE; pressure; THERMO_IN_TEMPERATURE; temperature; fluid); THERMO_PROPS_OK); switch(not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; backend_status);}
 PropsSIValue(output; pressure; temperature; fluid) = $block{mapped_output = PropsSIMapOutput(output); unit_value = ThermoProps(mapped_output; THERMO_IN_PRESSURE; pressure; THERMO_IN_TEMPERATURE; temperature; fluid); switch(output ≡ CP_P; pressure; output ≡ CP_T; temperature; unit_value);}
 PropsSI(output; input_1; value_1; input_2; value_2; fluid) = $block{status = PropsSIStatus(output; input_1; value_1; input_2; value_2; fluid); pressure = if(status ≡ THERMO_PROPS_OK; PropsSIPressure(input_1; value_1; input_2; value_2); 0Pa); temperature = if(status ≡ THERMO_PROPS_OK; PropsSITemperature(input_1; value_1; input_2; value_2); 0K); if(status ≡ THERMO_PROPS_OK; PropsSIValue(output; pressure; temperature; fluid); PropsSIUndefined(output));}
 #def PropsSI$(output$; input_1$; value_1$; input_2$; value_2$; fluid$) = PropsSI(CP_output$; CP_input_1$; value_1$; CP_input_2$; value_2$; THERMO_fluid$)
 PropsSIScalarStatus(output; input_1; value_1; input_2; value_2; fluid) = PropsSIStatus(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); fluid)
-PropsSIScalar(output; input_1; value_1; input_2; value_2; fluid) = $block{unit_value = PropsSI(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); fluid); switch(output ≡ CP_P; unit_value/Pa; output ≡ CP_T; unit_value/K; output ≡ CP_VSPEC; unit_value/(m^3/kg); output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_H; unit_value/(J/kg); output ≡ CP_U; unit_value/(J/kg); output ≡ CP_S; unit_value/(J/(kg*K)); output ≡ CP_C; unit_value/(J/(kg*K)); output ≡ CP_CV; unit_value/(J/(kg*K)); output ≡ CP_A; unit_value/(m/s); 0/0);}
+PropsSIScalar(output; input_1; value_1; input_2; value_2; fluid) = $block{unit_value = PropsSI(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); fluid); switch(output ≡ CP_P; unit_value/Pa; output ≡ CP_T; unit_value/K; output ≡ CP_VSPEC; unit_value/(m^3/kg); output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_H; unit_value/(J/kg); output ≡ CP_U; unit_value/(J/kg); output ≡ CP_S; unit_value/(J/(kg*K)); output ≡ CP_CP; unit_value/(J/(kg*K)); output ≡ CP_CV; unit_value/(J/(kg*K)); output ≡ CP_C; unit_value/(m/s); 0/0);}
 
-PropsSIIncompressibleOutputIDs = [CP_D; CP_C; CP_V; CP_L]
+PropsSIIncompressibleOutputIDs = [CP_D; CP_CP; CP_V; CP_L]
 PropsSIIncompressibleHasOutput(output) = DBHasID(PropsSIIncompressibleOutputIDs; output)
-PropsSIIncompressibleProperty(output) = switch(output ≡ CP_D; THERMO_P_DENSITY; output ≡ CP_C; THERMO_P_SPECIFIC_HEAT; output ≡ CP_V; THERMO_P_DYNAMIC_VISCOSITY; output ≡ CP_L; THERMO_P_THERMAL_CONDUCTIVITY; 0)
+PropsSIIncompressibleProperty(output) = switch(output ≡ CP_D; THERMO_P_DENSITY; output ≡ CP_CP; THERMO_P_SPECIFIC_HEAT; output ≡ CP_V; THERMO_P_DYNAMIC_VISCOSITY; output ≡ CP_L; THERMO_P_THERMAL_CONDUCTIVITY; 0)
 PropsSIIncompressibleStatus(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{output_ok = PropsSIIncompressibleHasOutput(output); input_1_ok = PropsSIHasInput(input_1); input_2_ok = PropsSIHasInput(input_2); pair_ok = PropsSIHasPTPair(input_1; input_2); pressure = if(pair_ok; PropsSIPressure(input_1; value_1; input_2; value_2); 0Pa); temperature = if(pair_ok; PropsSITemperature(input_1; value_1; input_2; value_2); 0K); backend_status = if(and(output_ok; input_1_ok; input_2_ok; pair_ok; pressure > 0Pa); GlycolPROPStatus(family; PropsSIIncompressibleProperty(output); (temperature/K - 273.15)*°C; glycol_mass_fraction); GLYCOL_OK); switch(not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; pressure ≤ 0Pa; HELMHOLTZ_ERR_PRESSURE_LOW; backend_status);}
 PropsSIIncompressible(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{status = PropsSIIncompressibleStatus(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction); temperature = if(status ≡ GLYCOL_OK; PropsSITemperature(input_1; value_1; input_2; value_2); 273.15K); property = PropsSIIncompressibleProperty(output); if(status ≡ GLYCOL_OK; GlycolPROP(family; property; (temperature/K - 273.15)*°C; glycol_mass_fraction); GlycolUndefined(property));}
-PropsSIIncompressibleScalar(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{unit_value = PropsSIIncompressible(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); family; glycol_mass_fraction); switch(output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_C; unit_value/(J/(kg*K)); output ≡ CP_V; unit_value/(Pa*s); output ≡ CP_L; unit_value/(W/(m*K)); 0/0);}
+PropsSIIncompressibleScalar(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{unit_value = PropsSIIncompressible(output; input_1; if(input_1 ≡ CP_P; value_1*Pa; value_1*K); input_2; if(input_2 ≡ CP_P; value_2*Pa; value_2*K); family; glycol_mass_fraction); switch(output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_CP; unit_value/(J/(kg*K)); output ≡ CP_V; unit_value/(Pa*s); output ≡ CP_L; unit_value/(W/(m*K)); 0/0);}
 
 ThermoApplyUnits(property; value) = switch(property ≡ THERMO_P_DENSITY; setunits(value; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(value; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(value; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(value; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(value; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(value; kJ/kg); 0/0)
 ThermoUndefined(property) = switch(property ≡ THERMO_P_DENSITY; setunits(0/0; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(0/0; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(0/0; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(0/0; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(0/0; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(0/0; kJ/kg); 0/0)

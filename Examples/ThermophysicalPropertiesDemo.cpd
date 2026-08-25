@@ -9,7 +9,7 @@
 #def Purpose$ = DEMONSTRATE THE UNIT-AWARE PropsSI WORKFLOW ACROSS WATER STEAM PURE FLUIDS REFRIGERANTS AND AQUEOUS GLYCOL MIXTURES.
 #def Scope$ = QUERY EVERY IMPLEMENTED THERMODYNAMIC OUTPUT COMPARE EQUATION-BASED FLUIDS VISUALIZE GLYCOL TRENDS AND DEMONSTRATE STATUS AND SCALAR COMPATIBILITY PATHS. PURE ETHYLENE GLYCOL REFRIGERANT MIXTURES PHASE QUALITY TRANSPORT PROPERTIES FOR PURE FLUIDS AND UNIMPLEMENTED IAPWS REGIONS ARE EXCLUDED.
 #def Calculation$ = EXAMPLE-THERMO-001
-#def Rev$ = 1
+#def Rev$ = 2
 #def PreparedBy$ = EXAMPLE AUTHOR
 #def PreparedOn$ = 2026-08-15
 #def CheckedBy$ = NOT CHECKED
@@ -38,6 +38,7 @@ LIMITATION_HELMHOLTZ_SCOPE = 4
 BeginRevisions$
 AddRevision$(0; Initial thermophysical-property library demonstration; EXAMPLE AUTHOR; 2026-08-15)
 AddRevision$(1; Expanded unit-aware PropsSI fluid glycol status and plotting showcase; EXAMPLE AUTHOR; 2026-08-24)
+AddRevision$(2; Clarified property selectors and added the R718 water alias; EXAMPLE AUTHOR; 2026-08-25)
 EndRevisions$
 
 BeginReferences$
@@ -230,18 +231,18 @@ ThermoPropsStatus$(co2_status)
 #hide
 p_r134a = 1MPa
 T_r134a = 320K
-r134a_status = PropsSIStatus(CP_D; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_pressure = PropsSI(CP_P; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_temperature = PropsSI(CP_T; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_specific_volume = PropsSI(CP_VSPEC; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_density = PropsSI(CP_D; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_enthalpy = PropsSI(CP_H; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_internal_energy = PropsSI(CP_U; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_entropy = PropsSI(CP_S; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_Cp = PropsSI(CP_C; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_Cv = PropsSI(CP_CV; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_sound_speed = PropsSI(CP_A; CP_P; p_r134a; CP_T; T_r134a; THERMO_R134A)
-r134a_density_macro = PropsSI$(D; P; p_r134a; T; T_r134a; R134a)
+r134a_status = PropsSIStatus(CP_DENSITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_pressure = PropsSI(CP_PRESSURE; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_temperature = PropsSI(CP_TEMPERATURE; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_specific_volume = PropsSI(CP_SPECIFIC_VOLUME; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_density = PropsSI(CP_DENSITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_enthalpy = PropsSI(CP_ENTHALPY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_internal_energy = PropsSI(CP_INTERNAL_ENERGY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_entropy = PropsSI(CP_ENTROPY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_Cp = PropsSI(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_Cv = PropsSI(CP_ISOCHORIC_HEAT_CAPACITY; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_sound_speed = PropsSI(CP_SPEED_OF_SOUND; CP_PRESSURE; p_r134a; CP_TEMPERATURE; T_r134a; THERMO_R134A)
+r134a_density_macro = PropsSI$(DENSITY; PRESSURE; p_r134a; TEMPERATURE; T_r134a; R134a)
 r134a_density_scalar = PropsSIScalar(CP_D; CP_P; p_r134a/Pa; CP_T; T_r134a/K; THERMO_R134A)
 #show
 
@@ -254,14 +255,14 @@ ThermoPropsStatus$(r134a_status)
 '</td><td>Validated pressure-temperature state</td></tr>
 '<tr><td>Pressure</td><td>'r134a_pressure'</td><td>Input passthrough with units preserved</td></tr>
 '<tr><td>Temperature</td><td>'r134a_temperature'</td><td>Input passthrough with units preserved</td></tr>
-'<tr><td>Specific volume</td><td>'r134a_specific_volume'</td><td>CP_VSPEC</td></tr>
-'<tr><td>Density</td><td>'r134a_density'</td><td>CP_D or CP_DMASS</td></tr>
-'<tr><td>Specific enthalpy</td><td>'r134a_enthalpy'</td><td>CP_H or CP_HMASS</td></tr>
-'<tr><td>Specific internal energy</td><td>'r134a_internal_energy'</td><td>CP_U or CP_UMASS</td></tr>
-'<tr><td>Specific entropy</td><td>'r134a_entropy'</td><td>CP_S or CP_SMASS</td></tr>
-'<tr><td>Specific isobaric heat capacity</td><td>'r134a_Cp'</td><td>CP_C or CP_CPMASS</td></tr>
-'<tr><td>Specific isochoric heat capacity</td><td>'r134a_Cv'</td><td>CP_CV or CP_CVMASS</td></tr>
-'<tr><td>Speed of sound</td><td>'r134a_sound_speed'</td><td>CP_A or CP_SPEED_OF_SOUND</td></tr>
+'<tr><td>Specific volume</td><td>'r134a_specific_volume'</td><td>CP_SPECIFIC_VOLUME or CP_VSPEC</td></tr>
+'<tr><td>Density</td><td>'r134a_density'</td><td>CP_DENSITY or CP_D</td></tr>
+'<tr><td>Specific enthalpy</td><td>'r134a_enthalpy'</td><td>CP_ENTHALPY or CP_H</td></tr>
+'<tr><td>Specific internal energy</td><td>'r134a_internal_energy'</td><td>CP_INTERNAL_ENERGY or CP_U</td></tr>
+'<tr><td>Specific entropy</td><td>'r134a_entropy'</td><td>CP_ENTROPY or CP_S</td></tr>
+'<tr><td>Specific isobaric heat capacity</td><td>'r134a_Cp'</td><td>CP_ISOBARIC_HEAT_CAPACITY or CP_CP</td></tr>
+'<tr><td>Specific isochoric heat capacity</td><td>'r134a_Cv'</td><td>CP_ISOCHORIC_HEAT_CAPACITY or CP_CV</td></tr>
+'<tr><td>Speed of sound</td><td>'r134a_sound_speed'</td><td>CP_SPEED_OF_SOUND or CP_C</td></tr>
 '<tr><td>Density through readable macro</td><td>'r134a_density_macro'</td><td>PropsSI$ token expansion</td></tr>
 '<tr><td>Density as raw SI magnitude</td><td>'r134a_density_scalar'</td><td>Explicit PropsSIScalar compatibility path</td></tr>
 '</tbody>
@@ -270,10 +271,11 @@ ThermoPropsStatus$(r134a_status)
 
 "Implemented Pure-Fluid Comparison
 
-'All rows below use the same unit-bearing pressure and temperature inputs. Values are calculated from the stored fundamental Helmholtz equations rather than interpolated property tables.
+'All rows below use the same unit-bearing pressure and temperature inputs. R718 uses the IF97 water equations and the other rows use stored fundamental Helmholtz equations rather than interpolated property tables.
 #hide
 p_compare = 0.1MPa
 T_compare = 300K
+r718_status = PropsSIStatus(CP_DENSITY; CP_PRESSURE; p_compare; CP_TEMPERATURE; T_compare; THERMO_R718)
 r11_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
 r12_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
 r13_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
@@ -286,6 +288,7 @@ r600a_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R600
 r717_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
 pure_pg_status = PropsSIStatus(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
 
+r718_density = PropsSI(CP_DENSITY; CP_PRESSURE; p_compare; CP_TEMPERATURE; T_compare; THERMO_R718)
 r11_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
 r12_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
 r13_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
@@ -298,23 +301,27 @@ r600a_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R600A)
 r717_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
 pure_pg_density = PropsSI(CP_D; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
 
-r11_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
-r12_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
-r13_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
-r134a_compare_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R134A)
-r32_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R32)
-r1234yf_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R1234YF)
-r744_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R744)
-r290_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R290)
-r600a_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R600A)
-r717_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
-pure_pg_Cp = PropsSI(CP_C; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
+r718_Cp = PropsSI(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_compare; CP_TEMPERATURE; T_compare; THERMO_R718)
+r11_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R11)
+r12_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R12)
+r13_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R13)
+r134a_compare_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R134A)
+r32_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R32)
+r1234yf_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R1234YF)
+r744_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R744)
+r290_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R290)
+r600a_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R600A)
+r717_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_R717)
+pure_pg_Cp = PropsSI(CP_CP; CP_P; p_compare; CP_T; T_compare; THERMO_PROPYLENE_GLYCOL)
 #show
 
 #novar
 '<table class="bordered data" style="width:95%">
 '<thead><tr><th>Fluid</th><th>Density</th><th>Specific heat</th><th>Status</th></tr></thead>
 '<tbody>
+'<tr><td>R718 or water</td><td>'r718_density'</td><td>'r718_Cp'</td><td>
+ThermoPropsStatus$(r718_status)
+'</td></tr>
 '<tr><td>R11</td><td>'r11_density'</td><td>'r11_Cp'</td><td>
 ThermoPropsStatus$(r11_status)
 '</td></tr>
@@ -362,12 +369,12 @@ meg_mix_status = PropsSIIncompressibleStatus(CP_D; CP_P; p_mix; CP_T; T_mix_K; G
 mpg_mix_status = PropsSIIncompressibleStatus(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
 meg_mix_density = PropsSIIncompressible(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_ETHYLENE; x_mix)
 mpg_mix_density = PropsSIIncompressible(CP_D; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
-meg_mix_Cp = PropsSIIncompressible(CP_C; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_ETHYLENE; x_mix)
-mpg_mix_Cp = PropsSIIncompressible(CP_C; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
-meg_mix_viscosity = PropsSIIncompressible(CP_V; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_ETHYLENE; x_mix)
-mpg_mix_viscosity = PropsSIIncompressible(CP_V; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
-meg_mix_conductivity = PropsSIIncompressible(CP_L; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_ETHYLENE; x_mix)
-mpg_mix_conductivity = PropsSIIncompressible(CP_L; CP_P; p_mix; CP_T; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_Cp = PropsSIIncompressible(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_Cp = PropsSIIncompressible(CP_ISOBARIC_HEAT_CAPACITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_viscosity = PropsSIIncompressible(CP_DYNAMIC_VISCOSITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_viscosity = PropsSIIncompressible(CP_DYNAMIC_VISCOSITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_PROPYLENE; x_mix)
+meg_mix_conductivity = PropsSIIncompressible(CP_THERMAL_CONDUCTIVITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_ETHYLENE; x_mix)
+mpg_mix_conductivity = PropsSIIncompressible(CP_THERMAL_CONDUCTIVITY; CP_PRESSURE; p_mix; CP_TEMPERATURE; T_mix_K; GLYCOL_PROPYLENE; x_mix)
 meg_freeze = (GlycolFreezeK(GLYCOL_ETHYLENE; x_mix) - 273.15)*°C
 mpg_freeze = (GlycolFreezeK(GLYCOL_PROPYLENE; x_mix) - 273.15)*°C
 meg_density_scalar = PropsSIIncompressibleScalar(CP_D; CP_P; p_mix/Pa; CP_T; T_mix_K/K; GLYCOL_ETHYLENE; x_mix)
@@ -462,6 +469,7 @@ AddConclusion$(Steam state region; steam_region)
 AddConclusion$(Nitrogen state status; n2_status)
 AddConclusion$(Carbon dioxide state status; co2_status)
 AddConclusion$(Complete R134a state status; r134a_status)
+AddConclusion$(R718 water state status; r718_status)
 AddConclusion$(MEG mixture state status; meg_mix_status)
 AddConclusion$(MPG mixture state status; mpg_mix_status)
 EndConclusions$
