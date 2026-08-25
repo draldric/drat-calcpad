@@ -169,7 +169,9 @@ The unified `ThermoPropsStatus` result is `0` for a valid state, or one of the v
 | `HELMHOLTZ_ERR_TWO_PHASE` | 305 | State lies on the saturation boundary and needs phase quality |
 | `HELMHOLTZ_ERR_DENSITY` | 306 | The pressure-temperature density iteration did not converge |
 
-Use `ThermoPropsStatus$(status)` for the unified rendered description, or `If97Status$` and `HelmholtzStatus$` when working directly with a backend.
+`PropsSIStatus` reuses these codes because it validates the same pressure-temperature state after converting unitless pascal and kelvin inputs. `PropsSIIncompressibleStatus` uses `202–204` for key or input-pair failures, `301` for non-positive pressure, and the glycol codes for concentration, temperature, property, and freezing failures.
+
+Use `ThermoPropsStatus$(status)` for the unified rendered description, or `If97Status$`, `HelmholtzStatus$`, and `GlycolStatus$` when working directly with a backend.
 
 ## Bounds and interpolation policies
 

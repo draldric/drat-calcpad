@@ -184,6 +184,8 @@ co2_status = ThermoPropsStatus(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_co2; TH
 co2_density = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
 co2_enthalpy = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
 co2_Cp = ThermoProps(THERMO_OUT_CP; THERMO_IN_PRESSURE; p_co2; THERMO_IN_TEMPERATURE; T_co2; THERMO_CARBON_DIOXIDE)
+co2_density_SI = PropsSI(CP_D; CP_P; p_co2/Pa; CP_T; T_co2/K; THERMO_CARBON_DIOXIDE)
+co2_density_SI_macro = PropsSI$(D; P; p_co2/Pa; T; T_co2/K; CarbonDioxide)
 #show
 
 #novar
@@ -198,6 +200,8 @@ ThermoPropsStatus$(n2_status)
 ThermoPropsStatus$(co2_status)
 '</td></tr>
 '<tr><td>Density</td><td>'n2_density'</td><td>'co2_density'</td></tr>
+'<tr><td>Unitless SI density through PropsSI</td><td>Not queried</td><td>'co2_density_SI'</td></tr>
+'<tr><td>Unitless SI density through PropsSI macro</td><td>Not queried</td><td>'co2_density_SI_macro'</td></tr>
 '<tr><td>Specific enthalpy</td><td>'n2_enthalpy'</td><td>'co2_enthalpy'</td></tr>
 '<tr><td>Specific isobaric heat capacity</td><td>'n2_Cp'</td><td>'co2_Cp'</td></tr>
 '</tbody>

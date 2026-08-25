@@ -185,7 +185,7 @@ ShowThermoFluidRecord$(THERMO_EG_50)
 ShowThermoProperty$(THERMO_EG_50; THERMO_P_DENSITY; T_process)
 ```
 
-The curve backend is limited to water and 50% ethylene glycol curves from 10 °C through 95 °C.
+The remaining sampled curve backend covers selected water properties. The legacy 50% ethylene-glycol helpers now dispatch to concentration-aware equations, and the same library supports aqueous ethylene and propylene glycol from 0% through 60% glycol by mass.
 The same library also provides IAPWS-IF97 Region 1 and Region 2 pressure-temperature properties:
 
 ```text
@@ -199,6 +199,15 @@ rho = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATU
 `ThermoProps` uses a CoolProp-shaped output/input/value/input/value/fluid signature while retaining CalcPad units. The pressure and temperature inputs may be supplied in either order.
 Out-of-range, unsupported-region, and saturation-line states return an explicit status and a dimensioned undefined property value.
 The same interface accepts `THERMO_NITROGEN`, `THERMO_CARBON_DIOXIDE`, and the supported pure refrigerant constants; their thermodynamic outputs are calculated from fundamental Helmholtz equations rather than sampled tables. `THERMO_R744` aliases the carbon-dioxide model.
+
+For translating unitless CoolProp calculations, use the SI compatibility interface:
+
+```text
+rho_SI = PropsSI(CP_D; CP_P; 100000; CP_T; 300; THERMO_NITROGEN)
+rho_SI_readable = PropsSI$(D; P; 100000; T; 300; Nitrogen)
+```
+
+Both return a unitless density in `kg/m^3`. The macro tokens are unquoted because CalcPad expands them before parsing; use the numeric form for generated worksheets.
 See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying either backend to a design state.
 
 ## Verify the work

@@ -3,7 +3,7 @@
 `Libraries/Thermophysical/ThermophysicalProperties.cpd` is the generated, self-contained DRAT property library for thermal and fluid calculations.
 It does not require CoolProp or another property engine at worksheet runtime.
 
-Release `0.6.0` provides four complementary backends and one unified state-query interface:
+Release `0.7.0` provides four complementary backends and two state-query interfaces:
 
 - Water specific heat, saturation pressure, and latent heat of vaporization.
 - Equation-based density, specific heat, dynamic viscosity, thermal conductivity, and freezing limits for aqueous ethylene-glycol and propylene-glycol mixtures from 0% through 60% glycol by mass.
@@ -11,6 +11,7 @@ Release `0.6.0` provides four complementary backends and one unified state-query
 - IAPWS-IF97 Region 4 forward and inverse saturation equations plus the B23 boundary used for region selection.
 - Fundamental Helmholtz equations of state for pure nitrogen, carbon dioxide, R11, R12, R13, R134a, R32, R1234yf, R290, R600a, R717, and propylene glycol, including gas, liquid, and supercritical pressure-temperature states.
 - A CoolProp-shaped `ThermoProps` selector over the implemented equation backends.
+- A unitless-SI `PropsSI` compatibility selector and preprocessing-macro call form.
 
 These curves reproduce the values embedded in the migrated tank-heating calculation.
 They were sampled from CoolProp through SMath plugin build `6.4.8214.13502`.
@@ -37,11 +38,43 @@ h = ThermoProps(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERA
 h_status = ThermoPropsStatus(THERMO_OUT_ENTHALPY; THERMO_IN_PRESSURE; 3MPa; THERMO_IN_TEMPERATURE; 500K; THERMO_WATER)
 ```
 
-The two inputs can be supplied in either order. Version `0.6.0` supports the pressure-temperature pair for `THERMO_WATER` and every pure-fluid constant listed below. Glycol-water mixtures use the separate concentration-aware API because concentration is a required input. Unsupported fluids, outputs, inputs, repeated inputs, unavailable IF97 regions, out-of-range Helmholtz states, and saturation-boundary states return explicit statuses. `ThermoPropsStatus$(status)` renders the unified, IF97, or Helmholtz status; a successful non-water query renders the backend-neutral `Valid thermophysical state` message.
+The two inputs can be supplied in either order. Version `0.7.0` supports the pressure-temperature pair for `THERMO_WATER` and every pure-fluid constant listed below. Glycol-water mixtures use a separate concentration-aware API because concentration is a required input. Unsupported fluids, outputs, inputs, repeated inputs, unavailable IF97 regions, out-of-range Helmholtz states, and saturation-boundary states return explicit statuses. `ThermoPropsStatus$(status)` renders the unified, IF97, or Helmholtz status; a successful non-water query renders the backend-neutral `Valid thermophysical state` message.
 
 Input IDs are `THERMO_IN_PRESSURE` and `THERMO_IN_TEMPERATURE`. Output IDs are `THERMO_OUT_SPECIFIC_VOLUME`, `THERMO_OUT_DENSITY`, `THERMO_OUT_ENTHALPY`, `THERMO_OUT_INTERNAL_ENERGY`, `THERMO_OUT_ENTROPY`, `THERMO_OUT_CP`, `THERMO_OUT_CV`, and `THERMO_OUT_SOUND_SPEED`.
 
 Unlike CoolProp's `PropsSI`, values are passed and returned with CalcPad units instead of unitless SI numbers. The ID-based interface also avoids fragile string comparisons in generated worksheets. Its call shape is reserved for future pressure-enthalpy, pressure-entropy, and quality input pairs.
+
+## PropsSI compatibility interface
+
+`PropsSI` uses CoolProp's six-argument order and unitless SI values while retaining numeric keys and fluid IDs:
+
+```text
+rho = PropsSI(CP_D; CP_P; 100000; CP_T; 300; THERMO_NITROGEN)
+h = PropsSI(CP_H; CP_T; 300; CP_P; 100000; THERMO_NITROGEN)
+status = PropsSIStatus(CP_D; CP_P; 100000; CP_T; 300; THERMO_NITROGEN)
+```
+
+Pressure inputs are pascals, temperature inputs are kelvins, and outputs are unadorned SI numbers. Supported pure-fluid output keys are `CP_P`, `CP_T`, `CP_D`/`CP_DMASS`, `CP_H`/`CP_HMASS`, `CP_U`/`CP_UMASS`, `CP_S`/`CP_SMASS`, `CP_C`/`CP_CPMASS`, `CP_CV`/`CP_CVMASS`, `CP_A`/`CP_SPEED_OF_SOUND`, and the DRAT extension `CP_VSPEC`. Only the `CP_P` and `CP_T` input pair is currently accepted, in either order.
+
+For hand-authored worksheets, a preprocessing macro provides a call that is visually close to CoolProp:
+
+```text
+rho = PropsSI$(D; P; 100000; T; 300; Nitrogen)
+h = PropsSI$(H; T; 300; P; 100000; R134a)
+```
+
+CalcPad string macros are expanded before numeric parsing, so the key and fluid tokens are deliberately unquoted. This is not runtime string dispatch: computed strings, backend prefixes, arbitrary aliases, and composition syntax inside a fluid name cannot be accepted. Use the numeric `PropsSI` form for generated calculations.
+
+Aqueous glycol concentration therefore uses an explicit seventh argument:
+
+```text
+rho_pg = PropsSIIncompressible(CP_D; CP_T; 313.15; CP_P; 101325; GLYCOL_PROPYLENE; 0.30)
+mu_eg = PropsSIIncompressible(CP_V; CP_P; 101325; CP_T; 333.15; GLYCOL_ETHYLENE; 0.50)
+```
+
+The incompressible selector supports `CP_D`, `CP_C`, `CP_V` for dynamic viscosity, and `CP_L` for thermal conductivity. Pressure must be positive but does not alter the current incompressible correlations. Concentration, temperature, and freezing limits remain enforced by `PropsSIIncompressibleStatus`.
+
+`ThermoProps` remains recommended for native CalcPad worksheets because unit-bearing values catch more input and dimensional errors. `PropsSI` is intended for easier translation of existing CoolProp-style equations and for numeric code generation.
 
 ## Pure-fluid Helmholtz equations
 

@@ -5,9 +5,9 @@
 '<!-- Status-aware thermophysical property curves. -->
 
 #def ThermophysicalPropertiesLibraryName$ = DRAT Thermophysical Properties Library
-#def ThermophysicalPropertiesLibraryRevision$ = 0.6.0
+#def ThermophysicalPropertiesLibraryRevision$ = 0.7.0
 #def ThermophysicalPropertiesLibraryDate$ = 2026-08-24
-#def ThermophysicalPropertiesLibraryScope$ = Equation-based density, specific heat, dynamic viscosity, thermal conductivity, and freezing limits for aqueous ethylene-glycol and propylene-glycol mixtures from zero to 60 percent glycol by mass; IAPWS-IF97 equations for stable single-phase water and steam in Regions 1 and 2; and fundamental Helmholtz equations for pure nitrogen, carbon dioxide, R11, R12, R13, R134a, R32, R1234yf, R290, R600a, R717, and propylene glycol pressure-temperature states. Pure ethylene glycol, pure-fluid transport properties, mixtures including R401A, two-phase quality calculations, IF97 Region 3, IF97 Region 5, and metastable steam are not implemented.
+#def ThermophysicalPropertiesLibraryScope$ = Unit-aware ThermoProps and unitless-SI PropsSI-shaped pressure-temperature selectors; equation-based density, specific heat, dynamic viscosity, thermal conductivity, and freezing limits for aqueous ethylene-glycol and propylene-glycol mixtures from zero to 60 percent glycol by mass; IAPWS-IF97 equations for stable single-phase water and steam in Regions 1 and 2; and fundamental Helmholtz equations for supported pure-fluid pressure-temperature states. Runtime string keys, pure ethylene glycol, pure-fluid transport properties, refrigerant mixtures, two-phase quality calculations, IF97 Region 3, IF97 Region 5, and metastable steam are not implemented.
 
 THERMO_SRC_COOLPROP_SMATH = 1
 THERMO_SRC_IAPWS_IF97 = 2
@@ -44,6 +44,17 @@ THERMO_R744 = THERMO_CARBON_DIOXIDE
 THERMO_PROPANE = THERMO_R290
 THERMO_ISOBUTANE = THERMO_R600A
 THERMO_AMMONIA = THERMO_R717
+THERMO_Water = THERMO_WATER
+THERMO_Nitrogen = THERMO_NITROGEN
+THERMO_CarbonDioxide = THERMO_CARBON_DIOXIDE
+THERMO_CO2 = THERMO_CARBON_DIOXIDE
+THERMO_Propane = THERMO_R290
+THERMO_Isobutane = THERMO_R600A
+THERMO_Ammonia = THERMO_R717
+THERMO_R134a = THERMO_R134A
+THERMO_R1234yf = THERMO_R1234YF
+THERMO_R600a = THERMO_R600A
+THERMO_PropyleneGlycol = THERMO_PROPYLENE_GLYCOL
 
 ThermoFluidIDs = [101; 201; 301; 302; 303; 304; 305; 306; 307; 308; 309; 310; 311; 312]
 
@@ -625,6 +636,46 @@ ThermoProps(output; input_1; value_1; input_2; value_2; fluid) = $block{status =
         HelmholtzStatus$(status$)
     #end if
 #end def
+
+'<!-- CoolProp-shaped unitless-SI compatibility interface. -->
+
+CP_P = 1
+CP_T = 2
+CP_D = 3
+CP_H = 4
+CP_U = 5
+CP_S = 6
+CP_C = 7
+CP_CV = 8
+CP_A = 9
+CP_V = 10
+CP_L = 11
+CP_VSPEC = 12
+CP_DMASS = CP_D
+CP_HMASS = CP_H
+CP_UMASS = CP_U
+CP_SMASS = CP_S
+CP_CPMASS = CP_C
+CP_CVMASS = CP_CV
+CP_SPEED_OF_SOUND = CP_A
+PropsSIInputIDs = [CP_P; CP_T]
+PropsSIOutputIDs = [CP_P; CP_T; CP_D; CP_H; CP_U; CP_S; CP_C; CP_CV; CP_A; CP_VSPEC]
+PropsSIHasInput(input) = DBHasID(PropsSIInputIDs; input)
+PropsSIHasOutput(output) = DBHasID(PropsSIOutputIDs; output)
+PropsSIHasPTPair(input_1; input_2) = or(and(input_1 ≡ CP_P; input_2 ≡ CP_T); and(input_1 ≡ CP_T; input_2 ≡ CP_P))
+PropsSIPressurePa(input_1; value_1; input_2; value_2) = if(input_1 ≡ CP_P; value_1; value_2)
+PropsSITemperatureK(input_1; value_1; input_2; value_2) = if(input_1 ≡ CP_T; value_1; value_2)
+PropsSIMapOutput(output) = switch(output ≡ CP_VSPEC; THERMO_OUT_SPECIFIC_VOLUME; output ≡ CP_D; THERMO_OUT_DENSITY; output ≡ CP_H; THERMO_OUT_ENTHALPY; output ≡ CP_U; THERMO_OUT_INTERNAL_ENERGY; output ≡ CP_S; THERMO_OUT_ENTROPY; output ≡ CP_C; THERMO_OUT_CP; output ≡ CP_CV; THERMO_OUT_CV; output ≡ CP_A; THERMO_OUT_SOUND_SPEED; THERMO_OUT_DENSITY)
+PropsSIStatus(output; input_1; value_1; input_2; value_2; fluid) = $block{output_ok = PropsSIHasOutput(output); input_1_ok = PropsSIHasInput(input_1); input_2_ok = PropsSIHasInput(input_2); pair_ok = PropsSIHasPTPair(input_1; input_2); query_ok = and(output_ok; input_1_ok; input_2_ok; pair_ok); pressure = if(query_ok; PropsSIPressurePa(input_1; value_1; input_2; value_2)*Pa; 0Pa); temperature = if(query_ok; PropsSITemperatureK(input_1; value_1; input_2; value_2)*K; 0K); mapped_output = PropsSIMapOutput(output); backend_status = if(query_ok; ThermoPropsStatus(mapped_output; THERMO_IN_PRESSURE; pressure; THERMO_IN_TEMPERATURE; temperature; fluid); THERMO_PROPS_OK); switch(not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; backend_status);}
+PropsSIValue(output; pressure_Pa; temperature_K; fluid) = $block{mapped_output = PropsSIMapOutput(output); unit_value = ThermoProps(mapped_output; THERMO_IN_PRESSURE; pressure_Pa*Pa; THERMO_IN_TEMPERATURE; temperature_K*K; fluid); switch(output ≡ CP_P; pressure_Pa; output ≡ CP_T; temperature_K; output ≡ CP_VSPEC; unit_value/(m^3/kg); output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_H; unit_value/(J/kg); output ≡ CP_U; unit_value/(J/kg); output ≡ CP_S; unit_value/(J/(kg*K)); output ≡ CP_C; unit_value/(J/(kg*K)); output ≡ CP_CV; unit_value/(J/(kg*K)); output ≡ CP_A; unit_value/(m/s); 0/0);}
+PropsSI(output; input_1; value_1; input_2; value_2; fluid) = $block{status = PropsSIStatus(output; input_1; value_1; input_2; value_2; fluid); pressure_Pa = if(status ≡ THERMO_PROPS_OK; PropsSIPressurePa(input_1; value_1; input_2; value_2); 0); temperature_K = if(status ≡ THERMO_PROPS_OK; PropsSITemperatureK(input_1; value_1; input_2; value_2); 0); if(status ≡ THERMO_PROPS_OK; PropsSIValue(output; pressure_Pa; temperature_K; fluid); 0/0);}
+#def PropsSI$(output$; input_1$; value_1$; input_2$; value_2$; fluid$) = PropsSI(CP_output$; CP_input_1$; value_1$; CP_input_2$; value_2$; THERMO_fluid$)
+
+PropsSIIncompressibleOutputIDs = [CP_D; CP_C; CP_V; CP_L]
+PropsSIIncompressibleHasOutput(output) = DBHasID(PropsSIIncompressibleOutputIDs; output)
+PropsSIIncompressibleProperty(output) = switch(output ≡ CP_D; THERMO_P_DENSITY; output ≡ CP_C; THERMO_P_SPECIFIC_HEAT; output ≡ CP_V; THERMO_P_DYNAMIC_VISCOSITY; output ≡ CP_L; THERMO_P_THERMAL_CONDUCTIVITY; 0)
+PropsSIIncompressibleStatus(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{output_ok = PropsSIIncompressibleHasOutput(output); input_1_ok = PropsSIHasInput(input_1); input_2_ok = PropsSIHasInput(input_2); pair_ok = PropsSIHasPTPair(input_1; input_2); pressure_Pa = if(pair_ok; PropsSIPressurePa(input_1; value_1; input_2; value_2); 0); temperature_K = if(pair_ok; PropsSITemperatureK(input_1; value_1; input_2; value_2); 0); backend_status = if(and(output_ok; input_1_ok; input_2_ok; pair_ok; pressure_Pa > 0); GlycolPROPStatus(family; PropsSIIncompressibleProperty(output); (temperature_K - 273.15)*°C; glycol_mass_fraction); GLYCOL_OK); switch(not(output_ok); THERMO_PROPS_ERR_OUTPUT; not(input_1_ok); THERMO_PROPS_ERR_INPUT; not(input_2_ok); THERMO_PROPS_ERR_INPUT; not(pair_ok); THERMO_PROPS_ERR_INPUT_PAIR; pressure_Pa ≤ 0; HELMHOLTZ_ERR_PRESSURE_LOW; backend_status);}
+PropsSIIncompressible(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction) = $block{status = PropsSIIncompressibleStatus(output; input_1; value_1; input_2; value_2; family; glycol_mass_fraction); temperature_K = if(status ≡ GLYCOL_OK; PropsSITemperatureK(input_1; value_1; input_2; value_2); 273.15); property = PropsSIIncompressibleProperty(output); unit_value = if(status ≡ GLYCOL_OK; GlycolPROP(family; property; (temperature_K - 273.15)*°C; glycol_mass_fraction); GlycolUndefined(property)); if(status ≡ GLYCOL_OK; switch(output ≡ CP_D; unit_value/(kg/m^3); output ≡ CP_C; unit_value/(J/(kg*K)); output ≡ CP_V; unit_value/(Pa*s); output ≡ CP_L; unit_value/(W/(m*K)); 0/0); 0/0);}
 
 ThermoApplyUnits(property; value) = switch(property ≡ THERMO_P_DENSITY; setunits(value; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(value; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(value; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(value; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(value; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(value; kJ/kg); 0/0)
 ThermoUndefined(property) = switch(property ≡ THERMO_P_DENSITY; setunits(0/0; kg/m^3); property ≡ THERMO_P_SPECIFIC_HEAT; setunits(0/0; J/(kg*K)); property ≡ THERMO_P_DYNAMIC_VISCOSITY; setunits(0/0; Pa*s); property ≡ THERMO_P_THERMAL_CONDUCTIVITY; setunits(0/0; W/(m*K)); property ≡ THERMO_P_SATURATION_PRESSURE; setunits(0/0; kPa); property ≡ THERMO_P_LATENT_HEAT; setunits(0/0; kJ/kg); 0/0)
