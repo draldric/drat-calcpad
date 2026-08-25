@@ -4,7 +4,7 @@
 
 - Repository inputs: `ThermophysicalProperties.json`, `HelmholtzFluids.json`, and `IncompressibleGlycols.json`
 - Dataset revision: 0.7.0, dated 2026-08-24
-- Main JSON SHA-256 at audit: `76bf2fe6c5f797f599d9745116e9bacbecf9ed2b78c6bdc706693e9a77a2b259`
+- Main JSON SHA-256 at audit: `54f12aa5894bcf86335cfa4a94e088e0ccac2516668e2769329a6f0f30280cec`
 - Helmholtz JSON SHA-256 at audit: `2f29ec3fdd7774d9f2d85d16a8d3593aeaeb07f48f2b496c5b4067631a47b288`
 - Incompressible-glycol JSON SHA-256 at audit: `209943e5c3506ae9ef4b904352b0f116395f3d6b3428805c9d7f53d4eb2df8b5`
 - Source engine: CoolProp sampled through SMath plugin build `6.4.8214.13502`

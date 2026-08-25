@@ -200,14 +200,14 @@ rho = ThermoProps(THERMO_OUT_DENSITY; THERMO_IN_PRESSURE; p; THERMO_IN_TEMPERATU
 Out-of-range, unsupported-region, and saturation-line states return an explicit status and a dimensioned undefined property value.
 The same interface accepts `THERMO_NITROGEN`, `THERMO_CARBON_DIOXIDE`, and the supported pure refrigerant constants; their thermodynamic outputs are calculated from fundamental Helmholtz equations rather than sampled tables. `THERMO_R744` aliases the carbon-dioxide model.
 
-For translating unitless CoolProp calculations, use the SI compatibility interface:
+For a CoolProp-shaped call with CalcPad dimensional checking, use the unit-aware compatibility interface:
 
 ```text
-rho_SI = PropsSI(CP_D; CP_P; 100000; CP_T; 300; THERMO_NITROGEN)
-rho_SI_readable = PropsSI$(D; P; 100000; T; 300; Nitrogen)
+rho = PropsSI(CP_D; CP_P; 100kPa; CP_T; 300K; THERMO_NITROGEN)
+rho_readable = PropsSI$(D; P; 100kPa; T; 300K; Nitrogen)
 ```
 
-Both return a unitless density in `kg/m^3`. The macro tokens are unquoted because CalcPad expands them before parsing; use the numeric form for generated worksheets.
+Both return a dimensioned density. The macro tokens are unquoted because CalcPad expands them before parsing; use the numeric form for generated worksheets. Existing raw-SI calculations can instead call `PropsSIScalar`, which accepts pascal and kelvin magnitudes and returns an unadorned SI number.
 See the [Thermophysical Properties library reference](ThermophysicalProperties.md) before applying either backend to a design state.
 
 ## Verify the work
